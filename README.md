@@ -14,7 +14,7 @@
 
 ## 快速开始
 
-1.**安装 bai**  
+1. **安装 bai**  
    在终端中执行命令：
    ```bash
    curl https://raw.githubusercontent.com/hornleaf/bai/refs/heads/main/bai | install -vm 755 /dev/stdin /usr/bin/bai
