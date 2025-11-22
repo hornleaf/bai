@@ -2128,8 +2128,8 @@ $(jq -C <<< '{
     退出状态:
       通常是不确定的，一般情况下仅在发生错误时返回非零值
 
-  $(Set-Link-Text "$arg0" "https://gitee.com/hornleaf/bai") 命令行工具 项目地址: <${c4}https://gitee.com/hornleaf/bai${c0}> 
-  请向 <${c4}hornleaf_cn@outlook.com${c0}> 或 <${c4}https://gitee.com/hornleaf/bai/issues${c0}> 反馈
+  $(Set-Link-Text "$arg0" "https://github.com/hornleaf/bai") 命令行工具 项目地址: <${c4}https://github.com/hornleaf/bai${c0}> 
+  请向 <${c4}hornleaf_cn@outlook.com${c0}> 或 <${c4}https://github.com/hornleaf/bai/issues${c0}> 反馈
   问题或提出改进性建议
   \n"
       exit
