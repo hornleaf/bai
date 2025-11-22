@@ -1,6 +1,6 @@
 # bai
 
-一个便携式 Bash 终端助手，支持多轮对话、流式处理、命令执行、微调分析等功能，灵感来自 [openai-terminal-assistant](https://github.com/worthable/openai-terminal-assistant)。
+一个便携式 Bash 终端助手，支持多轮对话、流式处理、命令执行、工具调用等功能，灵感来自 [openai-terminal-assistant](https://github.com/worthable/openai-terminal-assistant)。
 ![bai](preview.png)
 
 ## 主要特性
