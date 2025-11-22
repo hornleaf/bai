@@ -25,9 +25,9 @@
    export OPENAI_BASE_URL="https://api.bailili.com/v1"
    ```
 
-2. **运行脚本**
+2. **以流式对话运行脚本**
    ```bash
-   bai
+   bai -n    # or --stream
    ```
 
 3. **常用指令**
