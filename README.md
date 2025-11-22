@@ -14,7 +14,13 @@
 
 ## 快速开始
 
-1. **准备环境变量**  
+1.**安装 bai**
+   在终端中执行命令：
+   ```bash
+   curl https://raw.githubusercontent.com/hornleaf/bai/refs/heads/main/bai | install -vm 755 /dev/stdin /usr/bin/bai
+   ```
+
+2. **准备环境变量**  
    需设置 `OPENAI_API_KEY` 和 `OPENAI_API_MODEL`，如：
    ```bash
    export OPENAI_API_KEY="你的API密钥"
@@ -25,12 +31,12 @@
    export OPENAI_BASE_URL="https://api.bailili.com/v1"
    ```
 
-2. **以流式对话运行脚本**
+3. **以流式对话运行脚本**
    ```bash
    bai -n    # or --stream
    ```
 
-3. **常用指令**
+4. **常用指令**
    - `.help` 查看所有指令帮助
    - `.exit` 退出会话
    - `.run <命令>` 执行 Shell 命令
