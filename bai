@@ -2131,8 +2131,7 @@ $(jq -C <<< '{
   $(Set-Link-Text "$arg0" "https://gitee.com/hornleaf/bai") 命令行工具 项目地址: <${c4}https://gitee.com/hornleaf/bai${c0}> 
   请向 <${c4}hornleaf_cn@outlook.com${c0}> 或 <${c4}https://gitee.com/hornleaf/bai/issues${c0}> 反馈
   问题或提出改进性建议
-  
-  ** 开个玩笑，仓库项目里根本没有这么多功能，全让我自个私吞了\n"
+  \n"
       exit
   esac
 done
