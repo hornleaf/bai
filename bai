@@ -1,0 +1,3489 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash disable=1102,2068,2145,2104,2199,1105
+
+# =======================================================
+# set -x  # 调试输出
+# set -o  # 发生错误时立即退出
+set -o emacs # 显式启用 Emacs 模式
+
+# =======================================================
+# 灵感来自 https://github.com/worthable/openai-terminal-assistant
+# 该项目使用 curl 和 jq 简单调用和插入文件调用 OpenAI API 进行一次对话
+# 基于此灵感本脚本延生出多轮对话、流式处理、微调分析、命令执行等方法
+
+# =======================================================
+# 现加入 ConEmu 进度指示特性 (OSC 序列)
+# 参考 https://learn.microsoft.com/zh-cn/windows/terminal/tutorials/progress-bar-sequences
+# 指示序列：<OSC>9;4;<状态>;<进度:可选,0-100><响铃序列>
+# <状态> 有五个状态值：
+#   #1: 默认状态，清除进度指示
+#   #2: 将进度设置为 <进度>，处于“默认”状态
+#   #3: 行为同 #2, 但状态处于“错误”
+#   #4: 将进度状态设置为 “不确定”，此时将忽略 <进度>
+
+# =======================================================
+# Bash 迎来更新 ( 5.2.37 ~ 5.3.0 )，Bai 将积极使用新的脚本特性
+# 新的命令替换
+#   * ${ command; }   # 无需创建子进程，即可获取命令输出
+#   * ${| command; }  # 直接在当前 Shell 中执行命令，并将结果存入变量 REPLY
+# 内建命令增强
+#   * read     # 新增选项 `-E`，在 `-e` 的基础上增强了补全功能，可以使用当前 Shell 已加载的补全函数
+#   * source   # 新增选项 `-p <PATH>`，该选项将在指定的一组 PATH 路径中寻找文件名并执行，例：
+#       source -p dir/to/path:home/user example
+# 更多更新内容参见 https://tiswww.case.edu/php/chet/bash/NEWS
+
+# =======================================================
+# 一些扩展性支持
+# 对于 BAI 内置函数的额外注释，以期通过 bash-language-server 提供更好的补全和提示
+# 对于 BAI 会话的指令补全，此为 Bash 5.3x 新增特性，参考上述描述，此功能以期提供更好的使用体验
+# 对于命令行参数补全功能，将提供较为灵活的补全方式，以期提供更好的命令行使用体验
+
+
+# 对于非中国区域语言的不适用警告
+[[ "${LANG:-C.UTF-8}" =~ ^zh_(CN|HK|TW).+$ ]] || echo 'WARNING: Non Chinese regions may not function properly.' >&2
+
+# 对于未跟进最新的 Bash 的不适用警告和部分向下兼容
+BASH_LATEST_VERSION=5.3
+if [[ "$BASH_VERSION" =~ ^"$BASH_LATEST_VERSION" ]];then
+  complete -r;local_complete=true
+  read_e_option=-E
+else
+  echo -e "WARNING: 非 Bash ${BASH_LATEST_VERSION}x 版本可能导致无法正常运行" >&2
+  local_complete=false
+  read_e_option=-e
+fi
+
+# 拦截脚本内容执行
+[[ "$0" == "$BASH" ]] && echo "ERROR: 不允许以命令方式执行脚本内容" && return
+
+BAI_OS_TYPE=$(uname)
+# BAI_OS_TYPE=unknown     # test
+case ${BAI_OS_TYPE,,} in
+  linux*):;;              # pass
+  darwin*)OSE="MacOS X";; # MacOS
+  msys*)OSE="WindowsNT (MSYS2)";;
+  *)OSE="$BAI_OS_TYPE (未知)";; 
+esac
+[ -n "$OSE" ] && echo "WARNING: 所在系统 \"$OSE\" 未经测试适配，您可继续使用但建议在 Linux 中使用本项目" >&2
+
+########################################################################
+# 颜色
+########################################################################
+
+c0='\e[0m' c4='\e[4m' c31='\e[31m' c32='\e[32m' c33='\e[33m' c34='\e[34m'
+c35='\e[35m' c36='\e[36m' h25='\e[?25h' l25='\e[?25l' ek='\e[K'
+nocolor_command="exec &> >(sed -r \"s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g;s/\x1B]8;;(.*?)\x07(.*?)\x1B]8;;\x07/\2/g\")"
+case "${BAI_COLOR:-auto}" in
+  auto) [ ! -t 1 ] && eval "$nocolor_command";;
+  always):;;
+  never) eval "$nocolor_command";;
+  *) exec echo "未知的颜色设置: $BAI_COLOR" >&2;;
+esac
+########################################################################
+# 函数
+########################################################################
+
+# 计时器 毫秒（ms）
+# 用法: Get-Timer
+# 行为控制:
+#       变量 timer_start, timer_end, Get_Timer
+#       计时器开始时（第一次调用），将变量 timer_start 设置为当前时间
+#       计时器结束时（第二次调用），将变量 timer_end 设置为当前时间
+#       第二次调用结束时将结果存储在变量 Get_Timer 中，并重置变量 timer_start 和 timer_end，下一次将重新开始计时
+Get-Timer(){
+  local date="date +%s%3N"
+  local keys=("${1:-timer}_start" "${1:-timer}_end" "Get_${1:-}Timer")
+  if ! [ "${!keys[0]}" ];then
+    unset -v "${keys[2]}"
+    builtin printf -v ${keys[0]} "$($date)"
+  else
+    builtin printf -v ${keys[1]} "$($date)"
+    builtin printf -v ${keys[2]} "$((${!keys[1]} - ${!keys[0]}))"
+    builtin printf -v ${keys[2]} "%'d ms" ${!keys[2]}
+    unset -v "${keys[0]}" "${keys[1]}"
+  fi
+}
+# 脚本初始化计时
+Get-Timer
+
+########################################################################
+
+# 逐字输出
+# 用法: Print-FakeStream
+# 从标准输入中读取文本，并逐字打印至当前终端
+Print-FakeStream(){
+  local WITH=""
+  local _msg=
+  local _stdin="$(cat -)"
+  local _stdin_num="${#_stdin}"
+  while IFS= read -r LINE;do
+    local STR="$LINE"
+    local LEN=${#STR}
+    for ((i=0;i<LEN;i++));do
+      _msg="${STR:i:1}"
+      WITH+="$_msg"
+      echo -n "$_msg"
+      Set-Osc-Progress info "${#WITH}:${_stdin_num}"
+      sleep 0.001
+    done
+    echo
+  done <<< "$_stdin"
+  Set-Osc-Progress clear
+}
+
+########################################################################
+
+# Bai 会话帮助
+# 用法: Get-Session-Help
+# 显示会话帮助
+Get-Session-Help(){
+  local CHAT_HRLP_ALL=(
+  '.help <指令>?                    显示指令帮助'
+  '.exit <状态码>?                  退出当前会话'
+  '.clear                           清空所有对话'
+  '.copy cat? <索引>?               从最新的对话中复制代码块'
+  '.pass                            空操作，等价于直接回车'
+  '.files <文件>                    向服务提供商上传微调文件'
+  '.file <文件>                     向当前对话提交文件'
+  '.run <命令>                      执行 Shell 命令'
+  '.eval <提示词>                   尝试让大模型生成命令'
+  '.set <配置项>? <值>?             对当前会话属性进行设置'
+  '.record <文件> <操作> [行为]?    记录管理'
+  '.cls                             清除屏幕，或 .run clear'
+  '.list                            列出所有对话记录'
+  )
+
+  declare -A CHAT_HRLP_MSG=(
+      ['help']="用法: .help [指令]?\n  显示指令的帮助信息，若未指定指令，则显示所有指令的简短帮助信息和按键描述"
+      ['exit']="用法: .exit [状态码]?\n  退出当前会话, 如果未指定状态码, 则默认退出状态码为 0"
+     ['clear']="清空当前所有对话记录, 并重置对话轮次"
+      ['copy']="用法: .copy cat? <索引>?\n  从最新一轮的对话中复制代码块\n  未指定 <索引> 时，将提示可复制的代码块数量\n  若指定了 <索引>，则会复制指定索引的代码块\n  若指定了 cat 行为，则会显示但不复制指定索引的代码块内容"
+      ['pass']="空操作，执行后不会发生任何事"
+     ['files']="用法: .files [操作] <文件>|<文件ID>\n  在服务商的知识库管理临时文件\n  操作:\n   list - 列出知识库里的文件\n   push - 上传文件到知识库, <文件>\n   rm   - 删除知识库中的文件, <文件ID>"
+      ['file']="用法: .file <文件>\n  向当前对话提交或覆盖上一次提交的文件"
+       ['run']="用法: .run <命令>\n  以 Bash 执行 Shell 命令\n  配置项 local-execute = true 时（默认禁用）将共享 BAI 的内部 Shell 环境, 否则将在隔离的子进程中执行"
+      ['eval']="用法: .eval <提示词>\n  尝试让大模型生成命令并执行\n  配置项 eval-skipask = true 时（默认禁用），将直接执行生成的命令，不提示确认"
+       ['set']="用法: .set <配置项>? <值>?\n  对当前会话属性进行设置, 所有参数均未指定时，将以可供阅读的形式列出所有配置项和其值、描述\n  若指定了 <配置项>，则会显示指定配置项的值，若指定了<配置项> 和 <值>，则会设置指定配置项的值"
+    ['record']="用法: .record <文件> <操作> [行为]?\n  导入或导出当前对话记录（不包含指令执行）\n  操作:\n    import - 导入对话记录, import <文件>\n    export - 导出对话记录, <文件> export [行为]\n  行为:\n    @no:tool  - 不包含工具调用记录\n    @no:system - 不包含系统提示记录\n    @use:all  - 导出所有记录, 包括敏感信息: API 路径、API 密钥、模型\n    @default  - 默认导出行为，导出所有对话，包括工具调用信息\n  注意: @use:all 导出行为无完全导入兼容，导入时仅使用对话记录"
+       ['cls']="清除屏幕，行为等价于 .run clear"
+      ['list']="列出所有对话记录"
+  )
+
+  local CHAT_KEYS_ALL=(
+  'Ctrl C/D'    '退出当前会话'
+  'Ctrl L'      '清除屏幕 (run command: clear)'
+  'Ctrl R'      '搜索历史输入记录 (如果安装了 fzf 并且未禁用，则使用 fzf 搜索)'
+  'Ctrl G'      '取消搜索 (未替换, Bash 默认行为)'
+  'Ctrl H'      '显示此帮助'
+  'Ctrl Y'      '复制最近轮对话第 1 个代码块'
+  )
+
+  [ "$1" ] && {
+    local __chat_help_stat=false
+    for i in ${!CHAT_HRLP_MSG[@]};do
+      [[ "$i" == "$1" ]] && echo -e "${CHAT_HRLP_MSG["$i"]}\n" && __chat_help_stat=true && return
+    done
+    [[ "$__chat_help_stat" == false ]] && { echo "未找到指令 $1 的帮助"; return 1; }
+  }
+
+cat <<EOF
+${arg0^} 会话指令帮助
+
+$(printf "${c35}指令:${c0}")
+$(printf "  %s\n" "${CHAT_HRLP_ALL[@]}")
+
+$(printf "${c35}按键(其他按键绑定请参考 Bash 官方文档):${c0}")
+$(printf "  ${c32}%-10s${c0}%-4s\n" "${CHAT_KEYS_ALL[@]}")
+
+EOF
+}
+
+########################################################################
+
+# 错误输出并退出
+# 用法: exmsg <message> <echo option>
+# 输入: <message> 错误信息
+#       <echo option> 使用echo命令输出选项，已占用 -e
+exmsg(){
+  exec echo -e $2 "${c0}${c31}错误:${c0} $1" >&2
+}
+
+# 仅错误输出
+# 用法: emsg <message> <echo option>
+# 输入: <message> 错误信息
+#       <echo option> 使用echo命令输出选项，已占用 -e
+emsg(){
+  echo -e $2 "${c0}${c31}错误:${c0} $1" >&2
+}
+
+# 常时输出
+# 用法: msg <message> <echo option>
+# 输入: <message> 输出信息
+#       <echo option> 使用echo命令输出选项，已占用 -e
+msg(){
+  echo -e $2 "${c0}${c35}$arg0:${c0} $1"
+}
+
+# 更具交互性的错误输出
+# 用法: erron <message>
+# 行为控制:
+#         变量 ERRON
+#         为 true 时，会在错误输出前清除当前行，等待 1 秒后恢复
+#         为 false 时，会直接输出错误信息
+erron(){
+  if $ERRON;then
+    printf "${c0}\e[1A\r${ek}"
+    emsg "$1${l25}\e[8m" -n
+    sleep 1
+    printf "\r${h25}\e[28m${ek}"
+  else
+    emsg "$1" $2
+  fi
+}
+
+# 调试输出
+# 用法: debug <message> <echo option>
+# 输入: <message> 调试信息
+#       <echo option> 使用echo命令输出选项，已占用 -e
+# 行为控制:
+#         变量 DEBUG
+#         为 true 时，会输出预定的调试信息
+#         为 false 时，不会输出调试信息
+debug(){
+  ${DEBUG:-false} && echo -e $2 "${c0}${c33}debug:${c0} $1" >&2
+}
+
+# 退出时
+# 用法: bye
+# 行为控制:
+#       变量 trap
+#       为 true 时，会在退出前输出 [Ctrl-C] 提示
+bye(){
+  Wait-Task kill
+  printf "${h25}\r${c0}${c32}"
+  ${trap:-false} && printf "[Ctrl-C]${c0} "
+  msg "$bye_prompt${ek}${c0}"
+  exit
+}
+
+########################################################################
+
+# 切换模型
+# 用法: Switch-Model <模型>
+# 输入: <模型> 模型名称
+Switch-Model(){
+  local model=$1
+  if [[ -z "$model" ]];then
+    erron "请指定模型"
+    return
+  fi
+  debug "切换模型为 $model"
+  if [[ "$model" == "$(jq -r .model <<<"$data")" ]];then
+    msg "重复的设置"
+    return
+  fi
+  if [[ " ${OPENAI_API_MODEL_in_array[*]} " == *" $model "* ]];then
+    data="$(jq --arg model "$model" '.model = $model' <<<"$data")"
+    old_data="$(jq --arg model "$model" '.model = $model' <<<"$old_data")"
+    msg "已切换为 $model"
+  else
+    erron "未知的模型 $model"
+  fi
+}
+
+########################################################################
+
+# 设置会话功能
+# 用法: Set-Session-Functions <别名> <true|false>
+# 设置 BAI 会话功能
+# 未指定 <别名> 时，会以列表显示当前设置状态
+# 未指定 <true|false> 时，会显示 <别名> 当前状态
+Set-Session-Functions(){
+  local alias value type name key
+  case "$#" in
+    0)
+      printf "${c34}%-26s${c35}%-17s${c33}%s${c0}\n" "别名" "值" "描述"
+      for ((i=0;i<${#SET[@]};i++));do
+        key=${SET_ALIAS[i]}
+        alias=${key%:*}
+        description=${SET_DESCRIPTION[i]}
+        value=${!SET[i]}
+        ((${#value}>=10)) && value="${value:0:10}..."
+        printf "${c32}%-24s\e[1;34m%-16s\e[1;37m%s${c0}\n" "$alias" "$value" "$description"
+      done
+      printf "\n"
+      ;;
+    1)
+      alias=$1
+      for ((i=0;i<${#SET[@]};i++));do
+        key=${SET_ALIAS[i]}
+        type=${key%:*}
+        value=${!SET[i]}
+        if [[ "$alias" == "$type" ]];then
+          debug "打印 ${1:-Null} 的当前设置"
+          echo "$value"
+          return
+        fi
+      done
+      erron "未知的选项 $alias"
+      ;;
+    2)
+      alias=$1
+      value=$2
+      for ((i=0;i<${#SET[@]};i++));do
+        key=${SET_ALIAS[i]}
+        type=${key#*:}
+        option=${key%:*}
+        name=${SET[i]}
+        if [[ "$alias" == "$option" ]];then
+          case $type in
+            bool)
+              if [[ "${value}" =~ ^(false|true)$ ]];then
+                debug "设置项为布尔值: $name 的值将被设置为 $value"
+                printf -v "$name" "$value"
+                return
+              else
+                erron "仅允许使用布尔值"
+                return
+              fi
+              ;;
+            string)
+              debug "设置项为字符串值: $name 的值将被设置为 $value"
+              printf -v "$name" "$value"
+              case "$alias" in
+                chat-model)
+                  Switch-Model "$value"
+                  return
+                  ;;
+              esac
+              return
+              ;;
+            number)
+              if [[ "${value}" =~ ^-?[0-9]+(\.[0-9]+)?$ ]];then
+                debug "设置项为数值: $name 的值将被设置为 $value"
+                printf -v "$name" "$value"
+                return
+              else
+                erron "仅允许使用数值"
+                return
+              fi
+              ;;
+            *)
+              erron "未知的类型 $type"
+              return
+              ;;
+          esac
+          return
+        fi
+      done
+      erron "未知的选项 $alias"
+  esac
+}
+
+########################################################################
+
+# 检查文件类型
+# 用法: Check-File-Type <文件路径>
+# 输入: <文件路径> 要检查的文件路径
+# 行为控制:
+#       变量 check_file_type
+#       存储目标文件的大致类型
+# * 作为条件组件使用时，返回值为 0 时为真，1 为假
+Check-File-Type(){
+  local typeof="$(file -b "${1:--}" 2>/dev/null)"
+  local check
+  check_file_type=""
+  [[ "$typeof" =~ ^(.+UTF-8.+|ASCII text|JSON text data)$ ]]
+  case "$typeof" in
+  *UTF-8*|ASCII*|*text*)
+    check_file_type=text
+    check=true
+    ;;
+  *image*)
+    check_file_type=image
+    check=true
+    ;;
+  *)
+    check_file_type=unknown
+    check=false
+    ;;
+  esac
+  $check
+}
+
+# 判断变量类型
+# 用法: Check-Variable-Type <变量名>
+# 输入: <变量名> 要检查的变量名
+# 输出: 变量类型
+# 类型:
+#       zero 空变量
+#       array 数组
+#       number 数值
+#       url 链接
+#       boolean 布尔值
+#       option 选项参数
+#       string 字符串
+#       unknown 未知类型
+Check-Variable-Type(){
+  if [ -z "${!1}" ];then
+    echo "zero"      # 空变量
+  elif declare -p "$1" 2>/dev/null | grep -q 'declare -a';then
+    echo "array"     # 数组
+  elif [[ "${!1}" =~ ^-?[0-9]+(\.[0-9]+)?$ ]];then   
+    echo "number"    # 数值
+  # elif [[ "${!1}" =~ ^([Vv])?[0-9a-zA-Z_-]+(\.[0-9a-zA-Z_-]+)?$ ]];then
+  #   echo "version"   # 版本号，这可能与其他类型冲突，将合并至字符串类型
+  elif [[ "${!1}" =~ ^https?://[0-9a-zA-Z./?=\&%-_]+$ ]];then
+    echo "url"       # 链接
+  elif [[ "${!1,,}" =~ ^(fals|tru)e$ ]];then
+    echo "boolean"   # 布尔值
+  elif [[ "${!1}" =~ ^-{1,2}[0-9a-zA-Z_-]+$ ]];then
+    echo "option"    # 选项参数
+  elif [[ "${!1}" =~ ^.+$ ]];then
+    echo "string"    # 字符串
+  else
+    echo "unknown"   # 未知类型
+  fi
+}
+
+########################################################################
+
+# 等待阻塞任务
+# 用法: Wait-Task <wait|kill|pid>
+# 选项: <wait|kill|pid>
+#       wait 永远等待
+#       kill 杀死进程 （wait）
+#       pid 进程 PID
+# 行为控制:
+#       变量 CHAT
+#       为 true 时，会在等待过程中输出提示信息
+#       为 false 时，<wait> 会立即返回
+Wait-Task(){
+  [ "$__wait_task_frame" ] || Switch-Wait-Frame "${BAI_WAIT_STYLE:-}"
+  local ARG1="$1"
+  local ARG2="$2"
+  local wait_prompt="${l25}\r\e[1;32m%s${c0} ${2:-"正在等待"}"
+  local exit_prompt="${h25}\r${ek}"
+  case "${ARG1:-null}" in
+    null)return;;
+    wait) 
+    # 永远等待
+      Set-Osc-Progress doubt
+      while $CHAT;do
+        for i in "${__wait_task_frame[@]}";do
+          printf "$wait_prompt" "$i" >&2
+          sleep 0.05
+        done
+      done &
+      GETWAIT_PID=$!
+      ;;
+    kill)
+    # 杀死进程 （wait）
+      Set-Osc-Progress clear
+      if kill -0 "$GETWAIT_PID" &>/dev/null;then
+        kill "$GETWAIT_PID" &>/dev/null
+        printf "$exit_prompt" >&2
+      fi
+      ;;
+    *) 
+    # 使用 kill 命令判断进程存在，不存在即停止等待
+      Set-Osc-Progress doubt
+      while $CHAT;do
+        for i in "${__wait_task_frame[@]}";do
+          if kill -0 "$ARG1" &>/dev/null;then
+            printf "$wait_prompt" "$i" >&2
+            sleep 0.05
+          else
+            printf "$exit_prompt" >&2
+            Set-Osc-Progress clear
+            exit 0
+          fi
+        done
+      done
+  esac
+}
+
+########################################################################
+
+# 切换加载等待帧样式
+# 用法: Switch-Wait-Frame <样式>
+# 选项:
+#       <样式> 等待帧样式
+# 样式:
+#       bar 进度条
+#       arc 圆弧
+#       dot 点
+#       line 线
+#       bell 钟
+#       wave 波
+#       roll 滚动
+#       block 方块
+#       arrow 箭头
+#       square 正方形
+#       pushpull 推动拉动
+# 行为控制:
+#       函数 Wait-Task
+#       为 Wait-Task 切换等待帧样式，默认为 bar
+Switch-Wait-Frame(){
+  case "${1:-bar}" in
+    bar) __wait_task_frame=("\\" "|" "/" "-");;
+    arc)  __wait_task_frame=("" "" "" "" "" "");;
+    dot)  __wait_task_frame=(".  " ".  " ".  " ".. " ".. " ".. " "..." "..." "...");;
+    line) __wait_task_frame=("_  " "_  " " _ " " _ " "  _" "  _" " _ " " _ ");;
+    bell) __wait_task_frame=("🕐" "🕑" "🕒" "🕓" "🕔" "🕕" "🕖" "🕗" "🕘" "🕙" "🕚" "🕛");;
+    dice) __wait_task_frame=("⚀" "⚁" "⚂" "⚃" "⚄" "⚅");;
+    wave) __wait_task_frame=("▁" "▂" "▃" "▄" "▅" "▆" "▇" "█" "▇" "▆" "▅" "▄" "▃" "▂");;
+    roll) __wait_task_frame=("Loading... " "oading... L" "ading... Lo" "ding... Loa" "ing... Load" "ng... Loadi" "g... Loadin" "... Loading" ".. Loading." ". Loading.." " Loading...");;
+    block) __wait_task_frame=("■□□" "■□□" "□■□" "□■□" "□□■" "□□■" "□■□" "□■□");;
+    phase) __wait_task_frame=("🌕" "🌖" "🌗" "🌘" "🌑" "🌒" "🌓" "🌔");;
+    arrow) __wait_task_frame=("→" "↘" "↓" "↙" "←" "↖" "↑" "↗");;
+    square) __wait_task_frame=("◰" "◳" "◲" "◱");;
+    points) __wait_task_frame=("𐄙" "𐄚" "𐄛" "𐄜" "𐄝" "𐄞" "𐄟" "𐄠" "𐄡");;
+    pushpull) __wait_task_frame=("▏" "▎" "▍" "▌" "▋" "▊" "▉" "█" "▉" "▊" "▋" "▌" "▍" "▎");;
+    invisible) __wait_task_frame=("Loading..." " oading..." "  ading..." "   ding..." "    ing..." "     ng..." "      g..." "       ..." "        .." "         ." "          " "L         " "Lo        " "Loa       " "Load      " "Loadi     " "Loadin    " "Loading   " "Loading.  " "Loading.. ");;
+    dotmatrix) __wait_task_frame=('⣷' '⣯' '⣟' '⡿' '⢿' '⣻' '⣽' '⣾');;
+    rectangle) __wait_task_frame=("▛" "▙" "▜" "▟");;
+  esac
+}
+
+########################################################################
+
+# 对支持 OSC94 协议的终端设置进度栏状态
+# 用法: Set-Osc-Progress <状态> <进度>
+# 选项:
+#       <状态> 进度栏状态
+#       <进度> 进度值
+# 状态:
+#       info 正常的
+#       error 错误的
+#       doubt 不确定的
+#       warning 警告
+#       clear 重置状态
+# 进度:
+#       * 0-100 整数值
+#       * `:` 分隔的两个整数值：<当前进度:总进度>，自动计算进度百分比
+# 行为控制:
+#       函数 Wait-Task
+#       Wait-Task 将对其设置进度栏状态 doubt，完成后自动重置
+Set-Osc-Progress(){
+  $CONEMU_STATUS || return
+  local _wt_prompt="\e]9;4;%d;%d\a"
+  local _arg2="$2"
+  [[ "$_arg2" == *:* ]] && {
+    local _all_progress="${_arg2#*:}"
+    local _current_progress="${_arg2%:*}"
+    local _arg2="$((_current_progress*100/_all_progress))"
+  }
+  local_num_range(){ 
+    local _type=`Check-Variable-Type _arg2`
+    [[ "$_type" == number ]] || return 1
+    [[ "$_arg2" =~ ^([0-9]|[1-9][0-9]|100)$ ]] || return 1
+  }
+  case "${1:-clear}" in
+    # 正常的
+    info)
+      local_num_range || return
+      printf "$_wt_prompt" 1 "$_arg2" >&2
+      ;;
+    # 错误的
+    error)
+      local_num_range || return
+      printf "$_wt_prompt" 2 "$_arg2" >&2
+      ;;
+    # 不确定的
+    doubt)
+      printf "$_wt_prompt" 3 0 >&2
+      ;;
+    # 警告
+    warning)
+      local_num_range || return
+      printf "$_wt_prompt" 4 "$_arg2" >&2
+      ;;
+    # 重置状态
+    clear|*)
+      printf "$_wt_prompt" 0 0 >&2
+      ;;
+  esac
+}
+
+########################################################################
+
+# 限制文件大小
+# 用法: Limit-FileSize <文件路径> <大小范围>
+# 选项:
+#       <文件路径> 要检查的文件路径
+#       <大小范围> 大小范围，格式为 <最小值>,<最大值>，单位为字节
+Limit-FileSize(){
+  sys_size=$(du -sb "$1" | cut -f1) # 文件大小（字节）
+  min_size=${2%,*}                  # 例：最小 5 字节
+  max_size=${2#*,}                  # 例：最大 10 千字节
+  (((sys_size<min_size))||((sys_size>max_size))) &&
+  exmsg "$arg: 命令提示文件内容不得 [大于 $max_size] / [小于 $min_size]"
+}
+
+########################################################################
+
+# 判断响应错误
+# 用法: Get-Assistant-ReturnError <响应体>
+# 选项:
+#       <响应体> 要检查的响应体
+# 条件依据:
+#       JSON 响应体中必须包含 ".error.message" 字段
+Get-Assistant-ReturnError(){
+  if jq -e '.error' <<< "$1" &>/dev/null;then
+    ERROR_MSG=$(jq --exit-status -r '.error.message' <<< "$1" 2>/dev/null)
+    API_STATUS=$?
+    if ((API_STATUS)) && [[ "$ERROR_MSG" == "null" ]];then
+      ERROR_MSG="该次请求未正确被接受"
+    fi
+    erron "$ERROR_MSG"
+    return 1
+  fi
+}
+
+########################################################################
+
+# BAI 核心请求体
+# 用法: Get-Assistant-Return
+# 行为控制:
+#       变量 OPENAI_BASE_URL[1]*, API_AUTH[2]*, data[3]*
+#       1* 基础 URL
+#       2* API 认证
+#       3* 请求体
+Get-Assistant-Return(){
+  curl -s -X POST \
+    "$OPENAI_BASE_URL/chat/completions" \
+    -H "$API_AUTH" \
+    -H "Content-Type: application/json" \
+    -d "$data" 2>/dev/null ||
+  printf '{"error": {"message": "无法处理此请求"}}'
+}
+
+########################################################################
+
+# 获取命令输出
+# 用法: Get-Command-Output <命令>
+# 选项:
+#       <命令> 要执行的命令
+# 行为控制:
+#       变量 gco_return_content
+#       命令执行完成后，将输出内容存储在变量 gco_return_content 中
+#       变量 gco_status
+#       命令执行完成后，将退出状态存储在变量 gco_status 中
+#       变量 explicitly
+#       为 true 时，命令执行完成后，输出内容将存储在变量 gco_return_content，同时打印到终端
+#       为 false 时，命令执行完成后，输出内容仅存储在变量 gco_return_content 中，不会打印至终端
+Get-Command-Output(){
+  gco_return_content="${
+    Wait-Task wait "工具正在执行命令"
+    eval "$*" 2>&1 |
+    if ${explicitly:-false};then
+      tee /dev/tty
+    else
+      cat
+    fi
+    gco_status=$PIPESTATUS
+    Wait-Task kill
+  }"
+}
+
+########################################################################
+
+# 计算两个字符串的 Levenshtein 距离
+# 用法: Get-Levenshtein <字符串1> <字符串2>
+# 选项:
+#       <字符串1> 要比较的第一个字符串
+#       <字符串2> 要比较的第二个字符串
+Get-Levenshtein(){
+  local str1="$1"
+  local str2="$2"
+  local len1=${#str1}
+  local len2=${#str2}
+  declare -A dp
+  for ((i=0;i<=len1;i++));do
+    dp[$i,0]="$i"
+  done
+  for ((j=0;j<=len2;j++));do
+    dp[0,$j]="$j"
+  done
+  for ((i=1;i<=len1;i++));do
+    for ((j=1;j<=len2;j++));do
+      [[ "${str1:i-1:1}" == "${str2:j-1:1}" ]] && cost=0 ||cost=1
+      insert="$((dp[$((i)),$((j-1))] + 1))"
+      delete="$((dp[$((i-1)),$((j))] + 1))"
+      replace="$((dp[$((i-1)),$((j-1))] + cost))"
+      dp[$i,$j]="$(($insert < $delete ? ($insert < $replace ? $insert : $replace) : ($delete < $replace ? $delete : $replace)))"
+    done
+  done
+  echo "${dp[$len1,$len2]}"
+}
+
+########################################################################
+
+# GNU 实用程序版本
+# 用法: Print-Command-Version <命令>
+# 选项:
+#       <命令> 要检查的命令，基本符合 GNU 规范
+Print-Command-Version(){
+  $1 --version | head -1 | cut -d' ' -f2- | sed 's/(//;s/)//' | Print-HighLight-Number || echo Null
+}
+
+# 高亮数字
+# 用法: Print-HighLight-Number <字符串>
+# 选项:
+#       <字符串> 要高亮的字符串
+Print-HighLight-Number(){
+  sed -E "s/([0-9]+)/\\${c34}\1\\${c0}/g"
+}
+
+########################################################################
+
+# 从模型输出执行命令
+# 用法: Get-Assistant-Command
+# 行为控制:
+#       变量 API_RETURN[1]*, EVAL[2]*, RCSAA[3]*
+#       1* 模型输出
+#       2* 评估状态
+#       3* 确认执行状态
+Get-Assistant-Command(){
+  debug "正在处理模型输出..."
+  local eval_code="$(Get-MarkDown-CodeBlocks cat 1 <<<"$API_RETURN" || echo Null)"
+  [[ "$eval_code" == Null ]] && return
+  if grep -qP '^\s*[\p{Han}]|^`' <<< "$eval_code";then
+    cat <<< "$eval_code"
+    erron "非法的命令内容"
+  else
+    echo -e "\e[1;34m$eval_code${c0}"
+    if ! $RCSAA;then
+      if $__has_extend_gum;then
+        gum confirm "执行命令？" && choose=y || choose=n
+      else
+        msg "执行命令？[y/N] " -n
+        read choose
+      fi
+    fi
+    $RCSAA && choose=yes
+    local choose="${choose,,}"
+    case "${choose:-no}" in
+      yes|y)
+        bash -ic "$eval_code"
+        ;;
+      no|n)
+        echo -e "${c33}取消${c0}"
+    esac
+  fi
+  EVAL=false
+}
+
+########################################################################
+
+# 从 MarkDown 获取并输出代码块内容
+# 用法: Get-MarkDown-CodeBlocks [cat|编号] [编号]
+# 选项:
+#       cat  直接输出代码块内容，不进行任何处理
+#       编号 要提取的代码块编号，从 1 开始
+# 行为控制:
+#       标准输入
+#       从标准输入获取 MarkDown 内容
+Get-MarkDown-CodeBlocks(){
+  [ -t 0 ] && return
+  local content="$(cat)"
+  local cat=false
+  [[ "$1" && "$1" == "cat" ]] && {
+    local cat=true
+    shift
+  }
+  local block_number="$1"
+  # 如果指定了代码块编号，确保其为正整数
+  [ -n "$block_number" ] && { [[ "$block_number" =~ ^[0-9]+$ ]] || return;}
+  # 使用 awk 提取代码块信息
+  local total_blocks=$(awk '/^\s*```/ { count++ } END { print count / 2 }' <<< "$content")
+  ((total_blocks)) || {
+    msg "对话中无代码块" >&2
+    return 1
+  }
+  # 如果未指定代码块编号，提示用户可用的代码块数量
+  if [ -z "$block_number" ];then
+      msg "在对话中找到 $total_blocks 个代码块"
+      return
+  fi
+  # 如果指定的代码块编号超出范围
+  if [ "$block_number" -gt "$total_blocks" ];then
+      emsg "指定提取第 $block_number 个代码块，但是对话中有 $total_blocks 个代码块，已超出范围"
+      return
+  fi
+  # 使用 awk 提取指定的代码块内容，去掉代码块的开始和结束标记
+  local code="$(
+    awk -v block="$block_number" '
+    BEGIN {
+        in_code_block = 0
+        block_count = 0
+    }
+    {
+        if ($0 ~ /^\s*```/) {
+            if (in_code_block) {
+                # 结束当前代码块
+                in_code_block = 0
+                if (block_count == block) {
+                    # 如果找到指定的代码块，退出
+                    exit
+                }
+            } else {
+                # 开始新的代码块
+                in_code_block = 1
+                block_count++
+            }
+        } else if (in_code_block) {
+            if (block_count == block) {
+                # 如果是目标代码块，打印内容
+                print $0
+            }
+        }
+    }' <<<"$content"
+  )"
+  if "$cat";then
+    if $__has_extend_bat;then
+      local __bat_language="$(
+        awk -v block="$block_number" '
+        /^\s*```/ { 
+          if (in_code_block) {
+            in_code_block = 0
+          } else {
+            in_code_block = 1
+            block_count++
+            if (block_count == block) {
+              match($0, /^\s*```(\S+)/, arr)
+              print arr[1] ? arr[1] : "txt"
+              exit
+            }
+          }
+        }' <<<"$content"
+      )"
+      local __if_bat_language="-l $__bat_language"
+      bat --no-pager --plain $__if_bat_language <<<"$code" 2>/dev/null || cat <<<"$code"
+    else
+      cat <<<"$code"
+    fi
+  else
+    printf "\e]52;c;$(base64 <<<"$code")\a"
+    msg "已复制第 $block_number 个代码块"
+  fi
+}
+
+
+########################################################################
+
+# 辅助检查工具错误
+# 用法: Check-Tools-Seq <工具所处行号>
+# 选项:
+#       行号 工具所处行号，指定多个
+# 行为控制:
+#       函数 Check-Tools
+#       Check-Tools 将本函数作为辅助审查组件使用，将以易于阅读的方式输出错误位置
+Check-Tools-Seq(){
+  # 将输入的序列以空格分隔并存储到数组中
+  local expected_total="$(cat | wc -l)"
+  local sequence=($@)
+  local total=${#sequence[@]}
+  # 如果序列数量等于文件总行数，输出“全部序列已被检查”
+  if [[ $total -eq $expected_total ]]; then
+    echo "错误在所有行均存在，$arg0 认为该文件并非工具文件，请确保参数被正确使用"
+    return
+  fi
+  # 初始化变量
+  local result=
+  local start=${sequence[0]}
+  local end=${sequence[0]}
+  local prev=${sequence[0]}
+  # 遍历序列
+  for ((i=1;i<total;i++));do
+    if [[ ${sequence[i]} -eq $((prev+1)) ]]; then
+      # 如果当前序号与前一个序号连续，更新结束序号
+      end=${sequence[i]}
+    else
+      # 如果不连续，将当前连续段加入结果
+      if [[ $start -eq $end ]]; then
+        result+="行 $start, "
+      else
+        result+="行 $start 至行 $end, "
+      fi
+      # 重置开始和结束序号
+      start=${sequence[i]}
+      end=${sequence[i]}
+    fi
+    prev=${sequence[i]}
+  done
+  # 添加最后一个连续段
+  if [[ $start -eq $end ]]; then
+    result+="行 $start"
+  else
+    result+="行 $start 至行 $end"
+  fi
+  # 输出结果
+  echo "位于$result"
+}
+
+
+# 审查 fc 工具完整性
+# 用法: Check-Tools <工具文件>
+# 选项:
+#       工具文件 工具文件路径
+Check-Tools(){
+  local _lines=`wc -l "$1" | cut -d' ' -f1`
+  ((_lines)) || exmsg "$arg: $1: 工具不可用，文件换行少于 1，无法进行初步审查"
+  local _n=1
+  local _error=0
+  local _error_tools=0
+  local _error_jsonl=0
+  local _jsonl_syntax_error_lines=()
+  local _tools_syntax_error_lines=()
+  while IFS= read -r line;do
+    if (jq . <<< "$line" &>/dev/null);then
+      `jq '
+        ((.name | type == "string") and
+        (.function | type == "string") and
+        (.description | type == "string") and
+        (.parameters.type == "object") and
+        (.parameters.required | type == "array")) or
+        ((.name | type == "string") and
+        (.description | type == "string") and
+        (.function | type == "string") and
+        (has("parameters") | not))
+      ' <<< "$line" 2>/dev/null` || {
+        _tools_syntax_error_lines+=($_n)
+        let _error_tools++
+        let _error++
+      }
+    else
+      _jsonl_syntax_error_lines+=($_n)
+      let _error_jsonl++
+      let _error++
+    fi
+    let _n++
+  done < "$1"
+  if ((_error));then
+    emsg "${arg/?"$1"/}: ${c34}$1${c0}: 工具不可用"
+    if ((_error_jsonl));then
+      printf "    ${c33}JSON 语法错误:${c0} "
+      Check-Tools-Seq ${_jsonl_syntax_error_lines[@]} < "$1"
+    fi
+    if ((_error_tools));then
+      printf "    ${c33}工具格式异常:${c0} "
+      Check-Tools-Seq ${_tools_syntax_error_lines[@]} < "$1"
+    fi
+    exit
+  fi
+}
+
+########################################################################
+
+# 向对话提交文件
+# 用法: Get-Import-File <文件路径>
+# 选项:
+#       文件路径 要提交的文件路径
+Get-Import-File(){
+  filepath="${subargs[1]}"
+  if [ -z $filepath ];then
+    erron "未输入文件"
+    return
+  fi
+  if [ -f $filepath ];then
+    if ! Check-File-Type "$filepath";then
+      erron "非法的文件类型"
+      return
+    fi
+    filesize=$(stat -c %s "$filepath")
+    case "$check_file_type" in
+      text)
+        # 如果文件大小大于 100KB，拦截此请求
+        if ((filesize>102400));then
+          erron "过大的文件 (${filesize}B)"
+          return
+        fi
+        if [ -z "$old_filepath" ];then
+          msg "提交文件 $filepath"
+        else
+          msg "覆盖提交文件 $filepath => $old_filepath"
+        fi
+        STDIN_INPUT="$(echo "File: $filepath";echo "@File Content Head";cat -n "$filepath" | sed -E 's/^([[:space:]]*[0-9]+)/\1 |/g')"$'\n@File Content Tail\n'
+        debug "向标准输入提交文件"
+        old_filepath="$filepath"
+        ;;
+      image)
+        # 如果文件大小大于 5MB，拦截此请求
+        if ((filesize>5242880));then
+          erron "过大的文件 (${filesize}B)"
+          return
+        fi
+        if [ -z "$old_filepath" ];then
+          msg "提交图片 $filepath"
+        else
+          msg "覆盖提交图片 $filepath => $old_filepath"
+        fi
+        msg "注意: 图片上传 (Base64) 为实验性功能，暂无法正常使用"
+        IS_PUSH_IMAGE=true
+        IMAGE_INPUT="$(printf 'data:image/png;base64,';base64 $filepath)"
+        debug "向标准输入提交图片 (数据格式: 'data:image/png;base64,{base64_content}')"
+        old_filepath="$filepath"
+        ;;
+    esac
+  else
+    emsg "$arg: $filepath: 文件不存在"
+  fi
+}
+
+########################################################################
+
+# 导入导出对话记录
+# 用法: Get-Session-Messages <文件> <操作> [行为]
+# 选项:
+#       操作 操作类型，可选值为 export、import
+#       参数 操作参数，可选
+#            操作参数（export）:
+#            @no:system 默认行为基础上不包含系统消息
+#            @no:tool 默认行为基础上不包含工具调用记录
+#            @use:all 包含所有记录，包括请求体中的参数，此行为仅兼容导入messages记录（泄露风险较高）
+#            @default 默认行为，包含message内所有记录，不包含请求体中的参数
+# * 如有用户名则在所有行为中添加用户名
+Get-Session-Messages(){
+  function __subfunction_ask(){
+    if $__has_extend_gum;then
+      if gum confirm "${!2}";then
+        get_session_import_or_export="$1"
+      else
+        msg "取消"
+        return 1
+      fi
+    else
+      msg "${!2}[Y/n] " -n
+      read confirm
+      if [[ "${confirm:=Y}" =~ ^[Yy]$ ]];then
+        get_session_import_or_export="$1"
+      else
+        msg "取消"
+        return 1
+      fi
+    fi
+  }
+  get_session_import_or_export=""
+  local get_session_params
+  local get_session_json
+  local import_ask="导入对话记录将覆盖当前对话记录，确定吗？"
+  local export_ask="导出对话记录将覆盖当前文件，确定吗？"
+  [[ "$1" && -f "$1" ]] || { emsg "未指定文件"; return 1;}
+  case "$2" in
+    export)
+      jq -e '.messages | length > 0' <<< "$data" &>/dev/null || { emsg "对话记录为空"; return 1;}
+      ((__turns)) || { emsg "对话记录为空"; return 1;}
+      __subfunction_ask "false" export_ask
+      ;;
+    import)
+      __subfunction_ask "true" import_ask
+      ;;
+    *)
+      [ "$2" ] && emsg "未指定操作" && return 1
+      emsg "未知操作 $2"
+      return 1
+      ;;
+  esac
+
+  case "${3:-@default}" in
+    @no:system)
+      get_session_params='{ messages: [ .messages[] | select(.role != "system") ] }'
+      ;;
+    @no:tool)
+      get_session_params='{ messages: [ .messages[] | select(.role != "tool") ] }'
+      ;;
+    @use:all)
+      get_session_params='. + { content_type: "application/json", url: $baseurl + "/chat/completions", apikey: $apikey, client: "bai-cli (github.com/hornleaf)", export_date: now }'
+      ;;
+    @default)
+      get_session_params='{ messages: [.messages[]]}'
+      ;;
+    *)
+      emsg "未知行为 $3"
+      return 1
+      ;;
+  esac
+  
+  if $get_session_import_or_export;then
+    # 校验数据结构，message[]中对象包含role和content即可
+    jq -e '.messages[] | has("role") and has("content")' "$1" &>/dev/null || { emsg "#import: 数据结构错误"; return 1;}
+    get_session_json="$(jq -r '[.messages[]]' "$1")" || { emsg "#import: 读取对话记录失败"; return 1;}
+    data="$(jq -r --argjson messages "$get_session_json" '.messages =$messages' <<< "$data")" || { emsg "#import: 写入对话记录失败"; return 1;}
+    __turns="$(jq '[.messages[] | select(.role == "user")] | length' <<< "$data")"
+    if jq -e '.username' "$1" &>/dev/null;then
+      BAI_USERNAME="$(jq -r '.username' "$1")"
+      data="$(jq -r --arg username "$BAI_USERNAME" '. + { username: $username }' <<< "$data")"
+      get.session.title
+      $CHAT && Set-Terminal-Title "$BAI_TITLE"
+    fi
+    msg "#import: 记录导入成功"
+  else
+    get_session_json="$(jq -r --arg baseurl "$OPENAI_BASE_URL" --arg model "$OPENAI_API_MODEL" --arg apikey "$OPENAI_API_KEY" "$get_session_params" <<< "$data" | (if [ "$BAI_USERNAME" ];then jq --arg username "$BAI_USERNAME" '. + { username: $username }';else cat;fi))" || { emsg "#export: 读取对话记录失败"; return 1;}
+    echo "$get_session_json" > "$1"
+    msg "#export: 记录导出成功"
+  fi
+}
+
+########################################################################
+
+# 查看对话记录
+# 用法: Get-Session-History
+# 选项:
+#       无
+# 行为控制:
+#       变量 __has_extend_bat
+#       若为 true 则使用 bat，否则使用 less
+Get-Session-History(){
+  ((__turns)) || { emsg "对话记录为空"; return 1;}
+  local session_username="${BAI_USERNAME:-"用户"}"
+  if jq -e '.username' <<< "$data" &>/dev/null;then
+    session_username="$(jq -r '.username' <<< "$data")"
+  fi
+  local __jq_reg="
+    .messages[] |
+    if .role == \"system\" then
+      \"\e[35m系统:\e[0m \" + .content
+    elif .role == \"user\" then
+      \"\e[32m${session_username}:\e[0m \" + .content
+    elif .role == \"assistant\" then
+      if .tool_calls then
+        \"\e[34m助手:\e[0m 将调用函数 \e[35m\" + .tool_calls[0].function.name + \"\e[0m\"
+      else
+        if .reasoning_content then
+          \"\e[34m助手:\e[0m (\e[35m思考中\e[0m) \" + (.reasoning_content | gsub(\"\\\\\\\\\\\\\\\\\\\\\\\\\\\\n\"; \"\\\n\")) + \"\n\e[34m助手:\e[0m \" + .content
+        else
+          \"\e[34m助手:\e[0m \" + .content
+        end
+      end
+    else
+      empty
+    end"
+  Set-Terminal-Title "$BAI_TITLE | History"
+  jq -r "${__jq_reg@P}" <<< "$data" | (if $__has_extend_bat;then bat -l markdown --paging=always --plain;else less -R;fi)
+  Set-Terminal-Title "$BAI_TITLE"
+}
+
+########################################################################
+
+# 管理微调文件
+# 用法: Set-FineTune-File <操作> <文件路径> [用途]
+# 选项:
+#       操作 操作类型，可选值为 push、list、rm
+#       文件路径 要操作的文件路径
+#       用途 文件用途，可选值为 assistants、fine-tune、file-extract、batch，默认值为 assistants
+Set-FineTune-File(){
+  if [ -z "$1" ];then
+    emsg "未指定参数"
+    return 1
+  fi
+  local fileapi="$OPENAI_BASE_URL/files"
+  case "$1" in
+    push)    
+    # 提交文件
+      if [ -z "$2" ];then
+        erron "未指定参数"
+        return 1
+      fi
+      if [ ! -f "$2" ];then
+        erron "找不到文件 $2"
+        return 1
+      fi
+      if [[ ! "${2,,}" =~ ^.+\.(jsonl?|csv|txt|docx|pdf|xlsx|epub|mobi|md|py|js|(ba|z|fi)?sh|ps1|rs|java|kt|c|go)$ ]];then
+        erron "文件后缀不符合要求"
+        return 1
+      fi
+      local purpose="$3"
+      if [[ "${purpose:='file-extract'}" =~ ^(assistants|fine-tune|file-extract|batch)$ ]];then
+        CURL_FILE_GET="$(
+          Wait-Task wait "等待文件上传..."
+          (
+            curl -s -X POST "$fileapi" -H "$API_AUTH" \
+              -F "purpose=$purpose" -F "file=@$2" 2>/dev/null ||
+            printf '{"error": {"message": "文件提交时遇到错误"}}'
+          )
+          Wait-Task kill
+        )"
+        Get-Assistant-ReturnError "$CURL_FILE_GET" &&
+        msg "文件提交完成 $(jq -r '.id' <<< "$CURL_FILE_GET"), 用途: $purpose"
+      else
+        erron "文件提交失败 $(jq -r .error <<<"$CURL_FILE_GET")"
+        return 1
+      fi
+      ;;
+    list)
+    # 查看文件列表
+      CURL_FILE_GET="$(
+        Wait-Task wait "获取文件列表"
+        (
+          curl -s -X GET "$fileapi" -H "$API_AUTH" 2>/dev/null ||
+          printf '{"error": {"message": "查找文件时遇到错误"}}'
+        )
+        Wait-Task kill
+      )"
+      Get-Assistant-ReturnError "$CURL_FILE_GET"
+      FILES_ID=($(jq -r '.data[].id' <<< "$CURL_FILE_GET"))
+      FILES_NAME=($(jq -r '.data[].filename' <<< "$CURL_FILE_GET"))
+      jq -er '.data[] | "文件ID: \(.id), 文件名: \(.filename), 大小: \(.bytes)字节, 用途: \(.purpose)"' <<<"$CURL_FILE_GET" || msg "服务商无存储文件"
+      ;;
+    remove)      
+    # 删除文件
+      FILES_LIST="${#FILES_ID[@]}"
+      if ((FILES_LIST==0));then
+        erron "无可删除的文件，可能需要列举文件以刷新"
+        return 1
+      fi
+      while true;do
+        for ((i=0;i<FILES_LIST;i++));do
+          printf "$i. %s | %s\n" "${FILES_ID[i]}" "${FILES_NAME[i]}"
+        done
+        msg "使用序列号选择要删除的单个文件: " -n
+        read choose
+        Choose="$(Check-Variable-Type choose)"
+        max_choose="$[FILES_LIST-1]"
+        if [[ "$Choose" == "number" ]];then
+          if ((choose<0));then
+            erron "选择不得为负"
+          elif ((choose>max_choose));then
+            erron "选择过大"
+          else
+            CURL_FILE_GET="$(
+              Wait-Task wait "清求删除中..."
+              (
+                curl -s -X DELETE "$fileapi/${FILES_ID[choose]}" -H "$API_AUTH" 2>/dev/null ||
+                printf '{"error": {"message": "文件删除时遇到错误"}}'
+              )
+              Wait-Task kill
+            )"
+Get-Assistant-ReturnError "$CURL_FILE_GET" && { msg "文件ID ${FILES_ID[choose]} 已删除"; unset FILES_ID[$choose] FILES_NAME[$choose];FILES_ID=("${FILES_ID[@]}");FILES_NAME=("${FILES_NAME[@]}");break;}
+          fi
+        elif [[ "$Choose" == "string" && "$choose" == "/exit" ]];then
+          msg "取消选择"
+          break          
+        fi
+      done
+  esac
+}
+
+######################################################################## 
+
+# 提及在服务商存储的文件并发出提问
+Get-AtFiles-Ask(){
+  ((${#FILES_ID[@]}==0)) && { emsg "未获取到可用的文件列表，请提交文件或刷新列表";return 1;}
+  [ "$1" ] || { emsg "未指定所需的文件ID";return 1;}
+  [[ " ${FILES_ID[*]} " == *" $1 "* ]] || { emsg "不是可用的文件ID，请重新指定";return 1;}
+  [ "$2" ] || { emsg "未发起提问，请在提及文件时同时发起提问";return 1;}
+  system_msg.append "# FileID: $1\n# File Content: \n$(curl -sL $OPENAI_BASE_URL/files/$1/content 2>/dev/null || echo "ERROR 文件服务请求失败, 请告知用户")"
+  OPENAI_USER_PROMPT="\`@FineID $1\` $2"
+}
+
+########################################################################
+
+# 从参数取值
+# 用法: Get-Arguments-Value <参数>
+# 选项:
+#       参数 要取值的参数
+# 行为控制:
+#       从参数中取值，支持长参数和短参数
+#       变量 ARG_OPTS[1]*, ARG_KEY[2]*, ARG_ERR[3]*
+#       1* 要处理的长短参数，例：h,help
+#       2* 提取参数选项后赋值所用的变量名
+#       3* 错误提示信息
+# * 作为参数处理组件使用，将参数选项转换为变量
+Get-Arguments-Value(){
+  function ARG_IFOPT { [[ "$(Check-Variable-Type "${ARG_KEY}")" == "option" ]] && unset -f $FUNCNAME && exmsg "$ARG_OPT_ERR";}
+  ARG_OPT_ERR="非法的参数组合"
+  [[ "$1" =~ ^(--?[^:=]+)[=:]?(.+)?$ ]]
+  arg1="${BASH_REMATCH[1]}"
+  [[ "$arg1" =~ ^(-?[^:=])[=:]?(.+)?$ ]] &&
+  arg1="${BASH_REMATCH[1]}"
+  local LONG="${ARG_OPTS#*,}"
+  if [[ "$1" =~ ^--"$LONG"[=:](.+)$ || "$1" =~ ^-"${ARG_OPTS%,*}":?(.+)$ ]];then
+    eval "${ARG_KEY}=\"${BASH_REMATCH[1]}\""
+    [ -z "${!ARG_KEY}" ] && exmsg "$1: $ARG_ERR"
+    ARG_IFOPT
+    return 101
+  else
+    [[ "$1" =~ ^--"$LONG"(.+)$ ]] && exmsg "$1: $ARG_OPT_ERR"
+    [ -z "$2" ] && exmsg "$1: $ARG_ERR"
+    if "${ARG_USE_ARRAY:-false}";then
+      eval "${ARG_KEY}_in_array=(\"${2//,/ }\")"
+      eval "${ARG_KEY}=\"\$${ARG_KEY}_in_array\""
+    else
+      eval "${ARG_KEY}=\"${2}\""
+    fi
+    ARG_IFOPT
+    return 102
+  fi
+}
+
+# 限制重复参数
+# 用法: Limit-Repeation-Arguments <变量> <参数提示>
+# 选项:
+#       变量 要检查的变量
+#       参数提示 重复时的参数提示
+Limit-Repeation-Arguments(){
+  ((${!1})) && exmsg "$2: 重复的选项"
+  let $1++
+}
+
+########################################################################
+
+# 设置终端标题
+# 用法: Set-Terminal-Title <标题> [窗口标题]
+# 选项:
+#       标题 终端标题
+#       窗口标题 窗口标题
+Set-Terminal-Title(){
+  # xterm，vt100，konsole
+  [ "${TERM:0:5}" = "xterm" ] && local ansiNrTab=0;
+  [ "$TERM" = "rxvt" ] && local ansiNrTab=61;
+  [ "$TERM" = "konsole" ] && local ansiNrTab=30 ansiNrWindow=0;
+  # xterm/vt100，konsole
+  [ $ansiNrTab ] && echo -ne "\e]$ansiNrTab;$1\a";
+  [ $ansiNrWindow -a "$2" ] && echo -en "\e]$ansiNrWindow;$2\a";
+}
+
+########################################################################
+
+# 设置超链接文本
+# 用法: Set-Link-Text <文本> <链接>
+# 选项:
+#       文本 要显示的文本
+#       链接 要跳转的链接
+Set-Link-Text(){
+  [ "$1" ] || { echo "文本不能为空"; return; }
+  [ "$2" ] || { echo "链接不能为空"; return; }
+  echo -e "\e]8;;$2\a$1\e]8;;\a"
+}
+
+########################################################################
+
+# 扩展变量操作
+# 用法: Get-Var-Extend <变量> [操作] <值1> <值2>...
+# 选项:
+#       变量 将要被操作的变量
+#       操作 操作类型
+#         =    赋值
+#         +=   追加
+#         -    删除
+#         !    只读
+#         /    一次替换
+#         //   全部替换
+#         %    拆分
+#         $    单字切割
+#         @    范围切割
+#         %=   索引数组
+#         []=  关联数组
+#         a:a  以可重用的形式转换为赋值命令
+#         a:e  转义反斜杠字符
+#         a:k  以单引号引用变量值
+#         a:l  无变化
+#         a:p  转换控制符
+#         a:q  引用变量值
+#         a:u  将所有字母转换为大写
+#       值 目标变量值
+#         操作 变换方法
+#         /    "旧值" "新值"
+#         //   "旧值" "新值"
+#         %    "分隔符"
+#         @    "头索引" "尾索引"
+#         $    "索引"
+#         %=   "值1" "值2"...
+#         []=  "键1" "值1" "键2" "值2"...
+Get-Var-Extend(){
+  local var="$1"
+  local option="$2"
+  [ "$var" ] || { echo "变量不能为空"; return; }
+  [ "$option" ] || { echo "选项不能为空"; return; }
+  shift 2
+  case "$option" in
+    =)
+      eval "$var=\"$1\""
+      ;;
+    +=)
+      eval "$var+=\"$1\""
+      ;;
+    -)
+      unset "$var"
+      ;;
+    \!)
+      readonly "$var"
+      ;;
+    /)
+      eval "$var=\"${!var/$1/$2}\""
+      ;;
+    //)
+      eval "$var=\"${!var//$1/$2}\""
+      ;;
+    %)
+      eval  "${var}_left=\"\${!var%$1*}\""
+      eval "${var}_right=\"\${!var#*$1}\""
+      ;;
+    \$)
+      eval "$var=\"\${!var:$1:1}\""
+      ;;
+    @)
+      eval "$var=\"\${!var:$1:$2}\""
+      ;;
+    %=)
+      declare -ag "$var"
+      eval "$var=(\"\$@\")"
+      ;;
+    \[\]=)
+    echo test: $@
+      local index=$#
+      ((index%2)) && { echo "关联数组参数必须为偶数个"; return; }
+      declare -Ag "$var"
+      eval "$(printf "$var[\"%s\"]='%s'\n" "$@")"
+      ;;
+    a:a)
+      eval "$var=\"\${!var@A}\""
+      ;;
+    a:e)
+      eval "$var=\"\${!var@E}\""
+      ;;
+    a:k)
+      eval "$var=\"\${!var@K}\""
+      ;;
+    a:l)
+      eval "$var=\"\${!var@L}\""
+      ;;
+    a:p)
+      eval "$var=\"\${!var@P}\""
+      ;;
+    a:q)
+      eval "$var=\"\${!var@Q}\""
+      ;;
+    a:u)
+      eval "$var=\"\${!var@U}\""
+      ;;
+  esac
+}
+
+########################################################################
+
+# 检查多类型数组，不符合类型要求返回错误
+# 用法: Check-VarArray-Type <变量> <类型标识>
+# 选项:
+#       变量 要检查的变量
+#       类型标识 目标类型标识
+Check-VarArray-Type(){
+  __check_vararray=("${__check_vararray[@]}")
+  __check_vararray_type=("${__check_vararray_type[@]}")
+  local var=(${1//,/ })
+  local target_type=(${2//,/ })
+  local type=""
+  local typelist=()
+  local dist=()
+  local dist_type=""
+  local value="$3"
+  for i in "${var[@]}";do
+    type="$(Check-Variable-Type i)"
+    typelist+=("$type","$i")
+  done
+  for item in "${typelist[@]}"; do
+      if [[ ! " ${target_type[*]} " =~ " ${item%,*} " ]]; then
+          [ "$dist" ] || dist=("${item#*,}" "${target_type[*]}")
+          if [ "$dist_type" ];then
+            dist_type+=",${item%,*}"
+          else
+            dist_type="${item%,*}"
+          fi
+      fi
+  done
+  if [ "$dist" ];then
+    __check_vararray+=("$value")
+    __check_vararray_type+=("${dist[@]}" "$dist_type")
+  fi
+}
+
+########################################################################
+
+# 需要复用的一些代码块
+
+# 等待模型返回
+# 用法: Wait-Assistant-Content
+# 行为控制:
+#       变量 CURL_GET_API
+#       等待模型返回数据
+Wait-Assistant-Content(){
+  CURL_GET_API="$(
+    debug "向此 BaseURL 发起 POST 请求: $OPENAI_BASE_URL, 使用模型: $OPENAI_API_MODEL"
+    Get-Assistant-Return &
+    Wait-Task $!
+  )"
+}
+
+# 处理模型静态输出
+# 用法: Return-Assistant-Content
+# 行为控制:
+#       变量 API_RETURN
+#       处理模型静态输出
+Return-Assistant-Content(){
+  # 非连续对话模式下禁用逐字输出和前缀，以提高效率
+  # 连续对话模式下启用逐字输出和前缀，以提升体验
+  if $CHAT;then
+    if $EVAL;then
+      Get-Assistant-Command
+    else
+      if $PRINT;then
+        debug "使用打字效果输出"
+      else
+        debug "直接输出结果，如果可能，将使用 bat 语法高亮"
+      fi
+      $CHAT && printf "${c32}$ai_prompt${c0} "
+      # 指定输出模式
+      if $PRINT;then
+        Print-FakeStream <<< "$API_RETURN"
+      else
+        if $__has_extend_bat;then
+          bat --plain --no-pager -l markdown <<< "$API_RETURN"
+        else
+          cat <<< "$API_RETURN"
+        fi
+      fi
+    fi
+  else
+    if $__has_extend_bat;then
+      bat --plain --no-pager -l markdown <<< "$API_RETURN"
+    else
+      cat <<< "$API_RETURN"
+    fi
+    exit
+  fi
+}
+
+# 获取模型静态输出
+# 用法: Get-Assistant-Content
+# 行为控制:
+#       变量 CURL_GET_API
+#       获取模型静态输出
+Get-Assistant-Content(){
+  API_RETURN="$(jq --exit-status -r '.choices[0].message.content' <<< "$CURL_GET_API")"
+  API_STATUS=$?
+}
+
+# 处理模型流式输出
+# 用法: Get-Stream-Assistant-Content
+# 行为控制:
+#       变量 DEBUG_MODE[1]*, CHAT[2]*
+#       1* 调试模式
+#       2* 连续对话返回
+Get-Stream-Assistant-Content(){
+  # 流模式下的调试
+  if $DEBUG_MODE;then
+    echo -en " + POST: $OPENAI_BASE_URL\n"\
+            "+ DATA: "
+    jq -C <<< "$data"
+    echo
+    API_RETURN="this a test message"
+    $CHAT && continue || break
+  fi
+
+  # 构建流式接口请求
+  debug "向此 BaseURL 发起 POST 请求: $OPENAI_BASE_URL, 使用模型: $OPENAI_API_MODEL, 使用流式响应"
+  debug "等待接口响应..."
+  Wait-Task wait "等待 assistant 回应"
+  STREAM_DATA=""
+  STREAM_CONTENT=""
+  SEEK_CONTENT=""
+  STREAM_LINE=0
+  SEEK_LINE=0
+  TOOLS_IS_CALL=false
+  TOOLS_CHECK_COUNT=0
+  [ "$TOOLS_TRUN_COUNT" ] || TOOLS_TRUN_COUNT=0
+  [ "$TOOLS_USE_COUNT" ] || TOOLS_USE_COUNT=0
+  DEBUG_ORIGIN=""
+
+  function_run_name=""
+  function_name=""
+  function_args=""
+  function_call_msg=""
+  function_return=""
+  function_id=""
+  mark_thinking=false
+  mark_thinking_count=0
+
+  # 开始计时
+  Get-Timer Assistant
+  Get-Timer ToolsCall
+
+  # 流式处理接口数据
+  while IFS= read -r line;do
+    # 如果是空行，则跳过，避免连续误判思考模式
+    [ -z "$line" ] && continue
+    # 定义交换变量
+    _data="${line#data: }"
+    # echo -e "$_data"
+    _path=".choices[0].delta"
+    _key1="content"
+    _key2="reasoning_content"
+    _func='gsub("\\n"; "\\n")'
+    [[ "$_data" =~ ^\[DONE\] ]] && { Wait-Task kill;continue;}
+    STREAM_DATA+="$_data"$'\n'
+    
+    # 杀死半阻塞进程后将等待片刻，防止输出时被吞字
+    ((STREAM_LINE)) || Wait-Task kill
+    
+    # 尝试分支类型(deepseek/openai)
+    unset STREAM_HEAD SEEK_HEAD RT
+    $CHAT && ! $EVAL && ! ((STREAM_LINE)) && STREAM_HEAD="${c32}$ai_prompt${c0} " SEEK_HEAD="${c32}$seek_prompt${c0} "
+
+    # 检查是否具备 deepseek 响应特征（目前较不稳定）
+    is_deepseek=$(jq --exit-status "$_path | has(\"$_key2\")" <<< "$_data" 2>/dev/null || echo false)
+
+    # 流消息
+    STREAM_MSG="$(jq -r "$_path.$_key1 | $_func" <<< "$_data" 2>/dev/null)"
+
+    # 拼接对话
+    STREAM_CONTENT+="$STREAM_MSG"
+
+    # 在此分支流模式
+    if $is_deepseek;then # deepseek
+      mark_thinking=true # 标记是否思考过
+
+      # 拼接思考链和对话，并独立输出
+      # tip: deepseek 模式下的命令生成稳定性尚待验证
+      if ! ((STREAM_LINE));then
+        Get-Timer Assistant
+        debug "流模式: 深度思考链, 响应耗时: $Get_AssistantTimer, 继续等待..."
+        Get-Timer Assistant
+      fi
+      RT=""
+      ((STREAM_LINE==0)) && RT+="\n"
+      STREAM_SEEK="$(jq -r "$_path.[\"$_key2\"] | $_func" <<< "$_data" 2>/dev/null)"
+      ((SEEK_LINE==0)) && STREAM_SEEK="${STREAM_SEEK//'\n'/}"
+      ((SEEK_LINE==0)) || unset SEEK_HEAD
+      SEEK_CONTENT+="$STREAM_SEEK"
+      
+      # 适时插入前缀，去除开头多余的换行符
+      if ((STREAM_LINE==0));then
+        $CHAT && RT+="${c32}$ai_prompt${c0} "
+        STREAM_MSG="${STREAM_MSG//'\n'/}"
+      fi
+      
+      if [ "$STREAM_MSG" ];then
+        if ((STREAM_LINE==0));then
+          if $DEBUG;then
+            Get-Timer Assistant
+            _tokens=$(wc -c <<< "$SEEK_CONTENT")
+            echo
+            debug "思考耗时: $Get_AssistantTimer, 输出 tokens(以字节结算): $_tokens"
+            Get-Timer Assistant
+          fi
+        else
+          unset RT
+        fi
+        $EVAL || printf "%b" "$RT$STREAM_MSG"
+      else
+        printf "%b" "$SEEK_HEAD$STREAM_SEEK"
+        let SEEK_LINE++
+        continue
+      fi
+    
+    else # openai | 在此将尝试支持流模式下使用 function calling 功能
+      # 检查是否使用了工具
+      $TOOLS_IS_CALL || TOOLS_IS_CALL=false
+      _local_json_path='.choices[0].delta.tool_calls[0].function'
+      if $TOOLS;then
+        ((TOOLS_TRUN_COUNT)) || debug "检查是否使用了工具"
+        RETURN_MSG="$(jq -e "$_local_json_path" <<< "$_data")"
+        STATUS=$?
+        ((TOOLS_TRUN_COUNT)) || debug "jq 检查时返回状态: $STATUS"
+        # 在第一轮确认调用时锁定工具调用状态
+        if ! $TOOLS_IS_CALL;then
+          if ((STATUS));then                              # 检查是否使用了工具
+            ((TOOLS_TRUN_COUNT)) || debug "模型还未使用工具"
+            TOOLS_IS_CALL=false                           # 未使用工具
+            RETURN_MSG="$STREAM_MSG"
+          else
+            ((TOOLS_TRUN_COUNT)) || debug "发现模型使用了工具"
+            TOOLS_IS_CALL=true                            # 使用了工具
+            ((TOOLS_CHECK_COUNT++))                       # 锁定工具调用状态，避免冗余日志
+            ((TOOLS_TRUN_COUNT++))                        # 锁定工具多轮调用状态，避免冗余日志
+          fi
+        fi
+      else
+        RETURN_MSG="$STREAM_MSG"
+        TOOLS_IS_CALL=false
+      fi
+      ((TOOLS_TRUN_COUNT)) || debug "工具调用状态: $TOOLS_IS_CALL"
+      if ! $TOOLS_IS_CALL && ((STATUS)) && [[ "$RETURN_MSG" == "null" ]];then
+        erron "处理本轮会话时发生异常"
+        unset RETURN_MSG
+      fi
+      if $TOOLS_IS_CALL;then
+        ((TOOLS_CHECK_COUNT==1)) && { debug "构建工具调用..."; ((TOOLS_CHECK_COUNT++)); }
+        [ "$function_id" ] || function_id="$(jq -r '.choices[0].delta.tool_calls[0].id' <<< "$_data")"
+        [ "$function_run_name" ] || function_run_name="$(jq -r "$_local_json_path.name" <<< "$_data")"
+
+        [ "$function_name" ] || function_name="$function_head::$function_run_name"
+        if jq -e "$_local_json_path.arguments" <<< "$_data" &>/dev/null;then
+          function_args+="$(jq -r "$_local_json_path.arguments" <<< "$_data")"
+        fi
+        continue
+      fi
+      # 仅拼接对话并输出
+      if ! ((STREAM_LINE));then
+        if $DEBUG;then
+          if $TOOLS_IS_CALL;then
+            Get-Timer ToolsCall
+            debug "流模式: 工具调用, 响应耗时: $Get_ToolsCallTimer"
+            Get-Timer ToolsCall
+          else
+            Get-Timer Assistant
+            debug "流模式: 标准 OpenAI 响应, 响应耗时: $Get_AssistantTimer"
+            [ "$DEBUG_ORIGIN" ] || DEBUG_ORIGIN=$DEBUG
+            DEBUG=false
+            Get-Timer Assistant
+          fi
+        fi
+      fi
+      # 处理部分供应商因机制差异可能导致的的消息错位
+      $EVAL || { $mark_thinking && mark_thinking=false && echo;[ "$STREAM_MSG" ] && printf "%b" "$STREAM_HEAD";printf "%b" "$STREAM_MSG"; }
+    fi
+    [ "$STREAM_MSG" ] && let STREAM_LINE++
+  done < <(Get-Assistant-Return)
+  $EVAL || { ((TOOLS_CHECK_COUNT==0)) && echo; }
+
+  # 重置 debug 状态
+  DEBUG=$DEBUG_ORIGIN
+
+  # 处理工具调用
+  Get-Stream-Assistant-ToolsCall || return 1
+
+  function_run_name=""
+  function_name=""
+  function_args=""
+  function_call_msg=""
+  function_return=""
+  function_id=""
+
+  # 再次尝试杀死半阻塞进程
+  Wait-Task kill
+
+  # 处理最终返回
+  API_RETURN="${STREAM_CONTENT//'\n'/$'\n'}"
+  if ! [ "$API_RETURN" ];then
+    printf "\r\e[K"
+    emsg "模型返回为空, 请检查接口是否正确配置" -n
+    if [ "$STREAM_DATA" ];then
+      printf "，以下为接口返回的数据：\n"
+      cat -s <<<"$STREAM_DATA"
+    else
+      echo
+    fi
+  fi
+
+  # 最终计时
+  if ! ((TOOLS_USE_COUNT));then
+    Get-Timer Assistant
+    _return_tokens=$(wc -c <<< "$STREAM_CONTENT")
+    debug "模型返回耗时: $Get_AssistantTimer, 输出 tokens(以字节结算): $_return_tokens"
+    ((TOOLS_USE_COUNT++))
+    unset TOOLS_TRUN_COUNT TOOLS_USE_COUNT
+  fi
+
+  # 命令处理
+  if $EVAL;then
+    debug "进入命令处理模式..."
+    Get-Assistant-Command
+  fi
+  $CHAT || exit 0
+}
+
+# 处理模型工具调用
+# 用法: Get-Stream-Assistant-ToolsCall
+# 行为控制:
+#       变量 TOOLS_IS_CALL, TOOLS_CHECK_COUNT, TOOLS_TRUN_COUNT, TOOLS_USE_COUNT
+#       处理模型工具调用
+Get-Stream-Assistant-ToolsCall(){
+    # 调用工具
+  if $TOOLS_IS_CALL;then
+    # 让 jq 校验参数是否是一组 json 字符串
+    jq -e '.[]' <<< "$function_args" &>/dev/null && __func_args_is_json=true || __func_args_is_json=false
+    $__func_args_is_json && function_args=$(jq '.[]' <<< "$function_args")
+    function_args="${function_args//$'\n'/' '}"
+    function_call_msg="$(
+      jq --arg id "$function_id" \
+          --arg name "$function_run_name" \
+          --arg args "$function_args" \
+          '{
+            content: "",
+            role: "assistant",
+            tool_calls: [
+              {
+                index: 0,
+                id: $id,
+                type: "function",
+                function:
+                {
+                  name: $name,
+                  arguments: $args
+                }
+              }
+            ]
+          }' <<< '{}'
+    )"
+    data="$(jq --argjson content "$function_call_msg" ' .messages += [$content]' <<< "$data")"
+    msg "调用工具: $function_run_name$([[ "$function_args" == {} ]] || echo ", arg: $function_args")"
+    explicitly="${gco_explicitly[$function_name]}"
+    Get-Command-Output "$function_name $function_args"
+    function_return="$gco_return_content"
+    RETURN=$gco_status
+    ((RETURN)) && { emsg "工具执行失败";return 1;}
+    data="$(jq --arg content "$function_return" --arg id "$function_id" ' .messages += [{"role": "tool","content": $content, "tool_call_id": $id}]' <<< "$data")"
+    Get-Stream-Assistant-Content
+    if ((STATUS)) && [[ "$RETURN_MSG" == "null" ]];then
+      erron "该次请求未正确被接受"
+      unset RETURN_MSG
+    fi
+  fi
+}
+
+########################################################################
+
+# 命令名称
+arg0="$(basename ${BASH_SOURCE[0]} .sh)"
+
+# 版本信息
+status_version=("$(date -d @$(stat -c%Y $BASH_SOURCE 2>/dev/null || echo 0) +'%Y-%m-%d %H:%M:%S')" "$( (du -sh --block-size=KiB $BASH_SOURCE 2>/dev/null | awk '{print $1}') || echo "---KiB")" "$(wc -l $BASH_SOURCE | cut -d ' ' -f1)")
+
+
+########################################################################
+# *-------------------------- BAI 扩展控制参数 --------------------------*
+# 历史记录
+: ${BAI_HISTFILE:="$HOME/.bash_${arg0}_chat_history"};HISTFILE="$BAI_HISTFILE"
+# 限制对话轮次
+: ${BAI_LIMIT_TURNS:=true}
+# 限制工具调用
+: ${BAI_LIMIT_TOOLS:=true}
+
+########################################################################
+# *-------------------------- BAI 外部交换参数 --------------------------*
+# 调试模式         Function Calling 功能   ConEmu 进度指示特性
+DEBUG_MODE=false  TOOLS=false            CONEMU_STATUS=false
+# 流模式
+: ${OPENAI_ENABLE_STREAM:=false}
+# 深度思考链
+: ${OPENAI_ENABLE_THINKING:=false}
+# 联网搜索
+: ${OPENAI_ENABLE_SEARCH:=false}
+# 前缀续写
+: ${OPENAI_ENABLE_PARTIAL:=false}
+
+# *---------------------------- BAI 内定参数 ----------------------------*
+# 退出提示词         接口返回提示词     用户输入提示词       深度思考链提示词
+bye_prompt="Goodbye ~"  ai_prompt="ai:"  user_prompt="you:"   seek_prompt="think:"
+# 阻塞任务
+GETWAIT_PID=""
+# 提示词
+OPENAI_USER_PROMPT=""       OPENAI_SYSTEM_PROMPT=""
+# shell ps1
+BAI_SHELL_PROMPT="\[${c32}\][$arg0 chat]\[${c0}\]|$(bash -ic 'echo ${PS1}') "
+# 标准输入和会话提示
+STDIN_INPUT=""              STREAM_CONTENT=""
+
+########################################################################
+
+# 检查标准输入
+if ! [ -t 0 ];then
+  STDIN_INPUT="$(cat)"
+  ! (echo "$STDIN_INPUT" | Check-File-Type) && exmsg "非法的文件类型"
+  STDIN=true
+else
+  STDIN=false
+fi
+
+########################################################################
+
+# 简单检查依赖命令
+NOT_FOUND=()
+for i in sed jq curl cat grep file;do
+  command -v $i &>/dev/null || NOT_FOUND+=($i)
+done
+((${#NOT_FOUND[@]})) && exmsg "缺失命令 ${NOT_FOUND[@]}"
+
+########################################################################
+
+# 简单检查可选命令
+EXTEND_NOT_FOUND=()
+EXTEND_DIST=(fzf bat gum)
+EXTEND_VAL=__has_extend_
+for i in ${EXTEND_DIST[@]};do
+  eval=$EXTEND_VAL$i
+  if command -v $i &>/dev/null;then
+    eval $eval=true
+  else
+    eval $eval=false
+  fi
+done
+
+########################################################################
+
+# 解析参数
+argo=(
+  a b c d e f g h i j k l m n o p q r s t u w x z
+)
+for i in "${argo[@]}";do
+  eval "SHIFT_${i^}=0"
+done
+
+# 优先解析帮助参数，直接退出
+for arg in "$@";do
+  case "$arg" in
+    --help|-h)
+      HELP_VERSION=(
+        '命令'                    '  已安装版本'  
+        'bash'                    "$(Print-HighLight-Number <<< "${BASH_VERSION:-Null}")"
+        'coreutils'               "$(Print-Command-Version ls)"
+        'awk'                     "$(Print-Command-Version awk | cut -d, -f1)"
+        'sed'                     "$(Print-Command-Version sed)"
+        'grep'                    "$(Print-Command-Version grep)"
+        'curl'                    "$(curl --version | head -1 | cut -d' ' -f1,2 | Print-HighLight-Number || echo Null)"
+        'file'                    "$(file --version | head -1 | Print-HighLight-Number || echo Null)"
+        'jq'                      "$(jq --version | head -1 | Print-HighLight-Number || echo Null)"
+      )
+      HELP_EXTEND_VERSION=(
+        '命令'                    '  已安装版本'
+        'bat'                     "$((Print-Command-Version bat | cut -d" " -f2-) 2>/dev/null || echo Null)"
+        'gum'                     "$(Print-Command-Version gum 2>/dev/null || echo Null)"
+        'fzf'                     "$(Print-Command-Version fzf 2>/dev/null || echo Null)"
+      )
+      HELP_OPTION=(
+        '--help, -h'              '显示此帮助'
+        '--session-help'          '显示会话帮助'
+        '--argtest, -a'           '测试参数组合'
+        '--complete'              '打印从 BAI 复制的 bash 命令补全脚本'
+        '--stream, -n'            '启用流式响应 (如果供应商支持)'
+        '--thinking, -e'          '显式启用深度思考链 (如果模型支持)'
+        '--search, -g'            '显式启用联网搜索 (如果模型支持)'
+        '--partial, -j'           '启用前缀续写 (如果模型支持)'
+        '--baseurl, -b'           '指定 OpenAI API BaseURL'
+        '--apikey, -k'            '指定接口密钥'
+        '--model, -m'             "指定模型 (<${c32}model${c0}> or <${c32}model${c33}1${c0}>,<${c32}model${c33}2${c0}>...)"
+        '--username, -u'          '指定用户名'
+        '--title, -t'             '指定会话标题 (多轮对话)'
+        '--value, -v'             "向脚本环境内赋值，选项可重复(${c33}DEBUG${c0})"
+        '--no-limit-turns, -l'    '解除对话轮次限制 (限制: 32)'
+        '--no-limit-tools, -z'    "解除对于过小规模 (${c36}=<${c35}5b${c0}) 模型的工具限制"
+        '--inspect, -x'           "仅检查此脚本请求方式 (${c33}DEBUG${c0})"
+        '--debug, -o'             "启用调试输出 (${c33}DEBUG${c0})"
+        '--conemu-status, -p'     '启用 ConEmu 进度指示特性'
+        '--wait-style, -w'        '指定等待时的指示样式'
+        '--no-extend, -d'         "禁用指定的可选依赖命令 (<${c32}command${c33}1${c0}>,<${c32}command${c33}2${c0}>...)"
+        '--no-tools, -q'          "警用指定的函数工具 (<${c32}funcname${c33}1${c0}>,<${c32}funcname${c33}2${c0}>...)"
+        '--sysfile, -s'           "指定一个命令提示文件 (${c33}type: ${c32}text/markdown${c0})"
+        '--histfile, -i'          "指定一个历史记录文件 (${c33}type: ${c32}text-lines${c0})"
+        '--config, -f'            "指定一个环境变量文件 (${c33}type: ${c32}posix-shell-env${c0})"
+        '--callfile, -c'          "指定一个工具文件 (${c33}type: ${c32}json-lines${c0})"
+      )
+      HELP_ENV_MUST=(
+        'OPENAI_API_KEY'          "接口密钥 (等价于 ${c32}-k${c0})"
+        'OPENAI_API_MODEL'        "模型名称 (等价于 ${c32}-m${c0})"
+      )
+      HELP_ENV_OPTAL=(
+        'OPENAI_BASE_URL'         "起始地址 (默认为 ${c34}openai${c0}，等价于 ${c32}-b${c0})"
+        'OPENAI_API_TEMP'         '采样温度'
+        'OPENAI_STOP_TEXTS'       '结束标语'
+        'OPENAI_TEXT_NUM'         '输出文本数量'
+        'OPENAI_TOP_K'            '贪婪采样阈值'
+        'OPENAI_TOP_P'            '精简采样阈值'
+        'OPENAI_PRESENCE'         '重复惩罚阈值'
+        'OPENAI_FREQUENCY'        '频率惩罚阈值'
+        'OPENAI_MAX_TOKENS'       '限制最大输出量'
+        'OPENAI_ENABLE_STREAM'    "启用流式响应 (等价于 ${c32}-n${c0})"
+        'OPENAI_ENABLE_SEARCH'    "启用联网搜索 (如果模型支持, 等价于 ${c32}-g${c0})"
+        'OPENAI_ENABLE_THINKING'  "启用深度思考链 (如果模型支持, 等价于 ${c32}-e${c0})"
+        'OPENAI_ENABLE_PARTIAL'   "启用前缀续写 (如果模型支持, 等价于 ${c32}-j${c0})"
+      )
+      HELP_ENV_OTHER=(
+        'BAI_COLOR'               "GNU 风格选项行为，是否启用颜色输出 (${c32}never${c0},${c32}auto${c0},${c32}always${c0})"
+        'BAI_TITLE'               "会话标题 (等价于 ${c32}-t${c0})"
+        'BAI_HISTFILE'            "历史记录文件 (等价于 ${c32}-i${c0})"
+        'BAI_USERNAME'            "用户名 (等价于 ${c32}-u${c0})"
+        'BAI_WAIT_STYLE'          "等待时的指示样式 (等价于 ${c32}-w${c0})"
+        'BAI_LIMIT_TURNS'         "是否限制对话轮次 (等价于 ${c32}-l${c0})"
+        'BAI_LIMIT_TOOLS'         "是否限制过小模型的工具调用 (等价于 ${c32}-z${c0})"
+        'BAI_CALLING_FILE'        "Function Calling 文件 (等价于 ${c32}-c${c0})"
+      )
+
+      HELP_STYLE_OPTION=(
+        'bar'                     '旋转 - 经典杠型'
+        'arc'                     '旋转 - 弧形'
+        'arrow'                   '旋转 - 箭头'
+        'dotmatrix'               '旋转 - Npm 风格点阵'
+        'bell'                    '旋转 - 时间流逝'
+        'dot'                     '来回 - 收缩的点状链'
+        'line'                    '来回 - 移动的下划线'
+        'block'                   '来回 - 点亮方块'
+        'wave'                    '方块 - 上下起伏'
+        'square'                  '方块 - 变换拼角'
+        'pushpull'                '方块 - 前后收缩'
+        'roll'                    '字样 - 滚动显示'
+        'invisible'               '字样 - 逐个隐藏'
+      )
+      echo -e "${c32}$arg0${c0} (${c36}修改于:${c0} ${c35}${status_version[0]}${c0}, ${c36}大小:${c0} ${c35}${status_version[1]}${c0}, ${c36}行数:${c0} ${c35}${status_version[2]}${c0})
+调用 OpenAI API 的终端聊天脚本
+
+${c36}依赖项:${c0}
+$(printf "  %-15b%b\n" "${HELP_VERSION[@]}")
+
+${c36}可选依赖项:${c0}
+$(printf "  %-15b%b\n" "${HELP_EXTEND_VERSION[@]}")
+
+  用法: ${c32}$arg0${c0} [ ${c33}提问${c0} | ${c33}提问文件${c0} | ${c33}选项${c0} ]...
+  
+  可以在命令行参数中提问，或者指定一个包含提问内容的文件。
+  例如: ${c32}$arg0${c0} ${c33}./issue.txt${c0}   \e[2;37m# bai \"介绍一下你自己\"${c0}
+  
+  此外，还允许使用管道输入文件（单次对话）和使用指令提交文件（多轮对话）
+  例如:
+    ${c32}cat${c0} ${c33}README.md${c0} ${c34}|${c0} ${c32}$arg0${c0} ${c33}\"解释一下这个自述\"${c0}\n
+  或者:
+    ${c36}$user_prompt${c0} ${c32}.file${c0} ${c33}README.md${c0}
+    ${c36}$user_prompt${c0} ${c33}解释一下这个自述${c0}
+  
+  ${c35}选项:${c0}
+$(printf "    \e[1;34m%-27b${c0}%-4b\n" "${HELP_OPTION[@]}")
+
+  在需要指定参数的选项支持使用多种方式，以测试选项 ${c33}-a/--argtest${c0} 为例:
+    ${c32}$arg0${c0} ${c33}-a${c0} ${c34}test${c0}
+    ${c32}$arg0${c0} ${c33}-a${c0}${c34}test${c0}
+    ${c32}$arg0${c0} ${c33}-a${c0}:${c34}test${c0}
+    ${c32}$arg0${c0} ${c33}--argtest${c0}:${c34}test${c0}
+    ${c32}$arg0${c0} ${c33}--argtest${c0} ${c34}test${c0}
+    ${c32}$arg0${c0} ${c33}--argtest${c0}=${c34}test${c0}
+  
+  使用前需要注入环境变量
+    必选值:  
+$(printf "      ${c33}%-25b${c0}%-4b\n" "${HELP_ENV_MUST[@]}")
+    可选值:  
+$(printf "      ${c33}%-25b${c0}%-4b\n" "${HELP_ENV_OPTAL[@]}")
+    额外项:
+$(printf "      ${c33}%-25b${c0}%-4b\n" "${HELP_ENV_OTHER[@]}")
+
+  样式选项 (${c32}-w${c0}/${c32}--wait-style${c0}):
+$(printf "      ${c33}%-25b${c0}%-4b\n" "${HELP_STYLE_OPTION[@]}")
+  
+  未在命令参数中提问时将进入连续对话模式，可上下翻阅输入记录
+  记录将保存到 ${c35}$HISTFILE${c0}
+  在连续对话模式下使用局内指令 ${c32}.help${c0} 查看用法
+  
+  对于 Function Calling 功能支持：
+    工具文件格式要求使用 JSON Lines，以便导入多个工具，以下是基本单位数据结构：
+    * 需要参数的函数：
+    \`\`\`json
+$(jq -C <<< '{
+              "name": "函数名, e.g example",
+              "explicitly (可选项)": "true 或 false, 字符串",
+              "depend (可选项)": "需要声明的依赖命令以及可选相应的命令包名，可指定多个, e.g rg:ripgrep,xargs:findutils", 
+              "description": "函数基本描述",
+              "function": "待封装的 Bash 函数代码块, e.g echo $1;echo $2",
+              "parameters (可选项)": {
+                "type": "object",
+                "properties": {
+                  "参数1, e.g arg1": {
+                    "type": "string",
+                    "description": "参数基本描述"
+                    }
+                  }
+                },
+                "required": [
+                  "要使用的参数, e.g arg1"
+                ]
+              }
+            }' 2>/dev/null |
+  sed '12a\      '$'\e[2;37m"参数2"...\e[0m' |
+  sed '17a\    '$'\e[2;37m"参数2"...\e[0m' | 
+  cat -n)
+    \`\`\`
+    * 无参数函数可仅包含 \"name\"  \"description\"  \"function\" 字段
+
+  注意:
+    ${c32}Function Calling${c0} 支持为最终阶段测试功能，已验证在多个模型下基本
+    正常工作，但暂不建议在生产环境使用。
+    流式响应已进入正式测试阶段，将不使用内置逐字输出功能缓存输出。
+    目前 ${c32}deepseek-reasoner${c0} 思考链兼容仅在流式响应模式应用，且性能较差
+    流式响应已尝试构建错误处理机制，但部分特性依旧可能在此丢失。
+    因历史遗留问题，${arg0} 暂无法支持 GNU 风格参数 ${c33}--color${c0}，但可用环境
+    变量 ${c32}BAI_COLOR${c0} 代替。
+    目前暂无法实现对大模型回应的打断操作，仍然处于计划中。
+
+  提示:
+    启用前缀续写功能后，连续对话模式下，在输入问题末尾添加 ${c32}@prefix${c0} 标识
+    即可使用前缀续写功能:
+      ${c34}$user_prompt${c0} ${c32}春天来了，万物复苏${c0}${c33}@prefix${c0}
+
+    自 ${c33}$(Print-HighLight-Number <<<"Bash 5.3") 版本开始，${c32}read${c0} 内建得到增强，现已加入对于部分局内指令的补全函数,
+    以期增强体验。
+    加入可选依赖命令，在安装这些命令后将一定程度上增强使用体验，可通过上述命令行参
+    数选择性禁用命令扩展：
+      ${c32}bat${c0}:   对于 ${c32}.copy${c0} 指令和静态非流输出使用高亮语法，以增强视觉效果
+      ${c32}gum${c0}:   对于 用户交互功能增强/替换，但将损失部分特性
+      ${c32}fzf${c0}:   对于 ${c33}Bash${c0} 历史记录反向匹配功能（${c35}Ctrl-R${c0}）增强
+
+    退出状态:
+      通常是不确定的，一般情况下仅在发生错误时返回非零值
+
+  $(Set-Link-Text "$arg0" "https://gitee.com/hornleaf/bai") 命令行工具 项目地址: <${c4}https://gitee.com/hornleaf/bai${c0}> 
+  请向 <${c4}hornleaf_cn@outlook.com${c0}> 或 <${c4}https://gitee.com/hornleaf/bai/issues${c0}> 反馈
+  问题或提出改进性建议
+  
+  ** 开个玩笑，仓库项目里根本没有这么多功能，全让我自个私吞了\n"
+      exit
+  esac
+done
+
+# 次优先解析测试参数，直接退出
+for arg in "$@";do
+  case "$arg" in
+    --argtest*|-a*)
+      TEST_ARG="ARG_TEST_VALUE"
+      ARG_ERR="未指定参数" \
+      ARG_OPTS="a,argtest" \
+      ARG_KEY="$TEST_ARG" \
+      Get-Arguments-Value "$@"
+      RETURN=$?
+      if [[ "$RETURN" =~ ^10([12])$ ]];then
+        echo " + shift ${BASH_REMATCH[1]}"
+      else
+        exmsg "$ARGS_ERR"
+      fi
+      echo " + arg-value: ${!TEST_ARG}"
+      exec echo " + exit"
+      ;;
+    --complete)
+      sed -n \
+        "$(
+          sed -n '/^# __COMPLETE_HEAD__/=;/^# __COMPLETE_TAIL__/=' "$BASH_SOURCE" |
+          tr '\n' , | sed 's/,$/p/'
+      )" "$BASH_SOURCE" |
+      sed '1d;$d;s/^# //g' |
+      sed "s/%Name%/$arg0/g"
+      exit
+      ;;
+    --session-help)
+      Get-Session-Help
+      exit
+      ;;
+  esac
+done
+
+# 最后解析参数 优先级低
+for arg in "$@";do
+  ARGS_ERR="$arg0: 参数解析错误..."
+  arg="$1"
+  case "$1" in
+    # 使用检查模式
+    --inspect|-x)
+      Limit-Repeation-Arguments SHIFT_X "$1"
+      DEBUG_MODE=true
+      shift
+      ;;
+    # 启用调试输出
+    --debug|-o)
+      Limit-Repeation-Arguments SHIFT_O "$1"
+      DEBUG=true
+      shift
+      ;;
+    # 启用流模式
+    --stream|-n)
+      Limit-Repeation-Arguments SHIFT_N "$1"
+      OPENAI_ENABLE_STREAM=true
+      shift
+      ;;
+    # 启用深度思考链
+    --thinking|-e)
+      Limit-Repeation-Arguments SHIFT_E "$1"
+      OPENAI_ENABLE_THINKING=true
+      shift
+      ;;
+    # 启用联网搜索
+    --search|-g)
+      Limit-Repeation-Arguments SHIFT_G "$1"
+      OPENAI_ENABLE_SEARCH=true
+      shift
+      ;;
+    # 启用部分响应
+    --partial|-j)
+      Limit-Repeation-Arguments SHIFT_J "$1"
+      OPENAI_ENABLE_PARTIAL=true
+      shift
+      ;;
+    # 解除对话轮次限制
+    --no-limit-turns|-l)
+      Limit-Repeation-Arguments SHIFT_L "$1"
+      BAI_LIMIT_TURNS=false
+      shift
+      ;;
+    # 解除过小模型的工具调用限制
+    --no-limit-tools|-z)
+      Limit-Repeation-Arguments SHIFT_Z "$1"
+      BAI_LIMIT_TOOLS=false
+      shift
+      ;;
+    # 启用 ConEmu 进度指示特性
+    --conemu-status|-p)
+      Limit-Repeation-Arguments SHIFT_P "$1"
+      CONEMU_STATUS=true
+      shift
+      ;;
+    # 从参数向脚本内注入变量
+    --value*|-v*)
+      # 可重复参数，无需使用参数重复检查组件
+      VAR_ARG="BAI_INJECT_VAR"
+      ARG_ERR="未指定变量" \
+      ARG_OPTS="v,value" \
+      ARG_KEY="$VAR_ARG" \
+      Get-Arguments-Value "$@"
+      RETURN=$?
+      if [[ "$RETURN" =~ ^10([12])$ ]];then
+        shift ${BASH_REMATCH[1]}
+      else
+        exmsg "$ARGS_ERR"
+      fi
+      __bai_inject_var="${!VAR_ARG}"
+      # 检查是否符合基本赋值形式
+      if [[ "$__bai_inject_var" == *=* ]];then
+        # 检查是否符合基本赋值规范
+        if [[ "${__bai_inject_var%%=*}" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]];then
+          # 符合规范，注入变量
+          # 检查是否已被注入过
+          if eval "\${BAI_INJECT_KEY_${__bai_inject_var%%=*}:-false}";then
+            emsg "变量 ${__bai_inject_var%%=*} 已被注入过"
+          else
+            printf -v "BAI_INJECT_KEY_${__bai_inject_var%%=*}" true
+            printf -v "${__bai_inject_var%%=*}" "${__bai_inject_var#*=}" || exmsg "变量注入失败"
+          fi
+        else
+          exmsg "变量名不符合规范"
+        fi
+      else
+        exmsg "变量赋值不符合规范"
+      fi
+      ;;
+    # 指定服务商基本接口地址
+    --baseurl*|-b*)
+      Limit-Repeation-Arguments SHIFT_B "$1"
+      ARG_ERR="未指定 OpenAI API BaseURL" \
+      ARG_OPTS="b,baseurl" \
+      ARG_KEY="OPENAI_BASE_URL" \
+      Get-Arguments-Value "$@"
+      RETURN=$?
+      if [[ "$RETURN" =~ ^10([12])$ ]];then
+        shift ${BASH_REMATCH[1]}
+      else
+        exmsg "$ARGS_ERR"
+      fi
+      ;;
+    # 指定接口密钥
+    --apikey*|-k*)
+      Limit-Repeation-Arguments SHIFT_K "$1"
+      ARG_ERR="未指定接口密钥" \
+      ARG_OPTS="k,apikey" \
+      ARG_KEY="OPENAI_API_KEY" \
+      Get-Arguments-Value "$@"
+      RETURN=$?
+      if [[ "$RETURN" =~ ^10([12])$ ]];then
+        shift ${BASH_REMATCH[1]}
+      else
+        exmsg "$ARGS_ERR"
+      fi
+      ;;
+    # 指定所用模型
+    --model*|-m*)
+      Limit-Repeation-Arguments SHIFT_M "$1"
+      ARG_ERR="未指定模型" \
+      ARG_OPTS="m,model" \
+      ARG_KEY="OPENAI_API_MODEL" \
+      ARG_USE_ARRAY=true \
+      Get-Arguments-Value "$@"
+      RETURN=$?
+      if [[ "$RETURN" =~ ^10([12])$ ]];then
+        shift ${BASH_REMATCH[1]}
+      else
+        exmsg "$ARGS_ERR"
+      fi
+      ;;
+    # 指定历史记录文件
+    --histfile*|-i*)
+      Limit-Repeation-Arguments SHIFT_I "$1"
+      ARG_ERR="未指定文件" \
+      ARG_OPTS="i,histfile" \
+      ARG_KEY="HISTFILE" \
+      Get-Arguments-Value "$@"
+      RETURN=$?
+      if [[ "$RETURN" =~ ^10([12])$ ]];then
+        shift ${BASH_REMATCH[1]}
+      else
+        exmsg "$ARGS_ERR"
+      fi
+      ;;
+    # 指定新标题
+    --title*|-t*)
+      Limit-Repeation-Arguments SHIFT_T "$1"
+      ARG_ERR="未指定标题" \
+      ARG_OPTS="t,title" \
+      ARG_KEY="BAI_TITLE" \
+      Get-Arguments-Value "$@"
+      RETURN=$?
+      if [[ "$RETURN" =~ ^10([12])$ ]];then
+        shift ${BASH_REMATCH[1]}
+      else
+        exmsg "$ARGS_ERR"
+      fi
+      ;;
+    # 指定用户名
+    --username*|-u*)
+      Limit-Repeation-Arguments SHIFT_U "$1"
+      ARG_ERR="未指定用户名" \
+      ARG_OPTS="u,username" \
+      ARG_KEY="BAI_USERNAME" \
+      Get-Arguments-Value "$@"
+      RETURN=$?
+      if [[ "$RETURN" =~ ^10([12])$ ]];then
+        shift ${BASH_REMATCH[1]}
+      else
+        exmsg "$ARGS_ERR"
+      fi
+      ;;
+    # 指定环境变量文件
+    --config*|-f*)
+      Limit-Repeation-Arguments SHIFT_F "$1"
+      FILE_ARG="BAI_ENV_FILE"
+      ARG_ERR="未指定文件" \
+      ARG_OPTS="f,config" \
+      ARG_KEY="$FILE_ARG" \
+      Get-Arguments-Value "$@"
+      RETURN=$?
+      if [[ "$RETURN" =~ ^10([12])$ ]];then
+        shift ${BASH_REMATCH[1]}
+      else
+        exmsg "$ARGS_ERR"
+      fi
+      if [ -f "${!FILE_ARG}" ];then
+        Limit-FileSize "${!FILE_ARG}" 80,512
+        if (
+             ! grep -Ev '^\s*(export\s+)?[a-zA-Z_][a-zA-Z0-9_]*=.*(#.*)?$' "${!FILE_ARG}" |
+             grep -qEv '^\s*$|^\s*#' &&
+             ! grep -qE '\$\(|`' "${!FILE_ARG}"
+            );then
+          source "${!FILE_ARG}"
+        else
+          exmsg "$arg1: ${!FILE_ARG}: 敏感的文件内容"
+        fi
+      else
+        exmsg "$arg1: ${!FILE_ARG}: 文件不存在"
+      fi
+      ;;
+    # 指定基本提示词文件
+    --sysfile*|-s*)
+      Limit-Repeation-Arguments SHIFT_S "$1"
+      FILE_ARG="BAI_SYSTEM_FILE"
+      ARG_ERR="未指定文件" \
+      ARG_OPTS="s,sysfile" \
+      ARG_KEY="$FILE_ARG" \
+      Get-Arguments-Value "$@"
+      RETURN=$?
+      if [[ "$RETURN" =~ ^10([12])$ ]];then
+        shift ${BASH_REMATCH[1]}
+      else
+        exmsg "${!ARGS_ERR}"
+      fi
+      if [ -f "${!FILE_ARG}" ];then
+        # 限制文件大小，最小5字节，最大10千字节
+        Limit-FileSize "${!FILE_ARG}" 5,10240
+        OPENAI_SYSTEM_PROMPT="$(cat "${!FILE_ARG}")"
+      elif [ -d "${!FILE_ARG}" ];then
+        exmsg "$arg1: ${!FILE_ARG}: 是一个目录"
+      else
+        exmsg "$arg1: 找不到文件: ${!FILE_ARG}"
+      fi
+      ;;
+    # 指定 Function Calling 工具文件
+    --callfile*|-c*)
+      Limit-Repeation-Arguments SHIFT_C "$1"
+      FILE_ARG="BAI_CALLING_FILE"
+      ARG_ERR="未指定文件" \
+      ARG_OPTS="c,callfile" \
+      ARG_KEY="$FILE_ARG" \
+      Get-Arguments-Value "$@"
+      RETURN=$?
+      if [[ "$RETURN" =~ ^10([12])$ ]];then
+        shift ${BASH_REMATCH[1]}
+      else
+        exmsg "${!ARGS_ERR}"
+      fi
+      if [ -f "${!FILE_ARG}" ];then
+        Limit-FileSize "${!FILE_ARG}" 100,10240
+        Check-Tools "${!FILE_ARG}"
+        TOOLS=true
+      elif [ -d "${!FILE_ARG}" ];then
+        exmsg "$arg1: ${!FILE_ARG}: 是一个目录"
+      else
+        exmsg "$arg1: 找不到文件: ${!FILE_ARG}"
+      fi
+      ;;
+    --no-extend*|-d*)
+      Limit-Repeation-Arguments SHIFT_D "$1"
+      VAR_ARG="BAI_DISABLE_EXTEND"
+      ARG_ERR="未指定排除项" \
+      ARG_OPTS="d,no-extend" \
+      ARG_KEY="$VAR_ARG" \
+      Get-Arguments-Value "$@"
+      RETURN=$?
+      if [[ "$RETURN" =~ ^10([12])$ ]];then
+        shift ${BASH_REMATCH[1]}
+      else
+        exmsg "${!ARGS_ERR}"
+      fi
+      if [[ "${!VAR_ARG}" =~ ^[a-zA-Z0-9_]+($|,([a-zA-Z0-9_]+,)*[a-zA-Z0-9_]+)?$ ]];then
+        __bai_disable_coommand=(${!VAR_ARG//,/ })
+        for i in ${__bai_disable_coommand[@]};do
+          if [[ " ${EXTEND_DIST[@]} " == *" $i "* ]];then
+              command -v "$i" &>/dev/null || exmsg "$i: 找不到命令"
+              eval $EXTEND_VAL$i=false
+            else
+              exmsg "$i: 非可选依赖的命令"
+          fi
+        done
+      else
+        exmsg "非法的命令排除名单"
+      fi
+      ;;
+    --no-tools*|-q*)
+      Limit-Repeation-Arguments SHIFT_Q "$1"
+      VAR_ARG="BAI_DISABLE_TOOLS"
+      ARG_ERR="未指定排除项" \
+      ARG_OPTS="q,no-tools" \
+      ARG_KEY="$VAR_ARG" \
+      Get-Arguments-Value "$@"
+      RETURN=$?
+      if [[ "$RETURN" =~ ^10([12])$ ]];then
+        shift ${BASH_REMATCH[1]}
+      else
+        exmsg "${!ARGS_ERR}"
+      fi
+      [[ "${!VAR_ARG}" =~ ^[a-zA-Z0-9_]+($|,([a-zA-Z0-9_]+,)*[a-zA-Z0-9_]+)?$ ]] ||
+      exmsg "非法的函数禁用名单"
+      ;;
+    --wait-style*|-w*)
+      Limit-Repeation-Arguments SHIFT_W "$1"
+      VAR_ARG="BAI_WAIT_STYLE"
+      ARG_ERR="未指定等待样式" \
+      ARG_OPTS="w,wait-style" \
+      ARG_KEY="BAI_WAIT_STYLE" \
+      Get-Arguments-Value "$@"
+      RETURN=$?
+      if [[ "$RETURN" =~ ^10([12])$ ]];then
+        shift ${BASH_REMATCH[1]}
+      else
+        exmsg "$ARGS_ERR"
+      fi
+      _all_wait_style=(
+        bar
+        arc
+        dot
+        line
+        bell
+        wave
+        roll
+        dice
+        block
+        arrow
+        square
+        phase
+        pushpull
+        invisible
+        dotmatrix
+        rectangle
+      )
+      if [[ " ${_all_wait_style[@]} " == *" ${!VAR_ARG} "* ]];then
+        Switch-Wait-Frame "${!VAR_ARG}"
+      else
+        _for_wait_style=()
+        for i in "${_all_wait_style[@]}";do
+          [[ "$i" == *"${!VAR_ARG}"* ]] && _for_wait_style+=("$i")
+        done
+        ((${#_for_wait_style[@]})) && {
+          emsg "未知的等待样式: ${c32}${!VAR_ARG}${c0}, 找到包含 \"${c32}${!VAR_ARG}${c0}\" 的样式:"
+          printf " --- ${c32}%s${c0}\n" "${_for_wait_style[@]}"
+          exec echo
+        }
+        # 初始化最小距离和最相似参数
+        _min_da=5
+        _min_distance="$_min_da"
+        _sim_option=""
+        # 遍历所有有效参数，计算距离
+        for o in "${_all_wait_style[@]}";do
+          _distance=$(Get-Levenshtein "${!VAR_ARG}" "$o")
+          if ((_distance<_min_distance));then
+            _min_distance="$_distance"
+            _sim_option="$o"
+          fi
+        done
+        if ((_min_distance<_min_da));then
+          exmsg "未知的等待样式: ${c33}${!VAR_ARG}${c0}, 找到距离最近的样式 ${c32}$_sim_option${c0}"
+        else
+          exmsg "未知的等待样式 ${c33}${!VAR_ARG}${c0}"
+        fi
+      fi
+      ;;
+    --)
+      shift
+      ;;
+    -*)
+      # 检查参数
+      if [[ "$1" == --* ]];then
+        _all_options=(
+          help
+          session-help
+          argtest
+          stream
+          thinking
+          search
+          partial
+          debug
+          no-limit-turns
+          no-limit-tools
+          baseurl
+          apikey
+          model
+          title
+          inspect
+          sysfile
+          histfile
+          config
+          callfile
+          no-extend
+          wait-style
+          conemu-status
+        )
+        _arg1=${1:2}
+        _for_num=0
+        _for_options=()
+        for i in "${_all_options[@]}";do
+          [[ "$i" == *"$_arg1"* ]] && _for_options+=("$i")
+        done
+        ((${#_for_options[@]})) && {
+          emsg "未知的选项: ${c33}$1${c0}, 找到包含 \"${c32}$_arg1${c0}\" 的选项:"
+          printf "  ${c32}--%s${c0}\n" "${_for_options[@]}"
+          exec echo
+        }
+        # 初始化最小汉明距离和最相似参数
+        _min_da=5
+        _min_distance="$_min_da"
+        _sim_option=""
+        # 遍历所有有效参数，计算汉明距离
+        for o in "${_all_options[@]}";do
+          _distance=$(Get-Levenshtein "$_arg1" "$o")
+          if ((_distance<_min_distance));then
+            _min_distance="$_distance"
+            _sim_option="$o"
+          fi
+        done
+        if ((_min_distance<_min_da));then
+          exmsg "未知的选项: ${c33}$1${c0}, 找到距离最近的选项 ${c32}--$_sim_option${c0}"
+        else
+          exmsg "未知的选项 ${c33}$1${c0}"
+        fi
+      else
+        exmsg "未知的选项 ${c33}$1${c0}"
+      fi
+      ;;
+    *)
+      # 输入提问文件或提问
+      if [ "$1" ];then
+        if [[ -z "$OPENAI_USER_PROMPT" ]];then
+          OPENAI_USER_PROMPT="${1}"
+          [[ -f "$OPENAI_USER_PROMPT" ]] && OPENAI_USER_PROMPT="$(cat "$OPENAI_USER_PROMPT")"
+          shift
+        else
+          exmsg "过多的提问"
+        fi
+      fi
+      ;;
+  esac
+done
+
+########################################################################
+
+# 进行第一个调试输出
+Get-Timer
+debug "脚本初始化完成, 耗时: $Get_Timer"
+debug "开始加载主功能..."
+Get-Timer
+
+########################################################################
+
+# 终端标题
+function get.session.title(){
+  [ "$BAI_TITLE" ] || __custom_title_status=false
+  if $__custom_title_status;then
+    BAI_TITLE="${1:-$BAI_TITLE}"
+  else
+    BAI_TITLE="${arg0^} Session$([ "$BAI_USERNAME" ] && echo -n " - $BAI_USERNAME")"
+  fi
+  debug "预设置终端标题: $BAI_TITLE"
+}
+get.session.title
+
+########################################################################
+
+# 设置 OpenAI API 原始地址、密钥、模型等
+[[ -z "${OPENAI_API_KEY}" || -z "${OPENAI_API_MODEL}" ]] &&
+exmsg "缺少环境变量\n至少需提供 ${c32}接口密钥${c0} 和 ${c32}接口模型${c0}\n用法详见 ${c32}$arg0${c0} ${c33}--help${c0}\n"
+: ${OPENAI_BASE_URL:="https://api.openai.com"}
+API_AUTH="Authorization: Bearer $OPENAI_API_KEY"
+debug "已设置 OpenAI API 原始地址: $OPENAI_BASE_URL"
+debug "已设置 OpenAI API 密钥(隐藏): ${OPENAI_API_KEY//?/\*}"
+debug "已设置 OpenAI API 模型: $OPENAI_API_MODEL"
+
+# 处理标准输入
+if [[ ! -z "$STDIN_INPUT" ]];then
+  # STDIN_INPUT="$(printf '%s' "$STDIN_INPUT" | jq -Rsa . | sed -e 's/^"//' -e 's/"$//')" # 转义标准输入以确保安全
+  STDIN_INPUT="这是来自标准输入的内容:"$'\n---\n'"$STDIN_INPUT"$'\n---\n\n'
+  debug "接受来自标准输入的内容..."
+fi
+
+########################################################################
+
+debug "开始筛查变量类型..."
+
+## 筛查非法值
+typeof_index=0
+
+# 变量名,变量类型
+type_of=(
+  # BAI 内建
+  "BAI_TITLE",string                # 标题
+  "BAI_USERNAME",string             # 用户名
+  "BAI_LIMIT_TURNS",boolean         # 限制对话轮次
+  "BAI_WAIT_STYLE",string           # 等待样式
+  "BAI_LIMIT_TOOLS",boolean         # 限制工具调用
+  "BAI_CALLING_FILE",string         # 调用工具文件
+  # OpenAI 接口
+  "OPENAI_API_KEY",string           # 接口密钥
+  "OPENAI_API_MODEL",string         # 接口模型
+  "OPENAI_API_TEMP",number          # 接口温度
+  "OPENAI_TOP_K",number             # 接口TopK
+  "OPENAI_TOP_P",number             # 接口TopP
+  "OPENAI_PRESENCE",number          # 接口存在惩罚
+  "OPENAI_FREQUENCY",number         # 接口频率惩罚
+  "OPENAI_TEXT_NUM",number          # 接口文本数量
+  "OPENAI_MAX_TOKENS",number        # 接口最大令牌
+  "OPENAI_BASE_URL",url             # 接口原始地址
+  "OPENAI_ENABLE_STREAM",boolean    # 接口是否开启流式
+  "OPENAI_ENABLE_THINKING",boolean  # 接口是否开启思考
+  "OPENAI_ENABLE_SEARCH",boolean    # 接口是否开启搜索
+  "OPENAI_ENABLE_PARTIAL",boolean   # 接口是否开启部分输出
+)
+
+# 创建非法值列表
+type_invalid=()
+type_invalid_value=()
+
+# 检查变量类型
+for i in ${type_of[@]};do
+  type_value="${i%,*}"
+  type_in="${i#*,}"
+  type_r="$(Check-Variable-Type "$type_value")"
+  [[ "$type_r" == "$type_in" || -z "${!type_value}" ]] || {
+    debug "变量 ${c32}$type_value${c0} 类型检查未通过，加入非法值列表"
+    type_invalid+=($type_value $type_in $type_r)
+    type_invalid_value+=("${type_value}" "${!type_value}")
+  }
+done
+
+# 报告异常的变量
+if ! ((${#type_invalid[@]}==0));then
+  emsg "环境变量类型异常"
+  echo -e "${c34}异常变量:${c0}"
+  printf " - ${c32}%s${c0}=${c31}%s${c0}\n" "${type_invalid_value[@]}"
+  echo -e "${c34}说明:${c0}"
+  printf " - 变量 ${c32}%s${c0} 应该使用 ${c34}%s${c0} 类型，但是错误的使用了 ${c31}%s${c0} 类型\n" "${type_invalid[@]}"
+  echo
+  let typeof_index++
+fi
+
+debug "筛查变量类型完成, 继续筛查组合类型变量..."
+
+# 组合类型变量列表
+vararray_typeof=(
+  "OPENAI_API_MODEL"::string       # 接口模型
+)
+
+# 检查组合类型变量
+for i in ${vararray_typeof[@]};do
+  var="${i%::*}"
+  type="${i#*::}"
+  Check-VarArray-Type "${!var}" "$type" "${var}"
+done
+
+# 报告异常的组合类型变量
+if ! ((${#__check_vararray[@]}==0));then
+  emsg "环境变量组合类型异常"
+  echo -e "${c34}异常变量:${c0}"
+  printf " - ${c32}%s${c0}\n" "${__check_vararray[@]}"
+  echo -e "${c34}说明:${c0}"
+  printf " - 变量 ${c32}%s${c0} 其中部分值 ${c33}%s${c0} 并非 ${c34}%s${c0} 类型，而是错误的使用了 ${c31}%s${c0} 类型\n" "${__check_vararray[@]}" "${__check_vararray_type[@]}"
+  echo
+  let typeof_index++
+fi
+
+((typeof_index==0)) || {
+  debug "环境变量类型检查未通过，退出脚本"
+  exit 1
+}
+
+debug "变量类型检查完成, 将组合类型变量转换为数组..."
+
+# 将组合类型变量转换为数组, 并覆写第一个索引作为默认值 key => key_in_array, key_in_array[0] => key
+for i in ${vararray_typeof[@]};do
+  i="${i%::*}"
+  if [[ "${!i}" =~ ^([^,]+)(,[^,]+)*$ ]];then
+    eval "${i}_in_array=(${!i//,/ })"
+    eval "$i=\"\$${i}_in_array\""
+  fi
+done
+
+########################################################################
+
+debug "构建 OpenAI 基本请求体..."
+
+# 制作起始请求内容
+builtin printf -v data \
+  '{
+    "model": "%s",
+    "stream": %s,
+    "enable_thinking": %s,
+    "enable_search": %s,
+    "messages": []
+  }' \
+  "$OPENAI_API_MODEL" "$OPENAI_ENABLE_STREAM" "$OPENAI_ENABLE_THINKING" "$OPENAI_ENABLE_SEARCH"
+
+debug "基本请求体构建完成, 继续扩展请求体..."
+
+# 动态加入键值（json 格式）
+function data.append(){
+  local key="$1" value="$2" type="$3"
+  [[ "$type" == "--no-json" ]] && type="" || type="json"
+  [[ -n "$value" ]] && data=$(jq --arg"$type" "$key" "$value" ". += {\"$key\": \$$key}" <<< "$data")
+}
+
+# 灵活修改键值
+function data.setkey(){
+  local key="$1" value="$2"
+  [[ -n "$value" ]] && data=$(jq --arg "$key" "$value" ".\"$key\" = \$$key" <<< "$data")
+}
+
+# 动态加入系统提示
+function system_msg.append(){
+  local content="$1"
+  data="$(jq --arg content "$content" '.messages += [{"role": "system", "content": $content}]' <<< "$data")"
+}
+
+data.append "max_tokens" "$OPENAI_MAX_TOKENS"          # 最大 tokens 输出量
+data.append "n" "$OPENAI_TEXT_NUM"                     # 文本范围
+data.append "temperature" "$OPENAI_API_TEMP"           # 模型温度
+data.append "top_k" "$OPENAI_TOP_K"                    # 贪婪采样
+data.append "top_p" "$OPENAI_TOP_P"                    # 精简采样
+data.append "presence_penalty" "$OPENAI_PRESENC"       # 重复惩罚
+data.append "frequency_penalty" "$OPENAI_FREQUENCY"    # 频率惩罚
+
+# 结束标语
+if [ "$OPENAI_STOP_TEXTS" ];then
+  array2json="$(jq -n --args '$ARGS.positional' --args "${OPENAI_STOP_TEXTS[@]}")"
+  data.append "stop" "$array2json"                     # 结束标语
+fi
+
+debug "正在扩展个性化内容..."
+
+# 用户名
+[ "$BAI_USERNAME" ] && {
+  system_msg.append "你需要以此称呼用户: \"$BAI_USERNAME\", 强调: 这是用户名, 不是你所使用的昵称"
+  debug "使用的用户名: $BAI_USERNAME"
+}
+
+# 提示命令
+[ "$OPENAI_SYSTEM_PROMPT" ] &&
+system_msg.append "$OPENAI_SYSTEM_PROMPT"
+
+# 补充：对于过小规模的模型禁用 function calling 功能，并发起警告
+if $BAI_LIMIT_TOOLS;then
+  debug "检测到限制工具调用功能，正在检查模型规模..."
+  [[ "$OPENAI_API_MODEL" =~ ^.+[:-](([0-4]\.[1-9]|[1-4])[bB])$ ]] && {
+    debug "显式指向的模型规模过小，将变量 TOOLS 设置为 false，发出警告"
+    TOOLS=false
+    msg "显式指向的模型规模过小 (${c33}${BASH_REMATCH[1]}${c0})，已禁用 ${c32}Function Calling${c0} 功能，请使用更大参数 (${c36}=<${c0}${c35}5b${c0}) 的模型或手动调用指令";}
+fi
+
+# 启用 Function Calling 功能
+if $TOOLS;then
+  __bai_disable_function=(${BAI_DISABLE_TOOLS//,/ })
+  debug "Function Calling 功能已启用，正在加载工具预处理..."
+  data.append "choice" "auto" --no-json
+  toolsdata="$(jq -s . "$BAI_CALLING_FILE")"
+  tools="$(jq '. |= map({"type": "function","function": .})' <<<"$toolsdata")" 
+  data="$(jq --argjson tools "$(jq 'map(del(.function.function))' <<<"$tools")" '.tools = $tools' <<< "$data")"
+  function_head="bai::function-calling"
+  __bai_function_tools=()
+  while IFS= read -r line;do
+    function_fromjson_name="$(cut -d' ' -f1 <<< "$line")"
+    __bai_function_tools+=("$function_fromjson_name")
+    [[ " ${__bai_disable_function[*]} " == *" ${function_fromjson_name} "* ]] && {
+      debug "发现命令行参数要求禁用的函数: $function_fromjson_name"
+      continue
+    }
+    function_name="$function_head::$function_fromjson_name"
+    declare -A gco_explicitly["$function_name"]="$(cut -d' ' -f2 <<<"$line")"
+    for i in $(cut -d' ' -f3 <<< "$line" | tr ',' ' ');do
+      [[ "$i" == "NULL" ]] && break
+      bai_function_depend_command=${i%%:*}
+      bai_function_depend_packname=${i##*:}
+      [[ "$bai_function_depend_command" == "$bai_function_depend_packname" ]] || bai_function_depend_packname+=" ($bai_function_depend_command)"
+      command -v $bai_function_depend_command &>/dev/null || declare -A __bai_function_depend_notfound["$function_fromjson_name"]="$bai_function_depend_packname"
+    done
+    function_code="$(cut -d' ' -f4- <<<"$line")"
+    eval "$function_name(){ $function_code;}"
+  done < <(jq -r '.[] | .name + " " + (.explicitly // "false") + " " + (.depend // "NULL") + " " + .function' <<< "$toolsdata")
+  ((${#__bai_disable_function[@]}==0)) || {
+    debug "筛查命令行参数指定但工具文件中并不存在的函数"
+    __bai_disable_function_notfound=()
+    for for_arg_tools in "${__bai_disable_function[@]}";do
+      for for_file_tools in "${__bai_function_tools[@]}";do
+        if [[ "$for_file_tools" == "$for_arg_tools" ]];then
+          for_func_notfound=true
+          break
+        else
+          for_func_notfound=false
+        fi
+      done
+      $for_func_notfound ||
+      __bai_disable_function_notfound+=("$for_arg_tools")
+    done
+    if ! ((${#__bai_disable_function_notfound[@]}==0));then
+      debug "命令行参数指定的排除项中有不存在的函数，${arg0^^} 应当拒绝启动"
+      emsg "不存在的函数工具:"
+      printf " ${c34}-${c0} ${c33}%s${c0}\n" "${__bai_disable_function_notfound[@]}"
+      exec echo
+    fi
+  }
+  ((${#__bai_function_depend_notfound[@]}==0)) || {
+    debug "发现了不存在依赖命令的的工具函数"
+    emsg "由于缺失声明所需的命令依赖，以下函数工具不可用:"
+    for i in "${!__bai_function_depend_notfound[@]}";do
+      echo -e " ${c34}-${c0} 函数工具 ${c32}$i${c0} 需要 ${c33}${__bai_function_depend_notfound["$i"]}"
+    done
+    exec echo
+  }
+  ((${#gco_explicitly[@]}==0)) && exmsg "禁用了所有的函数工具？在指定了工具文件时至少需要一个可用的函数工具。"
+  debug "工具预处理加载完成"
+  $OPENAI_ENABLE_STREAM || {
+    debug "检测到禁用流式输出，将推送限制多轮工具调用的系统提示"
+    system_msg.append "由于禁用流式输出，将限制多轮工具调用，如果注意到用户意图你使用多个工具，请拒绝请求"
+  }
+fi
+
+debug "请求体已准备就绪"
+
+# 备份请求体
+old_data="${data}"
+# 备份用户名
+BAI_USERNAME_OLD="${BAI_USERNAME}"
+# 备份标题
+BAI_TITLE_OLD="${BAI_TITLE}"
+
+########################################################################
+
+# 会话前置准备
+
+debug "配置 ReadLine 选项..."
+
+# ReadLine 配置
+__bai_readline_config=(
+  completion-ignore-case                # 忽略大小写
+  show-all-if-ambiguous                 # 显示所有可能的完成项
+  menu-complete-display-prefix          # 显示完成项的前缀
+  mark-symlinked-directories            # 标记符号链接目录
+  colored-completion-prefix             # 启用颜色高亮显示补全列表
+  visible-stats                         # 显示文件类型标识（例如，目录显示 /，可执行文件显示 *）
+  blink-matching-paren                  # 显示匹配的括号，方便查看代码结构
+)
+bind 'TAB: menu-complete'               # 启用循环补全，类似 Windows Cmd / PowerShell
+for i in ${__bai_readline_config[@]};do
+  bind "set $i on"
+done
+
+debug "ReadLine 配置完成, 正在绑定按键..."
+
+# 绑定按键
+bind -x '"\C-h":"echo -n '$'\e[32m''[Ctrl-H]'$'\e[0m''\ ;Get-Session-Help"' 2>/dev/null
+bind -x '"\C-l":"clear"' 2>/dev/null
+bind -x '"\C-z":"echo -n '$'\e[32m''[Ctrl-Z]'$'\e[0m''\ \"快捷键已禁用\""' 2>/dev/null
+bind -x '"\C-y":"echo -n '$'\e[32m''[Ctrl-Y]'$'\e[0m''\ ;Get-New-Msg | Get-MarkDown-CodeBlocks 1"' 2>/dev/null
+
+if $__has_extend_fzf;then
+  function bai-query-history(){
+    [ -f "$BAI_HISTFILE" ] || { echo -ne "${c32}[Ctrl-R]${c0} ";msg "${arg0^^} 还未创建历史文件，请输入至少一次后再次尝试使用";return;}
+    READLINE_LINE="$(fzf --height=1% <"$BAI_HISTFILE" 2>/dev/null)"
+    READLINE_POINT=${#READLINE_LINE}
+  }
+  bind -x '"\C-r":"bai-query-history"' 2>/dev/null
+fi
+
+debug "按键绑定完成，正在初始化会话设置..."
+
+# 无参数时进入连续对话模式
+# 参数准备
+if ((${#OPENAI_USER_PROMPT}==0));then
+  CHAT=true    EVAL=false    CSAA=false
+  PRINT=true   ERRON=false   DEBUG=${DEBUG:-false}
+  RCSAA=false  LEXEC=false
+  SET=(PRINT ERRON DEBUG RCSAA LEXEC OPENAI_API_MODEL)
+  SET_ALIAS=(
+    print-effect:bool   erron-effect:bool
+    debug-output:bool   eval-skipask:bool
+    local-execute:bool  chat-model:string
+  )
+  SET_DESCRIPTION=(
+    "非流模式下使用流畅的逐字复述效果"
+    "推送警告时进行延迟阻挡"
+    "启用调试输出（无明显作用）"
+    "通过指令生成终端命令后跳过询问并直接执行"
+    "通过指令执行命令时以 ${arg0^^} 内部环境执行"
+    "从多个预设中切换模型，初始预设模型为 $OPENAI_API_MODEL"
+  )
+else
+  CHAT=false   EVAL=false    PRINT=false
+fi
+
+# 退出准备
+if $CHAT;then
+  trap 'trap=true bye' SIGINT
+  trap 'printf "\e[1A";bye' EXIT
+fi
+
+debug "会话操作准备就绪，准备注册指令..."
+
+########################################################################
+
+# 指令补全注册模板
+function instruct.append(){
+  source /dev/stdin <<FUNCTION_CODE_BLOCK
+    __instruct.${1}(){
+      COMPREPLY=()
+      local cur=\${COMP_WORDS[COMP_CWORD]}
+      local prev=\${COMP_WORDS[COMP_CWORD-1]}
+      local words=("\${COMP_WORDS[@]}")
+      local cword="\${COMP_CWORD}"
+      local argc=\${#words[@]}
+      local argv=("\${words[@]}")
+      local name=.${1}
+      $([ -t 0 ] && echo : || cat)
+    }
+    complete -o nospace -F __instruct.${1} .${1}
+    .${1}(){ :;}
+FUNCTION_CODE_BLOCK
+}
+
+if $local_complete;then
+  debug "Bash ReadLine 高级补全功能可用，正在注册指令..."
+  # 局内设置
+  instruct.append set <<'EOM'
+  case "$prev" in
+    "$name")
+      COMPREPLY=($(compgen -W "${SET_ALIAS[*]%:*}" -- "$cur"))
+    ;;
+    chat-model)
+      COMPREPLY=($(compgen -W "${OPENAI_API_MODEL_in_array[*]}" -- "$cur"))
+    ;;
+    *)
+      COMPREPLY=($(compgen -W "true false" -- "$cur"))
+    ;;
+  esac
+EOM
+  # 复制代码块
+  instruct.append copy <<'EOM'
+  local codelet="$(seq $(Get-New-Msg | awk '/^\s*```/ { count++ } END { print count / 2 }'))"
+  case "$prev" in
+    "$name")
+      COMPREPLY=($(compgen -W "cat $codelet" -- "$cur"))
+    ;;
+    cat)
+      COMPREPLY=($(compgen -W "$codelet" -- "$cur"))
+    ;;
+  esac
+EOM
+  # 会话管理
+  instruct.append record <<'EOM'
+  case "$prev" in
+    "$name")
+      COMPREPLY=($(compgen -f -- "$cur"))
+    ;;
+    export)
+      COMPREPLY=($(compgen -W "@no:tool @no:system @use:all @default" -- "$cur"))
+    ;;
+    *)
+      COMPREPLY=($(compgen -W "export import" -- "$cur"))
+    ;;
+  esac
+EOM
+
+  # 会话帮助
+  instruct.append help <<'EOM'
+  case "$prev" in
+    "$name")
+      COMPREPLY=($(compgen -W "help exit clear copy pass files file run eval set record cls list" -- "$cur"))
+    ;;
+  esac
+EOM
+
+  # 文件管理
+  instruct.append files <<'EOM'
+  case "$prev" in
+    "$name")
+      COMPREPLY=($(compgen -W "push list remove" -- "$cur"))
+    ;;
+    push)
+      COMPREPLY=($(compgen -f))
+    ;;
+    *)
+      if [[ "${argv[1]}" == "push" && $cword == 3 ]];then
+        COMPREPLY=($(compgen -W "assistants fine-tune file-extract batch" -- "$cur"))
+      fi
+    ;;
+  esac
+EOM
+
+  # 仅路径补全
+  for i in file;do
+    complete -o nospace -f .$i
+    eval ".${i}(){ :;}"
+  done
+
+  # 仅占位
+  for i in {list,pass,exit,bye,clear,cls,run,eval,set,\?};do
+    eval ".${i}(){ :;}"
+  done
+
+  debug "指令注册完成，指令操作已就绪"
+
+fi
+
+########################################################################
+
+# 因 bash 脚本特性或本人能力有限，暂无法正常在输入文件时开启多轮会话
+$STDIN && $CHAT && exmsg "无法处理此会话"
+
+# 设置终端标题
+$CHAT && Set-Terminal-Title "$BAI_TITLE"
+
+# 图像推送设置
+IS_PUSH_IMAGE=false
+
+########################################################################
+# 主要功能实现
+########################################################################
+
+Get-Timer
+debug "PID: $$，当前占用内存：$(ps -o rss= -p $$ | awk '{printf "%.2f MB", $1/1024}')"
+debug "所有前置功能已就绪，耗时 $Get_Timer，进入主循环..."
+
+# 限制用户对话轮次
+__max_turns=32
+__turns=0
+
+while true;do
+
+  if $BAI_LIMIT_TURNS;then
+    ((__turns>=__max_turns)) && {
+      msg "对话轮次已达上限，重置对话"
+      data="${old_data}"
+      unset old_filepath
+      __turns=0
+    }
+  fi
+
+  ########################################################################
+  # 前置准备
+
+  # 开启历史记录
+  set -o history
+
+  if $CHAT;then
+    # 未收到/无接口返回/不在连续对话模式时不再输入聊天记录
+    if [ "$API_RETURN" ];then
+      __return_content="$(jq --arg content "$API_RETURN" '{role: "assistant", content: $content}' <<< "{}")"
+      [ "$SEEK_CONTENT" ] && __return_content="$(jq --arg content "$SEEK_CONTENT" '. += {reasoning_content: $content}' <<< "$__return_content")"
+      data="$(jq --argjson object "$__return_content" '.messages += [$object]' <<< "$data")"
+      $EVAL || data.setkey "choice" "auto"
+      $BAI_LIMIT_TURNS && ((__turns++))
+      debug "将助手回答记入对话记录，当前占用内存：$(ps -o rss= -p $$ | awk '{printf "%.2f MB", $1/1024}')"
+      unset API_RETURN
+    fi
+
+    # 获取最新一轮对话
+    function Get-New-Msg(){
+      jq -r '[ .messages | .[] | select(.role == "assistant") ] | last | .content' <<< "$data"
+    }
+    # 用户输入
+    if $__has_extend_gum;then
+      OPENAI_USER_PROMPT="$(gum write --placeholder "用户输入...")"
+      _return=$?
+      ((_return==130)) && { for i in {1..6};do printf "\r\e[K\e[A"; done; trap=true bye;}
+      [ -z "$OPENAI_USER_PROMPT" ] || echo -e "${c36}$user_prompt${c0} $OPENAI_USER_PROMPT"
+    else
+      __bai_read_prompt="\[${c36}\]$user_prompt\[${c0}\]"
+      Get-Var-Extend __bai_read_prompt a:p
+      read $read_e_option -rp "$__bai_read_prompt " OPENAI_USER_PROMPT
+      _return=$?
+    fi
+    ((_return==1)) && exit
+  fi
+  ((${#OPENAI_USER_PROMPT}>0)) && echo "$OPENAI_USER_PROMPT" >> $HISTFILE
+
+  # 空输入时直接跳过，避免浪费资源
+  if [ -z "$OPENAI_USER_PROMPT" ];then
+    debug "用户输入为空，跳过"
+    continue
+  fi
+
+  ########################################################################
+  # 参数解析
+  # 注册为指令参数
+  subargv=(${OPENAI_USER_PROMPT})
+  subarg0="${subargv[0]}"
+  subargs=(${subargv[@]/"$OPENAI_USER_PROMPT"/})
+  subargs=(${subargv[@]/'~'/$HOME})
+
+  # 自定义局内指令
+  $CHAT && 
+  if [[ "$subarg0" =~ ^\.(.+)?$ ]];then
+    CMD="${BASH_REMATCH[1]}"
+    case "$CMD" in
+      pass)      
+      # 无操作，等价于仅回车
+        debug "空的指令，跳过"
+        continue
+        ;;
+      cls)       
+      # 清除屏幕
+        clear
+        debug "清除屏幕"
+        continue
+        ;;
+      exit|bye) 
+      # 退出会话
+        exitcode="$[${subargs[1]}]"
+        debug "退出会话，退出码: $exitcode"
+        exit $exitcode
+        ;;
+      run)
+      # 执行命令
+        subexec="${subargs[@]:1}"
+        debug "执行命令: $subexec"
+        if $LEXEC;then
+          PS1="$BAI_SHELL_PROMPT" eval "$subexec"
+          CMD_RETURN=$?
+        else
+          PS1="$BAI_SHELL_PROMPT" bash -ic "$subexec"
+          CMD_RETURN=$?
+        fi
+        debug "命令返回值: $CMD_RETURN"
+        continue
+        ;;
+      record)   
+      # 记录管理
+        Get-Session-Messages ${subargs[@]:1}
+        continue
+        ;;
+      list)     
+      # 列出对话记录
+        Get-Session-History
+        continue
+        ;;
+      clear)     
+      # 清空对话
+        debug "清除对话轮数据和提交的文件..."
+        data="${old_data}"
+        __turns=0
+        unset old_filepath
+        BAI_USERNAME="${BAI_USERNAME_OLD}"
+        BAI_TITLE="${BAI_TITLE_OLD}"
+        $CHAT && Set-Terminal-Title "$BAI_TITLE"
+        msg "对话已清空"
+        continue
+        ;;
+      help|\?)   
+      # 显示帮助
+        Get-Session-Help ${subargs[@]:1}
+        continue
+        ;;
+      set)       
+      # 设置
+        Set-Session-Functions ${subargs[@]:1}
+        continue
+        ;;
+      # 尝试执行 shell 命令
+      eval)
+        debug "提交一段临时的提示词，并启用 EVAL 模式"
+        OPENAI_USER_PROMPT="### 本次对话你只需要提供可以直接使用的终端命令或 Bash 脚本，我将执行它，我不需要你对此做任何解释，我很清楚后果。"$'\n'"${subargs[@]:1}"
+        data.setkey "choice" "none"
+        EVAL=true
+        ;;
+      copy)
+        debug "复制代码块"
+        Get-New-Msg | Get-MarkDown-CodeBlocks ${subargs[@]:1}
+        continue
+        ;;
+      files)      
+      # 提交文件
+        Set-FineTune-File ${subargs[@]:1}
+        continue
+        ;;
+      at)
+      # 提及在服务商存储的文件并发出提问
+        Get-AtFiles-Ask ${subargs[@]:1} || continue
+        ;;
+      # 向对话提供文件内容
+      file)
+        Get-Import-File ${subargs[@]:1}
+        continue
+        ;;
+      *)        
+      # 排除未知指令
+      if [ "$CMD" ];then
+        erron "未知的指令 \"$CMD\""
+      else
+        erron "空的指令"
+      fi
+      continue
+    esac
+
+  fi
+  
+
+  ########################################################################
+  # 构建请求，主要逻辑实现
+  if $IS_PUSH_IMAGE;then
+    __read="$(jq --rawfile image <(echo "$IMAGE_INPUT") --arg content "$OPENAI_USER_PROMPT" '.messages += [{"role": "user", "content": [{"type": "text", "text": $content},{"type": "image_url", "image_url": { "url": $image}}]}]' <<< "$data")"
+    debug "提交图片数据"
+    IS_PUSH_IMAGE=false
+  else
+    __read="$(jq --arg content "$STDIN_INPUT$OPENAI_USER_PROMPT" '.messages += [{"role": "user", "content": $content}]' <<< "$data")"
+  fi
+
+  if $OPENAI_ENABLE_PARTIAL;then
+    if [[ "$OPENAI_USER_PROMPT" == *@prefix ]];then
+      OPENAI_USER_PROMPT="${OPENAI_USER_PROMPT%@prefix}"
+      debug "使用局部提示词"
+      data="$(jq --arg content "$OPENAI_USER_PROMPT" '.messages += [{"role": "assistant", "content": $content, "partial": true}]' <<< "$data")"
+    else
+      data="$__read"
+    fi
+  else
+    data="$__read"
+  fi
+  unset STDIN_INPUT
+
+  # 流模式分支
+  $OPENAI_ENABLE_STREAM && { Get-Stream-Assistant-Content; continue; }
+  # 构建接口请求
+  if ! $DEBUG_MODE;then
+    # 异步请求接口
+    Wait-Assistant-Content
+  else
+    echo -en " + POST: $OPENAI_BASE_URL\n"\
+            "+ DATA: "
+    jq -C <<< "$data"
+    echo
+    API_RETURN="this a test message."
+    continue
+  fi
+
+  # 检查响应中的错误
+  if $(jq 'has("error")' <<< "$CURL_GET_API" 2>/dev/null);then
+    ERROR_MSG=$(jq --exit-status -r '.error.message' <<< "$CURL_GET_API" 2>/dev/null || echo "请求时发生了意料之外的错误")
+    erron "$ERROR_MSG"
+    unset API_RETURN
+    continue
+  else
+    # 检查是否使用了工具
+    debug "检查是否使用了工具"
+    TOOLS_IS_CALL=false
+    if $TOOLS;then
+      API_RETURN="$(jq --exit-status '.choices[0].message.tool_calls' <<< "$CURL_GET_API" 2>/dev/null)"
+      API_STATUS=$?
+      ! ((API_STATUS)) && { TOOLS_IS_CALL=true; debug "发现模型使用了工具"; } || { TOOLS_IS_CALL=false;debug "模型还未使用工具" ;Get-Assistant-Content; }
+    else
+      Get-Assistant-Content
+      TOOLS_IS_CALL=false
+    fi
+    if ((API_STATUS)) && [[ "$API_RETURN" == "null" ]];then
+      erron "该次请求未正确被接受"
+      unset API_RETURN
+    else
+      # 调用工具，暂无多轮工具调用计划
+      $TOOLS_IS_CALL || { Return-Assistant-Content; continue; }
+      debug "初始化工具调用"
+      _local_json_path='.choices[0].message.tool_calls[0].function'
+      function_id="$(jq -r ".choices[0].message.tool_calls[0].id" <<< "$CURL_GET_API")"
+      function_args="$(jq -r "$_local_json_path.arguments" <<< "$CURL_GET_API" | jq '.[]' | tr '\n' ' ')"
+      function_run_name="$(jq -r "$_local_json_path.name" <<< "$CURL_GET_API")"
+      function_name="$function_head::$function_run_name"
+      function_call_msg="$(jq -r ".choices[0].message" <<< "$CURL_GET_API")"
+      data="$(jq --argjson content "$function_call_msg" ' .messages += [$content]' <<< "$data")"
+      msg "调用工具: $function_run_name$([[ "$function_args" == {} ]] || echo ", arg: $function_args")"
+      printf "\r\e[K"
+      explicitly="${gco_explicitly[$function_name]}"
+      debug "获取工具返回"
+      Get-Command-Output "$function_name $function_args"
+      function_return="$gco_return_content"
+      RETURN=$gco_status
+      ((RETURN)) && { emsg "工具执行失败";continue;}
+      data="$(jq --arg content "$function_return" --arg id "$function_id" ' .messages += [{"role": "tool","content": $content, "tool_call_id": $id}]' <<< "$data")"
+      Wait-Assistant-Content
+      Get-Assistant-Content
+      (((API_STATUS)) && [[ "$API_RETURN" == "null" ]]) || { Return-Assistant-Content; continue; }
+      erron "该次请求未正确被接受"
+      unset API_RETURN
+      continue
+    fi
+  fi
+done
+
+# 拦截此后所有内容执行
+exit $?
+
+# 预留导出的命令补全规则
+# __COMPLETE_HEAD__
+# __bash_complete_bai(){ 
+#     COMPREPLY=()
+#     local cur=${COMP_WORDS[COMP_CWORD]}
+#     local prev=${COMP_WORDS[COMP_CWORD-1]}
+#     local name=%Name%
+#     local i option priority secondary used_option
+#     local long_options=("--help" "--argtest" "--stream" "--baseurl" "--apikey" "--model" "--title" "--inspect" "--conemu-status" "--no-extend" "--sysfile" "--histfile" "--config" "--callfile" "--wait-style" "--no-limit-turns" "--username" "--search" "--partial" "--debug" "--no-tools" "--no-limit-turns" "--no-limit-tools");
+#     local short_options=("-h" "-a" "-n" "-b" "-k" "-m" "-t" "-x" "-p" "-d" "-s" "-i" "-f" "-c" "-w" "-l" "-u" "-g" "-j" "-o" "-q" "-l" "-z")
+#     local orphan_options=("--session-help" "--complete")
+#     local all_options="${long_options[*]} ${short_options[*]} ${orphan_options[*]}"
+#     declare -A equivalent_options
+#     for ((i=0;i<${#long_options[@]};i++));do
+#         equivalent_options[${long_options[i]}]=${short_options[i]}
+#         equivalent_options[${short_options[i]}]=${long_options[i]}
+#     done
+#     local priority_options=("--help" "-h")
+#     local secondary_options=("--argtest" "-a")
+#     local used_options=()
+#     local used_set=()
+#     for ((i=1;i<COMP_CWORD;i++));do
+#         local option="${COMP_WORDS[i]}"
+#         if [[ " $all_options " == *" $option "* ]];then
+#             if [[ ! " ${used_set[*]} " =~ " ${option} " ]];then
+#                 used_options+=("$option")
+#                 used_set+=("$option")
+#                 local eq_option="${equivalent_options[$option]}"
+#                 if [[ -n "$eq_option" && ! " ${used_set[*]} " =~ " ${eq_option} " ]];then
+#                     used_options+=("$eq_option")
+#                     used_set+=("$eq_option")
+#                 fi
+#             fi
+#         fi
+#     done
+#     local available_options=()
+#     local has_priority=false
+#     for option in "${used_options[@]}";do
+#         for priority in "${priority_options[@]}"
+#         do
+#             if [[ "$option" == "$priority" ]]; then
+#                 has_priority=true
+#                 break 2
+#             fi
+#         done
+#     done
+#     if $has_priority; then
+#         available_options=()
+#     else
+#         local has_secondary=false
+#         for option in "${used_options[@]}";do
+#             for secondary in "${secondary_options[@]}";do
+#                 if [[ "$option" == "$secondary" ]];then
+#                     has_secondary=true
+#                     break 2
+#                 fi
+#             done
+#         done
+#         if $has_secondary;then
+#             for priority in "${priority_options[@]}";do
+#                 local used=false
+#                 for used_option in "${used_options[@]}";do
+#                     if [[ "$priority" == "$used_option" ]];then
+#                         used=true
+#                         break
+#                     fi
+#                 done
+#                 if ! $used;then
+#                     available_options+=("$priority")
+#                 fi
+#             done
+#         else
+#             for option in $all_options
+#             do
+#                 local used=false
+#                 for used_option in "${used_options[@]}";do
+#                     if [[ "$option" == "$used_option" ]];then
+#                         used=true
+#                         break
+#                     fi
+#                 done
+#                 if ! $used;then
+#                     available_options+=("$option")
+#                 fi
+#             done
+#         fi
+#     fi
+#     case "$prev" in 
+#         --username | -u)
+#             COMPREPLY=()
+#             return
+#         ;;
+#         --baseurl | -b)
+#             COMPREPLY=($(compgen -W "http://api.openai.com/v1" -- "$cur"))
+#             return
+#         ;;
+#         --apikey | -k)
+#             COMPREPLY=()
+#             return
+#         ;;
+#         --model | -m)
+#             COMPREPLY=()
+#             return
+#         ;;
+#         --title | -t)
+#             COMPREPLY=()
+#             return
+#         ;;
+#         --sysfile | -s | --histfile | -i | --config | -f | --callfile | -c)
+#             COMPREPLY=($(compgen -f -- "$cur"))
+#             return
+#         ;;
+#         --no-extend | -d)
+#             local extend_commands=("fzf" "bat")
+#             COMPREPLY=($(compgen -W "${extend_commands[*]}" -- "$cur"))
+#             return
+#         ;;
+#         --wait-style | -w)
+#             local wait_styles=(bar arc dot line bell wave roll dice block arrow square phase pushpull invisible dotmatrix rectangle)
+#             COMPREPLY=($(compgen -W "${wait_styles[*]}" -- "$cur"))
+#             return
+#         ;;
+#     esac;
+#     COMPREPLY=($(compgen -W "${available_options[*]}" -- "$cur"))
+# }
+
+# complete -F __bash_complete_bai %Name%
+# __COMPLETE_TAIL__
