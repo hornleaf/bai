@@ -34,7 +34,7 @@ set -o emacs # 显式启用 Emacs 模式
 
 # =======================================================
 # 一些扩展性支持
-# 对于 BAI 内置函数的额外注释，以期通过 bash-language-server 提供更好的补全和提示
+# 对于 BAI 内置函数的额外注释，以期通过适用于 bash 的 lsp 提供更好的补全和提示，增强开发体验
 # 对于 BAI 会话的指令补全，此为 Bash 5.3x 新增特性，参考上述描述，此功能以期提供更好的使用体验
 # 对于命令行参数补全功能，将提供较为灵活的补全方式，以期提供更好的命令行使用体验
 
@@ -71,7 +71,7 @@ esac
 ########################################################################
 
 c0='\e[0m' c4='\e[4m' c31='\e[31m' c32='\e[32m' c33='\e[33m' c34='\e[34m'
-c35='\e[35m' c36='\e[36m' h25='\e[?25h' l25='\e[?25l' ek='\e[K'
+c35='\e[35m' c36='\e[36m' c237='\e[2;37m' h25='\e[?25h' l25='\e[?25l' ek='\e[K'
 nocolor_command="exec &> >(sed -r \"s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g;s/\x1B]8;;(.*?)\x07(.*?)\x1B]8;;\x07/\2/g\")"
 case "${BAI_COLOR:-auto}" in
   auto) [ ! -t 1 ] && eval "$nocolor_command";;
@@ -141,7 +141,7 @@ Get-Session-Help(){
   '.help <指令>?                    显示指令帮助'
   '.exit <状态码>?                  退出当前会话'
   '.clear                           清空所有对话'
-  '.copy cat? <索引>?               从最新的对话中复制代码块'
+  '.code preview? <索引>?           从最新的对话中复制代码块'
   '.pass                            空操作，等价于直接回车'
   '.files <文件>                    向服务提供商上传微调文件'
   '.file <文件>                     向当前对话提交文件'
@@ -157,7 +157,7 @@ Get-Session-Help(){
       ['help']="用法: .help [指令]?\n  显示指令的帮助信息，若未指定指令，则显示所有指令的简短帮助信息和按键描述"
       ['exit']="用法: .exit [状态码]?\n  退出当前会话, 如果未指定状态码, 则默认退出状态码为 0"
      ['clear']="清空当前所有对话记录, 并重置对话轮次"
-      ['copy']="用法: .copy cat? <索引>?\n  从最新一轮的对话中复制代码块\n  未指定 <索引> 时，将提示可复制的代码块数量\n  若指定了 <索引>，则会复制指定索引的代码块\n  若指定了 cat 行为，则会显示但不复制指定索引的代码块内容"
+      ['code']="用法: .code preview? <索引>?\n  从最新一轮的对话中复制代码块\n  未指定 <索引> 时，将提示可复制的代码块数量\n  若指定了 <索引>，则会复制指定索引的代码块\n  若指定了 preview 行为，则会显示但不复制指定索引的代码块内容"
       ['pass']="空操作，执行后不会发生任何事"
      ['files']="用法: .files [操作] <文件>|<文件ID>\n  在服务商的知识库管理临时文件\n  操作:\n   list - 列出知识库里的文件\n   push - 上传文件到知识库, <文件>\n   rm   - 删除知识库中的文件, <文件ID>"
       ['file']="用法: .file <文件>\n  向当前对话提交或覆盖上一次提交的文件"
@@ -534,6 +534,10 @@ Switch-Wait-Frame(){
     dice) __wait_task_frame=("⚀" "⚁" "⚂" "⚃" "⚄" "⚅");;
     wave) __wait_task_frame=("▁" "▂" "▃" "▄" "▅" "▆" "▇" "█" "▇" "▆" "▅" "▄" "▃" "▂");;
     roll) __wait_task_frame=("Loading... " "oading... L" "ading... Lo" "ding... Loa" "ing... Load" "ng... Loadi" "g... Loadin" "... Loading" ".. Loading." ". Loading.." " Loading...");;
+    roll:fraktur) __wait_task_frame=("𝔏𝔬𝔞𝔡𝔦𝔫𝔤... " "𝔬𝔞𝔡𝔦𝔫𝔤... 𝔏" "𝔞𝔡𝔦𝔫𝔤... 𝔏𝔬" "𝔡𝔦𝔫𝔤... 𝔏𝔬𝔞" "𝔦𝔫𝔤... 𝔏𝔬𝔞𝔡" "𝔫𝔤... 𝔏𝔬𝔞𝔡𝔦" "𝔤... 𝔏𝔬𝔞𝔡𝔦𝔫" "... 𝔏𝔬𝔞𝔡𝔦𝔫𝔤" ".. 𝔏𝔬𝔞𝔡𝔦𝔫𝔤." ". 𝔏𝔬𝔞𝔡𝔦𝔫𝔤.." " 𝔏𝔬𝔞𝔡𝔦𝔫𝔤...");;
+    roll:cursive) __wait_task_frame=("𝓛𝓸𝓪𝓭𝓲𝓷𝓰... " "𝓸𝓪𝓭𝓲𝓷𝓰... 𝓛" "𝓪𝓭𝓲𝓷𝓰... 𝓛𝓸" "𝓭𝓲𝓷𝓰... 𝓛𝓸𝓪" "𝓲𝓷𝓰... 𝓛𝓸𝓪𝓭" "𝓷𝓰... 𝓛𝓸𝓪𝓭𝓲" "𝓰... 𝓛𝓸𝓪𝓭𝓲𝓷" "... 𝓛𝓸𝓪𝓭𝓲𝓷𝓰" ".. 𝓛𝓸𝓪𝓭𝓲𝓷𝓰." ". 𝓛𝓸𝓪𝓭𝓲𝓷𝓰.." " 𝓛𝓸𝓪𝓭𝓲𝓷𝓰...");;
+    roll:double) __wait_task_frame=("𝕃𝕠𝕒𝕕𝕚𝕟𝕘... " "𝕠𝕒𝕕𝕚𝕟𝕘... 𝕃" "𝕒𝕕𝕚𝕟𝕘... 𝕃𝕠" "𝕕𝕚𝕟𝕘... 𝕃𝕠𝕒" "𝕚𝕟𝕘... 𝕃𝕠𝕒𝕕" "𝕟𝕘... 𝕃𝕠𝕒𝕕𝕚" "𝕘... 𝕃𝕠𝕒𝕕𝕚𝕟" "... 𝕃𝕠𝕒𝕕𝕚𝕟𝕘" ".. 𝕃𝕠𝕒𝕕𝕚𝕟𝕘." ". 𝕃𝕠𝕒𝕕𝕚𝕟𝕘.." " 𝕃𝕠𝕒𝕕𝕚𝕟𝕘...");;
+    roll:glitch) __wait_task_frame=("̮͙̲̗͑ͬ̀̈ͦ̀̄͘͜͟ͅL̵͉̮̤̐͂̈ͦ͟͢҉̩͂҉ͅo̵̢̢̡̪̱̹̮̭͌̒̍̽̿͟ả̴̶̢̳͎̗͖̦̏̃ͪ̅͘͜d̶̴̛͍̱͉̩ͫ́̌̍ͮ̕҉̯ï̛̟̭̳̹̈ͧ̇͘̚͟͝͝ͅn̠͎̹͓̤̑́ͮ̃͑͘͢͢͠͞g̡̧̭̯̝̱͂́ͫͮ̆͘͜͟ͅ.̵̵̵͙̱̠͂̓̉̌͌͜͠ͅͅ.̛̖̲̖̰̭̄̍͑̊̉͜͠͝͠.̝̑̾͘҉̧̹̫͙̩ͥ̅̈́͘͞ "̢̛͍͔̭͍͖̍͋̀̄̂̈́͜͠ "̴̨̡̺̫͇̫̫͛ͧ̒͒͊͟͡ơ̸̶̬̝̘ͯͩͦ̇ͣ͢ͅ͏̣ą̷̵̶̷͖̮̯̖͖ͯͧ̊ͬ̇ḑ̡̦̙̤̬͇ͬ̔̆̾̓͟͠͠i̷̲͈̊ͦ͊͡҉̵̵͎̖͇ͫ̉n̢͚̮͔̭̭͑ͯ̐̀̓̅̕͘͡g̵̶̸͕̱̤̫̖ͨͭ̓ͬ͛̕̕.ͩ҉̶̛̦̜͔̥̣͗́̃ͫͣ͜.̷̢̗̤̺̗̙̿̀̈́́̅̃̀ͬ.̴͔͚͇̪͖ͫ̎̑ͦͫ́͢͠͠ L̶̨͇̭ͤ́̅҉̙̅͏̭͉͆͘"̷̢̛̳̝̮̲͇̐ͣ͋͗̅͘͞ "̸̛͉͉̟̪̌ͬ́̉̒ͥ͟͢ͅa̡̠̳̫͎̘̐̓ͯ̈́ͮ̕̕͘͡d̸̖̭̖̩͎̐̀̍̀̿ͯ̕̚̕i̴̩͚̲̺͐̅̀̏͌ͬ͡͡͡ͅņ̛̳̗̖̖̭̑̅͛ͦ́̎͟͢g̶̢̛̝̘̠͓͍͂̉ͮ́̍̎͘.̷̷̛̘̺̥̘̞̓̓́͂̓̈́͠.̖̦̪͓̮̌̄̓̀̀̀̕̕͜͟.̷̎̌ͅ͏̗̹͖̝͛̀̈́̔͜͡ L̶̖̳̩͖̤ͯ̋́̂ͪ́͐͢͡o͕̅̂̕͏̨̬̬͔̥̑͌̚͟͢"̸̻̫̣̾ͫ̇́̆͡҉̴͈͎̃ "̥͈̼̣͍̏ͧ͆̂̒͜͡͠͞͞d̷̻͉͚̲͎̔̀ͥ̔̏͛͟͠͞į̴͓̟̥̝̎ͥ̔̋̎͘͢͞ͅn̻̽̀̔҉̵̗̩͉͎̃͂́̚͞ģ̮̎̚҉̂ͅ͏͎̞͖̍͋͜͡.̤͇̬̜̠͂̇ͮͮͤ͘͟͟͢͞.̢̡̳̼̙̩̜͗̀ͯ͑͋̌͜͞.̡̖̯͖͍̙͑̽ͦ͗ͣ̕͘͟͠ L̴̳͚̙̣̼ͦ̂̅͒̀̚͘̕͟ơ̴͕͚̘͍͂̊̾̔̀ͤ͞͏̠ą͖͉̺̼͖͑̅̽͌̀̋͜͝͠"̢̨̠̯͍͕͕̏̐̏ͧ́ͬ́͡ "̡̨͕̠̤͎̑̀̄ͯ̀ͥ͟҉̥i̷̢̛̩͍̪̘̗̾̄ͭ̄͘̚͢n̡̘̂͂͏̴̯̘̋ͦ҉̧̮̮͆g̵̢̪̭̉ͨ͊҉͍̱̰ͨ̓̕͘.̵̢̬̳͉̫ͦ̀̎̑̑ͮ͢͡ͅ.̢̨̛͕̫̟̻̏ͨͣ̍̆͞͏̫.̶͈͎ͦ́͋͘͏̷̡̤̺̟̋̄ Ľ̡̢͔̮̬̒ͩ̀̄͌͜͝ͅͅơ̻̳͉̪̾̓̒̃͋͢͟͜͠ͅa̷̛̤͇̝͖͖͛ͫ̇͑̅̕͜͡d̸̞͚̀ͧͭ͜͏̷̨͚̼̝̊͆"̶̵̡̦̳̬̣̦ͧ̓ͧͦ̇͢͡ "̸̢̡̨̫͙̘͔ͦ̾̆ͫ̉͡ͅn̺̖͆ͥͯ͢͞҉͇̖̤̍͋́͡g̷̛̟͈̞͇̫ͮ̃̿ͣ̍͢͡͠.͈͋̓̕͏̞̥̫̲͗̾̀͛̕͡.̴̨̦͚͉̘̙ͮ̐̍ͭ̓͢͢͜.̸̧͎̘͔̥̰́ͬ̐̑ͫ̚͜͢ Ļ͓͖̙͗̆͋͛͘͘҉̥̽̕ͅǒ̸̡̹̖̤̣̬͛̆̽ͫ̕͜͜ą͓̣͍̗ͧͨ̇̍̐͘̕͜͞ͅd̡̘͉̟̠͍ͧ̎̀ͭͯ̎̀̕͞i̷̷̷̧̖̬̫̠̤̇̈͌ͮͯ͝"̚͏̸͍̹̞̾ͨ͌͞҉͈͖͂́ "̷̵̴̢̙͉͎̪ͣͫͬͯ́͟ͅg̴̨͖͖̟̭̞ͯ͐ͫ͋̊͟͜͢.̶̡͖̻̮̟̬̓ͩͤ̍ͬ͢͟͞.̴̶̡̧̛̲̪̠̮͍͊̽͆̅̇.̴̶͕̞̩͎͈͆ͥͩ́͆͘͜͞ L̆҉̶̴̩͕̘͍̹ͭͣ̉͌́̕o̢̝͕͙͍̗̍̀̽̂ͭ́͐͢͢a̶̡̼̻̐̅́͏̧̤̩͕ͤͮ͡d̡̛͖̺̗̦̖͊̅̀ͫ̊̅͘͢į̛͕̹͇ͪ͗̀̓ͩ͏̨̱̗ͪn̴̶̢͖̥͎̖̻̍̓̋͗ͯ͜͝"̵̵̨̟̪͍͕̰͊ͨ̋̌̆͟͡ "̢̠̳̹̩̅͌̀̔́͊͘͢͟ͅ.̧̢̣̹̠̩̬̋̏͛̓́ͭ̕͡.̡̮̪͕̝͕͛̀̉ͨͩ͜͠͠͡.̧͉̹̝̗̈̈́ͮͯ͘͞͠͏̣ L̴̢͇̳̳̎̐͌̀͐͘͜ͅ͏͖o̸͓̙ͧ͑̑̕҉̸̗̼͔͐̒͢a̵̶̡̛̻͕̯̩͎̓ͮ̆̿̒́d̯͌̈́͜҉̷̱͇̬͇ͤ͗ͣ̕͠i̸̡̟͉̬̩͚ͪ̂̏̀̆̂͢͞n̷̨̻͚̹̜̜̽̾̉ͤ̚̕͜͜g̸̴̺̮̞͍͖̈̂͑ͩͣ̕͢͞"ͮ҉̡̢͕̠̘̹̈̀́̔͑͡ͅ "̇͏̸̨̪̜͕͚̣ͯ͗̍̽͘͞.̸̧̨͕̮̘͍͓ͦͯ̐ͤͩ͢͠.̽҉̮͚̖̍̀ͥͬ͡͏̰͈̚͠ L̶̢̡͔̫̮̰̮͗̋̽͂̓̕͟o͌҉̷̢̨̻͈͙̫̓ͪ̅ͫ͘ͅȧ̸̴̸̢͙̤̤̠̥͗̀̉̑̓d̢̛̪̲̖̯͇̑̓̊̓͂͢͡͡į̗̪ͫ̀̅͑͂͡ͅ҉̼ͧ́ͅn̡̰͕̦͍̙͛̀͐͌̅̎͠͞͝ģ̰̦͕͎̖̆ͩ́̓̋̚̕̕͡.̷̸̷̛͉̪̫̖͍̄̊̾ͮ͌͝"̡̗̻̟̹̥ͤ̋̅̈́̚͘͢͟͝ "̢̛̲̟̦̤͈̏̉͒͑͆͜͜͡.̶̷̷̞̻̘̥͈ͤͯ͐͑̎͠͝ L̛̞̙̯̺̔ͯ̀́́̉̚̚͏̲o̐҉̴̧̛̦͎͖̤ͪ̿ͪ͛͡ͅä͙̮́͂̀͠҉̢̪̜̇̀̅ͅḑ̳̞̖̖̯̅̀̐̎͛̏̀͜͝i̴̴͓̝͗ͣ̍҉̶͎͈̪͋̾͘n̶̻̖̲̪ͣ͋ͮͥ̋̕͢͝͡ͅg̴̡̺̖̺͕͇͗͆́̓͛́͛̀.̶̷̵̤̳̮̦̣͋̽̏̈́͋̕͟.̷̸̧̡̯͍͕͍̻̇ͧͮͯ̆͝"̸̸̧͚̫̟͔̭̊̍͌̉̅͘͢ "̷̢̧̡̗͕̜͉ͭ̇ͨ͂͛͢ͅ L̷̴̛̞͕̼̟͆̏̐̍̍͢҉͇ȏ̶̸̷̶̝̹̻̼͇̽ͬ̀̀͜a̧̡̡̨̞̲̥͚̋ͮͪ̇̚͞ͅd̛̝̯̜̯̝ͭ̑̂̆̍͟͜͢͞i̶̧̢̼̞͙̭̅̅̍̎̋͡͝ͅn̴̡̨̧̡͎̩̦͈̰ͭͭͯͩ͌g̸̸̴̛̹̠̭̟̗̎͊̈̂͒͡.̸̨̡̩͔͕̮ͤͬ͒͊ͫ͞͏̪.̵̷̵̹̝͉̥͋̇͊̎̕̚͏̘.̷̞̲͓̪͇̓ͥ̐ͭ̚̕̕͢͡"̵̢̡͉̼̫͎̭̊͐̀ͫͣͫ̕);;
     block) __wait_task_frame=("■□□" "■□□" "□■□" "□■□" "□□■" "□□■" "□■□" "□■□");;
     phase) __wait_task_frame=("🌕" "🌖" "🌗" "🌘" "🌑" "🌒" "🌓" "🌔");;
     arrow) __wait_task_frame=("→" "↘" "↓" "↙" "←" "↖" "↑" "↗");;
@@ -541,8 +545,19 @@ Switch-Wait-Frame(){
     points) __wait_task_frame=("𐄙" "𐄚" "𐄛" "𐄜" "𐄝" "𐄞" "𐄟" "𐄠" "𐄡");;
     pushpull) __wait_task_frame=("▏" "▎" "▍" "▌" "▋" "▊" "▉" "█" "▉" "▊" "▋" "▌" "▍" "▎");;
     invisible) __wait_task_frame=("Loading..." " oading..." "  ading..." "   ding..." "    ing..." "     ng..." "      g..." "       ..." "        .." "         ." "          " "L         " "Lo        " "Loa       " "Load      " "Loadi     " "Loadin    " "Loading   " "Loading.  " "Loading.. ");;
+    invisible:fraktur) __wait_task_frame=("𝕷𝖔𝖆𝖉𝖎𝖓𝖌..." " 𝖔𝖆𝖉𝖎𝖓𝖌..." "  𝖆𝖉𝖎𝖓𝖌..." "   𝖉𝖎𝖓𝖌..." "    𝖎𝖓𝖌..." "     𝖓𝖌..." "      𝖌..." "       ..." "        .." "         ." "          " "𝕷         " "𝕷𝖔        " "𝕷𝖔𝖆       " "𝕷𝖔𝖆𝖉      " "𝕷𝖔𝖆𝖉𝖎     " "𝕷𝖔𝖆𝖉𝖎𝖓    " "𝕷𝖔𝖆𝖉𝖎𝖓𝖌   " "𝕷𝖔𝖆𝖉𝖎𝖓𝖌.  " "𝕷𝖔𝖆𝖉𝖎𝖓𝖌.. ");;
+    invisible:cursive) __wait_task_frame=("𝓛𝓸𝓪𝓭𝓲𝓷𝓰..." " 𝓸𝓪𝓭𝓲𝓷𝓰..." "  𝓪𝓭𝓲𝓷𝓰..." "   𝓭𝓲𝓷𝓰..." "    𝓲𝓷𝓰..." "     𝓷𝓰..." "      𝓰..." "       ..." "        .." "         ." "          " "𝓛         " "𝓛𝓸        " "𝓛𝓸𝓪       " "𝓛𝓸𝓪𝓭      " "𝓛𝓸𝓪𝓭𝓲     " "𝓛𝓸𝓪𝓭𝓲𝓷    " "𝓛𝓸𝓪𝓭𝓲𝓷𝓰   " "𝓛𝓸𝓪𝓭𝓲𝓷𝓰.  " "𝓛𝓸𝓪𝓭𝓲𝓷𝓰.. ");;
+    invisible:double) __wait_task_frame=("𝕃𝕠𝕒𝕕𝕚𝕟𝕘..." " 𝕠𝕒𝕕𝕚𝕟𝕘..." "  𝕒𝕕𝕚𝕟𝕘..." "   𝕕𝕚𝕟𝕘..." "    𝕚𝕟𝕘..." "     𝕟𝕘..." "      𝕘..." "       ..." "        .." "         ." "          " "𝕃         " "𝕃𝕠        " "𝕃𝕠𝕒       " "𝕃𝕠𝕒𝕕      " "𝕃𝕠𝕒𝕕𝕚     " "𝕃𝕠𝕒𝕕𝕚𝕟    " "𝕃𝕠𝕒𝕕𝕚𝕟𝕘   " "𝕃𝕠𝕒𝕕𝕚𝕟𝕘.  " "𝕃𝕠𝕒𝕕𝕚𝕟𝕘.. ");;
+    invisible:glitch) __wait_task_frame=("̞ͬͩ̕҉̨̩̝̳͈̀ͯ̈͝͠L̛̘͉͕̥̟̊̃̑ͨ̿͟͟͟͠ơ̖̩̲͉̘ͣ̉̍̂ͭ̕͢͝͡a̡̢̰̱͕̦̮͐̄ͪ́̾̓͠͞d̵̸̯̘̦̳͙́̓ͯ͋͒̕̕͝i̯̝̼͈͎͛́̅́̄̍̿̕͝͠n̴̴̨̥͓͕͈͔̈́̀̌̀̌̊̉ģ̶̰̳̞͎͔͌̍́͒̇ͮ͘͜.͙͑ͦ͡͏̧̟̤̥͚̐̽̈͘͟.̂҉̷̤̠̘̪̿͑ͯ̂͠͝҉̗.̶̯̩͕͕̩ͥ́̇ͤ̇͘͘͜͡"̨̦̦̙͈̻̉̒́̍̒́͜͝͠ "̷̡̦ͭ͌ͤͅ҉̨̡̬͉̩̃̚ o̷̸̡͇͓͖͓̱ͬ̇͌ͮͦ͟͠a̽͏̸̞̱͎̓͐̀ͮ̔͟ͅ͏̟ḑ̡̠̖̯̝ͦ͛̒̋͐͘̕҉͕ị̵̴̡̢̱̗̹̳̋́̆̃͋͠ǹ̴̡̛̟̥̫̩͍̊͑̽́͜͞g̸̸̡̛̲̰̟̼͍̈̒ͧͬͥ͞.̷̶̢̨̨̫͉̦̹͙͆ͣ̌̐̇.̴̷̨̛͓̯̞͙̰̉ͤͮ̓̔͝.̊͏̡̛̛̤͔̙͓͈ͯ̈̈̚͝"̸̨͕̺̗̙͕̄ͤ̅̔̂̕͜͠ "̴͍͙̰̼̜̇ͤͩ̋͊͢͢͜͝  ă̴̴̴̡̘̘̳̠̜ͪ͆̿ͣ͠ḋ̨̹̠̻̬̫́ͣ́͒͋̆͢͡i̢̜̤͎ͧͣͤ̿͘͜҉̠̙͒͠n̷̵̩̲͎͖͙̍ͤ̓̈ͤ̕͢͠g̨̦͖͕̬̲͂̃̿̄ͧ́͢͠͡.̷̡̻̲̙͈̜͊́́̈́ͮ͛̀͘.̨̨̺̪̙͙͎̑̅ͦ̅ͤ̕̕͡.̸̨̝̝̱̳̱̃̐ͪ̆͑͢͝͡"̨̧͖̝̹̦̻̉ͬͥͣ̀̀̕͠ "̔҉̷̨̰̩̰̺̦̈́ͬ̌̑͢͟   d̵̨͚̣͈̮̹̽ͭ͊ͦ̈́̕͟͟i̸̴̧̭̬̟̗̪ͫͥ̀ͣ̍ͭ͘n̳̮̮̥̬̈ͥ́͒̽̕͘͟͝͞g̨̢̩̠͈͕̯̔̇̅̓̀̓͠͝.̸̢̼̝̻̱̓ͦͤ̈́͐̕͢҉̦.̶̴̶͈͔͈̯̬̓̔ͭ͐͑͝͠.̃҉̵̡͔̦͈̻̥͑͆̒̍͜͝"̵̨̧͍̠̱̳̯̉ͨ̂̐ͧ́͝ "̸̬̓̏͏̸̠̰̜͔ͨ̀̓ͥ͘    í̢̥̮̤̰̼͗̆̈̀ͧ͟͡͡n̡̜̰̖̭̆͗̄͂ͯ͜͠͞҉̼ĝ̵̡̯͉̤̪̊͂ͯ́̃͢͡ͅ.̷̸̵̢̟͔̺͖ͬ͐̊̊̊͏͔.̵̧͙̰̱̑ͨ͐̂ͤ͠͞͠ͅͅ.̵̧̧̜̼̼̱͓͛̔͛ͧ̔͢͠"̵̛̖͈͓ͯͯͮͫ͘͏̰͙͐̀ "̨͚̼͇̲̘ͤ͊̅ͬ̐́͘͟͜     ǹ̶̴̩̰̣͖̠́ͪͣͪ́͠͠ģ̧̛̮̣̻͕̑̃̈̀͋̈́͘ͅ.̢̤̦̗̼̤̄̂̃̉̀͌͟͞͠.̣͛̒̕͏̼̪̪̞ͩͬ̚͜͢͞.̴̵̸̞͖̘̫̪ͬ͑ͧ̅̈͡͡"̸̺̥̟̬̜̑ͫ́ͥͫ̆͜͟͝ "̸̸̵̦̟͇̗̮̂ͧ̓͆̾̀̕      g̴̷̨̛̲͍͈̮̞̎̿̓̔̀͘.̴̫̼̠̩̪̽ͤ̇͒̑̀͟͝͡.̸̡̧̨͓̜͔̞ͯ͋ͧͨ̂͝ͅ.̶̡̧̧̺̹̪̟̥̔̅̃ͨ́̕"̢̨̛̦̳̘̣̻ͥ̆͊̍̈́̕͜ "̢͍̻͕̪̝̌̈͊̀̽̀̕̚͜       .̸̨̛̦̻̙̳̗̓̾́ͦ̀̍͘.̏́ͩͅ҉̷̣̙̘̝̽̎̊͟͞.̦͓͓̭̩̒́̽̃̔̀ͦ́͘͟"̨̧̨̛̯̠̺̬͕͑̿ͩ̔ͦ͜ "̛̛̮̥̩̤̪͋͗͋̅̏͡͝͠        .̤̲͚͐̀ͨͭ͜͡͠҉͖̠ͫ͠.̜̓̍͝҉̷̢̗̞̤̝̆̋̽͠"ͨ҉̨͎̘̖̩̿̈́́̊ͣ͠҉̟ "̴̛̞͍̙͎̬ͧͨ͆͗̊͟͠͞         .̲̼̼̰̎̎̐̓̀̒̕͜͜͠ͅ"̸̶̸̛͙̹̙͇͇ͬ̔̑̅͋͞ "̸̶̮̩̹̙ͪ́̀ͫ͗͗̕͞ͅ          "̶̛̝̫͑̓͐ͯ͞ͅ҉͍̖́͢ "̸̧͖̦͍͍̻ͤ̀ͩ͆̑̀̚͞Ḽ̵̷̛̘̮̲͇͗ͮ̄ͦ͆͘͡         "̸̶̧̛̞̳̯̠̤ͫͣ̾͒̋͠ "̴̵̛̬̦͙͇̺̊ͧ̀̽ͦ͆̕L̸̸̛͔̮͖̠͎ͮͦͮ̃́͘͢ơ̸̛̬̤̯͚̓̂̍̊ͦ͜͡ͅ        "̡̡͕̣ͤͬ͐͏̢̖̭̼̓ͧ͡ "̸̢̨̨̘̥̯̱̎͒ͬͧͥ͟ͅL̵̟͍̠͇̥ͯ̅̏̀̊̓͘͜͟ǫ̷̣͎̤̩ͧͣ̃͛̋͢͝͝ͅã̶̷̧̛̦͚͉̟̞̅ͦ̒̄̕       "͇͚͆͌́̕͢͏̢̙̳͍̊̑͜ "̵̵̛̯̪̬̯͚̀͆ͮ̈̒͢͞L̶̢̡͚̞̣͉̱̎͂͛̏ͫ͝͞ò̟̏͜͏̙̅҉̵̞͕̜ͩͦ͞a̛̬͊̑͏̛̪͓ͭ͊҉͙̩ͪ̀d̴̶͈̳ͫ̌̓҉̶͕̳͕̽̆͠      "̴̡̡͓̦̣̺͙͋̅̈́ͤ͋̕͞ "̸̶̛̪̼̫̩̦ͫ͐ͤͩͨ̕̕L͂҉̢̢̥̣͈ͥ͒ͪ͏͕̩ͮ̀o̵̴̸̱̣̰̘͓̊̆̀́̓̐͝ą̛̻͕̎̔͒҉̥̭̥̍ͤ͜͝d̷̴̢̡̛̳̝̞͚̲ͩ͊̑̐ͧī̴̺̳̥̩́͆͊͒͊͡͞͏͓     "̴̧̨̯̣͙̰̟͑ͦͭ̎̾͘͟ "̢̥͓̰̜̍͗̎̌́̓̕͢͏̲L̨̨̛̝̼̯̰̻̃̿̏̈́̀̀͟ǫ̸̡̯̙͚̪̼̽ͬ̇̀̐ͤ͠ả̵̵̧̛̻͖̩͚͎̓ͣ̌ͯ͡ḑ̵̧̠̘̯̮̹͆ͭ͌̅͆́̕i̵̴̧̱̞̼̣͎͂͑ͪͮ̐͘͞n̶̦͍͈͎̓ͦͨ͋̈̕͢͝͏̘    "̤̱̜̣̼̃́͂ͧ́͗̈́̀͟͡ "̶̻ͩ̈҉̧̠͚̖̗̄̄͌͟͟Ļ̷̟̪̝͍̭ͩ̉̏ͣ̈́͢͟͡o̶͎̅ͫ҉̷̧̗͙̖̫̋ͯͩ͞ȃ̴̼̖̆͌͘҉̛̩̝͖̄̂͝ḑ̴̳̯̤̦͉ͯ̊̈́͊́ͬ͘͢i̵̩̤͉̘̲ͣ̀̐̏́́͊̀͟n̛̳͕͍͂̓ͭ̾͟͠҉̬̖̈́g̡̡̧̫͕̹̯͆ͧ͒̃̾͜҉͉   "̶̷̠͎͎̼̮̅̑ͬͮ́̓͞͝ "̸̴̛̫̰͙̟ͩ̀͒̅̅̀̋ͅL̴̨̡̩͚͇̘̮̒͛͋͌̚͜͟o̸̶̡͖̫̯̰̱ͬ̀͗ͪͯ̐͠a̧̦̞͂̔̓͘҉̪̆͏̳̦̂̕d̡̞̖̫̙̮̎̍͊͂͊͟͟͞͝i̳͙ͬ͛́̄͢҉̴̢͔͔̘̌̂n̵͇̻̱̲͇̓ͪͩͣͫ͜͜͝͞g̴̤̪̱̗̭̓͊̔ͥͫ̀͟͡͞.̵͔̍̉҉̷̨̛̼̪̜̩ͣ̂̍  "̷̢̘̭̖̩̱̈̔͆̅̊͜͝͞ "̧̧̖͓̦ͯͭͧͨ͡͏̣̖͋͠Ļ̶̸̺̳͖̗͕ͤ̆̀̄̍͠͝o̷̶̰͔͔͖̼ͭ̿̀ͣ̑̈͟͡a̶̴̜̻͇̳̰̍͐̇̋ͦ̀͢͟d̴͈͓̩̙̙͆͋͗̀̾ͪ̕͘͜i̸̴̳͓̳̠͇ͩ͋ͤ͊̂̕͢͟ņ̛̗̖̪̬͔ͥ̀͂̉͋̚͟͠g̡̛̭̘̘̠̮ͥ͒ͮ̍̀͌͢͠.̴̡̧̝̲̻͈̯ͨ͂ͯ͋́̚͞.̧̧̛͓̻̦̗͖̊́̉͊́̆̈ "̧̢̛͓̝̟̥͓͗̀ͪ̉ͪ̀̅);;
     dotmatrix) __wait_task_frame=('⣷' '⣯' '⣟' '⡿' '⢿' '⣻' '⣽' '⣾');;
     rectangle) __wait_task_frame=("▛" "▙" "▜" "▟");;
+    custom)
+      if [[ `Check-Variable-Type BAI_CUSTOM_WAIT_TASK_FRAME` == "string" ]];then
+        IFS=, read -ra __wait_task_frame <<< "${BAI_CUSTOM_WAIT_TASK_FRAME[*]}"
+      else
+        erron "自定义等待任务动画未设置变量 BAI_CUSTOM_WAIT_TASK_FRAME"
+        return 1
+      fi
   esac
 }
 
@@ -636,7 +651,7 @@ Get-Assistant-ReturnError(){
     if ((API_STATUS)) && [[ "$ERROR_MSG" == "null" ]];then
       ERROR_MSG="该次请求未正确被接受"
     fi
-    erron "$ERROR_MSG"
+    erron "${c31}[Server]:${c0} $ERROR_MSG"
     return 1
   fi
 }
@@ -655,7 +670,7 @@ Get-Assistant-Return(){
     "$OPENAI_BASE_URL/chat/completions" \
     -H "$API_AUTH" \
     -H "Content-Type: application/json" \
-    -d "$data" 2>/dev/null ||
+    -d @- <<< "$data" 2>/dev/null ||
   printf '{"error": {"message": "无法处理此请求"}}'
 }
 
@@ -789,7 +804,7 @@ Get-MarkDown-CodeBlocks(){
   [ -t 0 ] && return
   local content="$(cat)"
   local cat=false
-  [[ "$1" && "$1" == "cat" ]] && {
+  [[ "$1" && "$1" == "preview" ]] && {
     local cat=true
     shift
   }
@@ -870,6 +885,101 @@ Get-MarkDown-CodeBlocks(){
   fi
 }
 
+########################################################################
+
+# 利用 fastfetch 显示 Sixel 图像，如果终端支持且已安装 fastfetch
+# 用法: Show-Sixel-Image <图像路径>
+# 选项:
+#       <图像路径> 要显示的图像路径
+Show-Sixel-Image(){
+  $BAI_IMAGE_PREVIEW || return
+  $__has_extend_fastfetch || return
+  local img_path="$1"
+  # 定义 fastfetch 的简化调用函数
+  # 仅返回 Sixel 图像数据，不进行其他结构化输出
+  function fast_sixel_fetch(){ fastfetch --structure none --pipe false "$@";}
+  if command -v fastfetch &>/dev/null;then
+  # 为避免图像过大，将尝试设置应对四种情况:
+  # 终端高度小于宽度时
+    # 如果图像高度大于图像宽度，则将图像高度设置为终端高度的一半，并补偿3的高度，避免挤压变形
+    # 否则将图像宽度设置为终端宽度的一半，此时终端空间足够，无需补偿
+  # 终端宽度小于高度时
+    # 如果图像高度大于图像宽度，则将图像高度设置为终端高度的一半，此时终端空间足够，无需补偿
+    # 否则将图像宽度设置为终端宽度的一半，并补偿3的宽度，避免挤压变形
+  # 获取图像尺寸
+    local img_size=($(file -b "$img_path" | grep -oE '[0-9]+.[Xx\*]+.[0-9]+' | tr ' x ' ' '))
+    local img_width="${img_size[0]}"
+    local img_height="${img_size[1]}"
+    local term_size=($(stty size -F /dev/tty))
+    local term_height="${term_size[0]}"
+    local term_width="${term_size[1]}"
+    local show_key=""
+    local show_option=""
+    local show_catimg_option=""
+    local show_debug_key=""
+    local support_sixel=true
+    # 获取图像大小
+    local fastfetch_logo_size="$(fast_sixel_fetch --sixel "$img_path" | wc -c)"
+    # 如果图像展示为默认图标则视为终端不支持Sixel
+    if [[ "$(fast_sixel_fetch --logo default)" == "$(fast_sixel_fetch --sixel "$img_path")" ]];then
+      echo -e "${c237}[此终端不支持 Sixel Image 预览]${c0}"
+      support_sixel=false
+    fi
+    if ((term_width >= term_height));then
+      # 终端宽度大于等于高度
+      if ((img_height > img_width));then
+        # 图像高度大于宽度
+        show_key=1/2+3
+        show_option="height"
+        show_catimg_option="-H"
+        show_debug_key=1
+      else
+        # 图像宽度大于等于高度
+        show_key=2/2
+        show_option="width"
+        show_catimg_option="-w"
+        show_debug_key=2
+      fi
+    else
+      # 终端高度大于宽度
+      if ((img_height > img_width));then
+        # 图像高度大于宽度
+        show_key=1/2
+        show_option="height"
+        show_catimg_option="-H"
+        show_debug_key=3
+      else
+        # 图像宽度大于等于高度
+        show_key=2/2+3
+        show_option="width"
+        show_catimg_option="-w"
+        show_debug_key=4
+      fi
+    fi
+    local show_sixel_size="$(echo "${term_size[@]}" | awk "{printf \"%.0f\", \$${show_key}}")"
+    local show_mode_desc_1=(
+      "[终端: 宽度大于等于高度，图像: 高度大于宽度，模式$show_debug_key]"
+      "[终端: 宽度大于等于高度，图像: 宽度大于等于高度，模式$show_debug_key]"
+      "[终端: 高度大于宽度，图像: 高度大于宽度，模式$show_debug_key]"
+      "[终端: 高度大于宽度，图像: 宽度大于等于高度，模式$show_debug_key]"
+    )
+    local show_mode_desc_2=(
+      "图像高度设为 终端高度/2+3"
+      "图像宽度设为 终端宽度/2"
+      "图像高度设为 终端高度/2"
+      "图像宽度设为 终端宽度/2+3"
+    )
+    debug "图像尺寸决策条件: ${show_mode_desc_1[show_debug_key-1]}"
+    debug "图像尺寸决策结果: [整体缩放] ${show_mode_desc_2[show_debug_key-1]}"
+    if "$support_sixel";then
+      fast_sixel_fetch --sixel "$img_path" --logo-"$show_option" "$show_sixel_size"
+    else
+      $__has_extend_catimg || return
+      command -v catimg &>/dev/null || return
+      catimg "$show_catimg_option" "$img_path"
+    fi
+  fi
+}
 
 ########################################################################
 
@@ -977,17 +1087,42 @@ Check-Tools(){
 
 ########################################################################
 
+# 智能换算数据大小
+# 用法: Get-Data-Size <字节数>
+# 选项:
+#       <字节数> 要换算的字节数
+Get-Data-Size(){
+  local size_bytes="$1"
+  local size_kb=$(awk "BEGIN{printf \"%.2f\", $size_bytes/1024}")
+  local size_mb=$(awk "BEGIN{printf \"%.2f\", $size_kb/1024}")
+  local size_gb=$(awk "BEGIN{printf \"%.2f\", $size_mb/1024}")
+  local size_tb=$(awk "BEGIN{printf \"%.2f\", $size_gb/1024}")
+  if awk "BEGIN{exit !($size_tb>=1)}";then
+    echo "${size_tb} TiB"
+  elif awk "BEGIN{exit !($size_gb>=1)}";then
+    echo "${size_gb} GiB"
+  elif awk "BEGIN{exit !($size_mb>=1)}";then
+    echo "${size_mb} MiB"
+  elif awk "BEGIN{exit !($size_kb>=1)}";then
+    echo "${size_kb} KiB"
+  else
+    echo "${size_bytes} Byte"
+  fi
+}
+
+########################################################################
+
 # 向对话提交文件
 # 用法: Get-Import-File <文件路径>
 # 选项:
 #       文件路径 要提交的文件路径
 Get-Import-File(){
-  filepath="${subargs[1]}"
-  if [ -z $filepath ];then
+  filepath="$1"
+  if [ -z "$filepath" ];then
     erron "未输入文件"
     return
   fi
-  if [ -f $filepath ];then
+  if [ -f "$filepath" ];then
     if ! Check-File-Type "$filepath";then
       erron "非法的文件类型"
       return
@@ -997,38 +1132,55 @@ Get-Import-File(){
       text)
         # 如果文件大小大于 100KB，拦截此请求
         if ((filesize>102400));then
-          erron "过大的文件 (${filesize}B)"
+          erron "过大的文件 ($(Get-Data-Size "$filesize") > 100 KB)"
           return
         fi
         if [ -z "$old_filepath" ];then
           msg "提交文件 $filepath"
         else
-          msg "覆盖提交文件 $filepath => $old_filepath"
+          msg "最新提交的文件 $filepath => $old_filepath"
         fi
         STDIN_INPUT="$(echo "File: $filepath";echo "@File Content Head";cat -n "$filepath" | sed -E 's/^([[:space:]]*[0-9]+)/\1 |/g')"$'\n@File Content Tail\n'
         debug "向标准输入提交文件"
         old_filepath="$filepath"
         ;;
       image)
-        # 如果文件大小大于 5MB，拦截此请求
-        if ((filesize>5242880));then
-          erron "过大的文件 (${filesize}B)"
+        # 如果文件大小大于 50MB，拦截此请求
+        if ((filesize>52428800));then
+          erron "过大的文件 ($(Get-Data-Size "$filesize") > 50 MiB)"
           return
         fi
         if [ -z "$old_filepath" ];then
-          msg "提交图片 $filepath"
+          msg "提交图片 ${c35}${filepath##*/}${c0}"
         else
-          msg "覆盖提交图片 $filepath => $old_filepath"
+          msg "提交图片 ${c35}${old_filepath##*/}(${c32}old${c0}) ${c33}=>${c0} ${c35}${filepath##*/}(${c34}new${c0})"
         fi
-        msg "注意: 图片上传 (Base64) 为实验性功能，暂无法正常使用"
+        Show-Sixel-Image "$filepath"
+        msg "${c33}[提示]:${c0} 图像识别需要模型支持，此功能可能无法正常使用"
         IS_PUSH_IMAGE=true
-        IMAGE_INPUT="$(printf 'data:image/png;base64,';base64 $filepath)"
-        debug "向标准输入提交图片 (数据格式: 'data:image/png;base64,{base64_content}')"
+        case "$filepath" in
+          *.jpg|*.jpeg) image_type="image/jpeg";;
+          *.png) image_type="image/png";;
+          *.gif) image_type="image/gif";;
+          *.webp) image_type="image/webp";;
+          *.avif) image_type="image/avif";;
+          *.bmp) image_type="image/bmp";;
+          *.tiff|*.tif) image_type="image/tiff";;
+          *.svg) image_type="image/svg+xml";;
+          *.ico) image_type="image/x-icon";;
+          *.heic|*.heif) image_type="image/heic";;
+          *)
+            image_type="image/png"
+            emsg "未知图片类型，使用默认类型 image/png"
+            ;;
+        esac
+        IMAGE_INPUT="$(printf "data:%s;base64," "$image_type";base64 -i "$filepath" | tr -d '\n')"
+        debug "向标准输入提交图片 (数据格式: Base64 Data URI)"
         old_filepath="$filepath"
         ;;
     esac
   else
-    emsg "$arg: $filepath: 文件不存在"
+    emsg "$filepath: 文件不存在"
   fi
 }
 
@@ -1141,39 +1293,63 @@ Get-Session-History(){
   if jq -e '.username' <<< "$data" &>/dev/null;then
     session_username="$(jq -r '.username' <<< "$data")"
   fi
-  local __jq_reg="
-    .messages[] |
-    if .role == \"system\" then
-      \"\e[35m系统:\e[0m \" + .content
-    elif .role == \"user\" then
-      \"\e[32m${session_username}:\e[0m \" + .content
-    elif .role == \"assistant\" then
-      if .tool_calls then
-        \"\e[34m助手:\e[0m 将调用函数 \e[35m\" + .tool_calls[0].function.name + \"\e[0m\"
+  local __jq_filter='
+    def extract_user_text(\\$c):
+      if (\\$c | type) == "array" then
+        (\\$c | map(select(.type == "text").text) | join(" "))
       else
-        if .reasoning_content then
-          \"\e[34m助手:\e[0m (\e[35m思考中\e[0m) \" + (.reasoning_content | gsub(\"\\\\\\\\\\\\\\\\\\\\\\\\\\\\n\"; \"\\\n\")) + \"\n\e[34m助手:\e[0m \" + .content
-        else
-          \"\e[34m助手:\e[0m \" + .content
-        end
+        \\$c
+      end;
+    def extract_image_marker(\\$c):
+      if (\\$c | type) == "array" then
+        (\\$c | map(select(.type == "image_url")) | length) as \\$cnt |
+        if \\$cnt > 0 then " \e[34m[图片×\(\\$cnt)]\e[0m" else "" end
+      else
+        ""
+      end;
+    def extract_file_marker(\\$c):
+      if (\\$c | type) == "array" then
+        (\\$c | map(select(.file_id).file_id) + map(select(.type == "file").file_id)) as \\$ids |
+        if (\\$ids | length) > 0 then " \e[32m[文件: " + (\\$ids | join(", ")) + "]\e[0m" else "" end
+      elif (\\$c | type) == "object" and \\$c.file_id then
+        " [文件: " + \\$c.file_id + "]"
+      else
+        ""
+      end;
+    .messages[] |
+    if .role == "system" then
+      "\e[35m系统:\e[0m " + .content
+    elif .role == "user" then
+      extract_user_text(.content) as \\$text |
+      extract_image_marker(.content) as \\$img |
+      extract_file_marker(.content) as \\$files |
+      "\e[32m" + \\$username + ":\e[0m " + \\$text + \\$img + \\$files
+    elif .role == "assistant" then
+      if .tool_calls then
+        "\e[34m助手:\e[0m 将调用函数 \e[35m" + .tool_calls[0].function.name + "\e[0m"
+      elif .reasoning_content then
+        "\e[34m助手:\e[0m (\e[35m思考中\e[0m) " + (.reasoning_content | gsub("\\\\n"; "\n")) + "\n\e[34m助手:\e[0m " + .content
+      else
+        "\e[34m助手:\e[0m " + .content
       end
     else
       empty
-    end"
+    end
+  '
   Set-Terminal-Title "$BAI_TITLE | History"
-  jq -r "${__jq_reg@P}" <<< "$data" | (if $__has_extend_bat;then bat -l markdown --paging=always --plain;else less -R;fi)
+  jq -r --arg username "$session_username" "${__jq_filter@P}" <<< "$data" <<< "$data" | (if $__has_extend_bat;then bat -l markdown --paging=always --plain;else less -R;fi)
   Set-Terminal-Title "$BAI_TITLE"
 }
 
 ########################################################################
 
-# 管理微调文件
-# 用法: Set-FineTune-File <操作> <文件路径> [用途]
+# 管理暂存文件
+# 用法: Set-Temp-File <操作> <文件路径> [用途]
 # 选项:
-#       操作 操作类型，可选值为 push、list、rm
+#       操作 操作类型，可选值为 push、list、remove
 #       文件路径 要操作的文件路径
 #       用途 文件用途，可选值为 assistants、fine-tune、file-extract、batch，默认值为 assistants
-Set-FineTune-File(){
+Set-Temp-File(){
   if [ -z "$1" ];then
     emsg "未指定参数"
     return 1
@@ -1190,12 +1366,12 @@ Set-FineTune-File(){
         erron "找不到文件 $2"
         return 1
       fi
-      if [[ ! "${2,,}" =~ ^.+\.(jsonl?|csv|txt|docx|pdf|xlsx|epub|mobi|md|py|js|(ba|z|fi)?sh|ps1|rs|java|kt|c|go)$ ]];then
+      if [[ ! "${2,,}" =~ ^.+\.(docx|pdf|xlsx|epub|mobi|md|py3?|(j|t)s(x|p)?|(ba|z|fi)?sh|lua|ps1|rs|java|kt|c(pp)?|go|jsonl?|csv|txt|(ya?|to|x)ml|ini|conf|cfg|j?pe?n?g|(bm|web)p|svgz?|ico)$ ]];then
         erron "文件后缀不符合要求"
         return 1
       fi
       local purpose="$3"
-      if [[ "${purpose:='file-extract'}" =~ ^(assistants|fine-tune|file-extract|batch)$ ]];then
+      if [[ "${purpose:='file-extract'}" =~ ^(assistants|fine-tune|file-extract|batch|vision|user_data|evals)$ ]];then
         CURL_FILE_GET="$(
           Wait-Task wait "等待文件上传..."
           (
@@ -1208,7 +1384,7 @@ Set-FineTune-File(){
         Get-Assistant-ReturnError "$CURL_FILE_GET" &&
         msg "文件提交完成 $(jq -r '.id' <<< "$CURL_FILE_GET"), 用途: $purpose"
       else
-        erron "文件提交失败 $(jq -r .error <<<"$CURL_FILE_GET")"
+        erron "${c31}[Server]:${c0} ${c33}[文件提交失败]${c0} $(jq -r '.error.message' <<<"$CURL_FILE_GET")"
         return 1
       fi
       ;;
@@ -1222,7 +1398,7 @@ Set-FineTune-File(){
         )
         Wait-Task kill
       )"
-      Get-Assistant-ReturnError "$CURL_FILE_GET"
+      Get-Assistant-ReturnError "$CURL_FILE_GET" || return 1
       FILES_ID=($(jq -r '.data[].id' <<< "$CURL_FILE_GET"))
       FILES_NAME=($(jq -r '.data[].filename' <<< "$CURL_FILE_GET"))
       jq -er '.data[] | "文件ID: \(.id), 文件名: \(.filename), 大小: \(.bytes)字节, 用途: \(.purpose)"' <<<"$CURL_FILE_GET" || msg "服务商无存储文件"
@@ -1670,7 +1846,7 @@ Get-Stream-Assistant-Content(){
             Get-Timer Assistant
             _tokens=$(wc -c <<< "$SEEK_CONTENT")
             echo
-            debug "思考耗时: $Get_AssistantTimer, 输出 tokens(以字节结算): $_tokens"
+            debug "思考耗时: $Get_AssistantTimer, 输出 $_tokens 字节"
             Get-Timer Assistant
           fi
         else
@@ -1765,6 +1941,8 @@ Get-Stream-Assistant-Content(){
   Wait-Task kill
 
   # 处理最终返回
+  # 如果仅有思考链但无对话内容，则直接copy思考链为最终返回内容
+  [[ "$SEEK_CONTENT" && ! "$STREAM_CONTENT" ]] && STREAM_CONTENT="$SEEK_CONTENT"
   API_RETURN="${STREAM_CONTENT//'\n'/$'\n'}"
   if ! [ "$API_RETURN" ];then
     printf "\r\e[K"
@@ -1780,10 +1958,12 @@ Get-Stream-Assistant-Content(){
   # 最终计时
   if ! ((TOOLS_USE_COUNT));then
     Get-Timer Assistant
-    _return_tokens=$(wc -c <<< "$STREAM_CONTENT")
-    debug "模型返回耗时: $Get_AssistantTimer, 输出 tokens(以字节结算): $_return_tokens"
-    ((TOOLS_USE_COUNT++))
-    unset TOOLS_TRUN_COUNT TOOLS_USE_COUNT
+    if [ "$Get_AssistantTimer" ];then
+      _return_tokens=$(wc -c <<< "$STREAM_CONTENT")
+      debug "模型返回耗时: $Get_AssistantTimer, 输出 $_return_tokens 字节"
+      ((TOOLS_USE_COUNT++))
+      unset TOOLS_TRUN_COUNT TOOLS_USE_COUNT
+    fi
   fi
 
   # 命令处理
@@ -1845,6 +2025,20 @@ Get-Stream-Assistant-ToolsCall(){
 
 ########################################################################
 
+# 手动执行工具
+# 用法: Get-Call-Tools <函数名称> <参数>
+Get-Call-Tools(){
+  # printf "%s\n" "${__bai_function_tools[@]}" # 列出所有已注册的工具函数
+  [ "$1" ] || return
+  if ! [[ " ${__bai_function_tools[*]} " == *" $1 "* ]];then
+    emsg "找不到工具函数 $1"
+    return
+  fi
+  "$function_head::$1" "${@:2}"
+}
+
+########################################################################
+
 # 命令名称
 arg0="$(basename ${BASH_SOURCE[0]} .sh)"
 
@@ -1860,6 +2054,8 @@ status_version=("$(date -d @$(stat -c%Y $BASH_SOURCE 2>/dev/null || echo 0) +'%Y
 : ${BAI_LIMIT_TURNS:=true}
 # 限制工具调用
 : ${BAI_LIMIT_TOOLS:=true}
+# 图像预览
+: ${BAI_IMAGE_PREVIEW:=true}
 
 ########################################################################
 # *-------------------------- BAI 外部交换参数 --------------------------*
@@ -1910,7 +2106,7 @@ done
 
 # 简单检查可选命令
 EXTEND_NOT_FOUND=()
-EXTEND_DIST=(fzf bat gum)
+EXTEND_DIST=(fzf bat gum fastfetch catimg)
 EXTEND_VAL=__has_extend_
 for i in ${EXTEND_DIST[@]};do
   eval=$EXTEND_VAL$i
@@ -1925,7 +2121,7 @@ done
 
 # 解析参数
 argo=(
-  a b c d e f g h i j k l m n o p q r s t u w x z
+  a b c d e f g h i j k l m n o p q r s t u w x y z 
 )
 for i in "${argo[@]}";do
   eval "SHIFT_${i^}=0"
@@ -1936,94 +2132,98 @@ for arg in "$@";do
   case "$arg" in
     --help|-h)
       HELP_VERSION=(
-        '命令'                    '  已安装版本'  
-        'bash'                    "$(Print-HighLight-Number <<< "${BASH_VERSION:-Null}")"
-        'coreutils'               "$(Print-Command-Version ls)"
-        'awk'                     "$(Print-Command-Version awk | cut -d, -f1)"
-        'sed'                     "$(Print-Command-Version sed)"
-        'grep'                    "$(Print-Command-Version grep)"
-        'curl'                    "$(curl --version | head -1 | cut -d' ' -f1,2 | Print-HighLight-Number || echo Null)"
-        'file'                    "$(file --version | head -1 | Print-HighLight-Number || echo Null)"
-        'jq'                      "$(jq --version | head -1 | Print-HighLight-Number || echo Null)"
+        '命令'                           '  已安装版本'  
+        'bash'                           "$(Print-HighLight-Number <<< "${BASH_VERSION:-"[未知]"}")"
+        'coreutils'                      "$(Print-Command-Version ls || echo "[未知]")"
+        'awk'                            "$((Print-Command-Version awk | cut -d, -f1) || echo "[未知]")"
+        'sed'                            "$(Print-Command-Version sed || echo "[未知]")"
+        'grep'                           "$(Print-Command-Version grep || echo "[未知]")"
+        'curl'                           "$(curl --version | head -1 | cut -d' ' -f1,2 | Print-HighLight-Number || echo "[未知]")"
+        'file'                           "$(file --version | head -1 | Print-HighLight-Number || echo "[未知]")"
+        'jq'                             "$(jq --version | head -1 | Print-HighLight-Number || echo "[未知]")"
       )
       HELP_EXTEND_VERSION=(
-        '命令'                    '  已安装版本'
-        'bat'                     "$((Print-Command-Version bat | cut -d" " -f2-) 2>/dev/null || echo Null)"
-        'gum'                     "$(Print-Command-Version gum 2>/dev/null || echo Null)"
-        'fzf'                     "$(Print-Command-Version fzf 2>/dev/null || echo Null)"
+        '命令'                           '  已安装版本'
+        'bat'                            "$((Print-Command-Version bat | cut -d" " -f2-) 2>/dev/null || echo "[未知]")"
+        'gum'                            "$(Print-Command-Version gum 2>/dev/null || echo "[未知]")"
+        'fzf'                            "$(Print-Command-Version fzf 2>/dev/null || echo "[未知]")"
+        'fastfetch'                      "$((Print-Command-Version fastfetch | cut -d" " -f1) 2>/dev/null || echo "[未知]")"
+        'catimg'                         "$(command -v catimg &>/dev/null && echo "[无版本号，已安装]" || echo "[未知]")"
       )
       HELP_OPTION=(
-        '--help, -h'              '显示此帮助'
-        '--session-help'          '显示会话帮助'
-        '--argtest, -a'           '测试参数组合'
-        '--complete'              '打印从 BAI 复制的 bash 命令补全脚本'
-        '--stream, -n'            '启用流式响应 (如果供应商支持)'
-        '--thinking, -e'          '显式启用深度思考链 (如果模型支持)'
-        '--search, -g'            '显式启用联网搜索 (如果模型支持)'
-        '--partial, -j'           '启用前缀续写 (如果模型支持)'
-        '--baseurl, -b'           '指定 OpenAI API BaseURL'
-        '--apikey, -k'            '指定接口密钥'
-        '--model, -m'             "指定模型 (<${c32}model${c0}> or <${c32}model${c33}1${c0}>,<${c32}model${c33}2${c0}>...)"
-        '--username, -u'          '指定用户名'
-        '--title, -t'             '指定会话标题 (多轮对话)'
-        '--value, -v'             "向脚本环境内赋值，选项可重复(${c33}DEBUG${c0})"
-        '--no-limit-turns, -l'    '解除对话轮次限制 (限制: 32)'
-        '--no-limit-tools, -z'    "解除对于过小规模 (${c36}=<${c35}5b${c0}) 模型的工具限制"
-        '--inspect, -x'           "仅检查此脚本请求方式 (${c33}DEBUG${c0})"
-        '--debug, -o'             "启用调试输出 (${c33}DEBUG${c0})"
-        '--conemu-status, -p'     '启用 ConEmu 进度指示特性'
-        '--wait-style, -w'        '指定等待时的指示样式'
-        '--no-extend, -d'         "禁用指定的可选依赖命令 (<${c32}command${c33}1${c0}>,<${c32}command${c33}2${c0}>...)"
-        '--no-tools, -q'          "警用指定的函数工具 (<${c32}funcname${c33}1${c0}>,<${c32}funcname${c33}2${c0}>...)"
-        '--sysfile, -s'           "指定一个命令提示文件 (${c33}type: ${c32}text/markdown${c0})"
-        '--histfile, -i'          "指定一个历史记录文件 (${c33}type: ${c32}text-lines${c0})"
-        '--config, -f'            "指定一个环境变量文件 (${c33}type: ${c32}posix-shell-env${c0})"
-        '--callfile, -c'          "指定一个工具文件 (${c33}type: ${c32}json-lines${c0})"
+        '--help, -h'                     '显示此帮助'
+        '--session-help'                 '显示会话帮助'
+        '--argtest, -a'                  '测试参数组合'
+        '--complete'                     '打印从 BAI 复制的 bash 命令补全脚本'
+        '--stream, -n'                   '启用流式响应 (如果供应商支持)'
+        '--thinking, -e'                 '显式启用深度思考链 (如果模型支持)'
+        '--search, -g'                   '显式启用联网搜索 (如果模型支持)'
+        '--partial, -j'                  '启用前缀续写 (如果模型支持)'
+        '--baseurl, -b'                  '指定 OpenAI API BaseURL'
+        '--apikey, -k'                   '指定接口密钥'
+        '--model, -m'                    "指定模型 (<${c32}model${c0}> or <${c32}model${c33}1${c0}>,<${c32}model${c33}2${c0}>...)"
+        '--username, -u'                 '指定用户名'
+        '--title, -t'                    '指定会话标题 (多轮对话)'
+        '--value, -v'                    "向脚本环境内赋值，选项可重复(${c33}DEBUG${c0})"
+        '--no-limit-turns, -l'           '解除对话轮次限制 (限制: 32)'
+        '--no-limit-tools, -z'           "解除对于过小规模 (${c36}=<${c35}5b${c0}) 模型的工具限制"
+        '--disable-image-preview, -y'    '对话提交材料时不再预览图片'
+        '--inspect, -x'                  "仅检查此脚本请求方式 (${c33}DEBUG${c0})"
+        '--debug, -o'                    "启用调试输出 (${c33}DEBUG${c0})"
+        '--conemu-status, -p'            '启用 ConEmu 进度指示特性'
+        '--wait-style, -w'               '指定等待时的指示样式'
+        '--no-extend, -d'                "禁用指定的可选依赖命令 (<${c32}command${c33}1${c0}>,<${c32}command${c33}2${c0}>...)"
+        '--no-tools, -q'                 "警用指定的函数工具 (<${c32}funcname${c33}1${c0}>,<${c32}funcname${c33}2${c0}>...)"
+        '--sysfile, -s'                  "指定一个命令提示文件 (${c33}type: ${c32}text/markdown${c0})"
+        '--histfile, -i'                 "指定一个历史记录文件 (${c33}type: ${c32}text-lines${c0})"
+        '--config, -f'                   "指定一个环境变量文件 (${c33}type: ${c32}posix-shell-env${c0})"
+        '--callfile, -c'                 "指定一个工具文件 (${c33}type: ${c32}json-lines${c0})"
       )
       HELP_ENV_MUST=(
-        'OPENAI_API_KEY'          "接口密钥 (等价于 ${c32}-k${c0})"
-        'OPENAI_API_MODEL'        "模型名称 (等价于 ${c32}-m${c0})"
+        'OPENAI_API_KEY'                 "接口密钥 (等价于 ${c32}-k${c0})"
+        'OPENAI_API_MODEL'               "模型名称 (等价于 ${c32}-m${c0})"
       )
       HELP_ENV_OPTAL=(
-        'OPENAI_BASE_URL'         "起始地址 (默认为 ${c34}openai${c0}，等价于 ${c32}-b${c0})"
-        'OPENAI_API_TEMP'         '采样温度'
-        'OPENAI_STOP_TEXTS'       '结束标语'
-        'OPENAI_TEXT_NUM'         '输出文本数量'
-        'OPENAI_TOP_K'            '贪婪采样阈值'
-        'OPENAI_TOP_P'            '精简采样阈值'
-        'OPENAI_PRESENCE'         '重复惩罚阈值'
-        'OPENAI_FREQUENCY'        '频率惩罚阈值'
-        'OPENAI_MAX_TOKENS'       '限制最大输出量'
-        'OPENAI_ENABLE_STREAM'    "启用流式响应 (等价于 ${c32}-n${c0})"
-        'OPENAI_ENABLE_SEARCH'    "启用联网搜索 (如果模型支持, 等价于 ${c32}-g${c0})"
-        'OPENAI_ENABLE_THINKING'  "启用深度思考链 (如果模型支持, 等价于 ${c32}-e${c0})"
-        'OPENAI_ENABLE_PARTIAL'   "启用前缀续写 (如果模型支持, 等价于 ${c32}-j${c0})"
+        'OPENAI_BASE_URL'                "起始地址 (默认为 ${c34}openai${c0}，等价于 ${c32}-b${c0})"
+        'OPENAI_API_TEMP'                '采样温度'
+        'OPENAI_STOP_TEXTS'              '结束标语'
+        'OPENAI_TEXT_NUM'                '输出文本数量'
+        'OPENAI_TOP_K'                   '贪婪采样阈值'
+        'OPENAI_TOP_P'                   '精简采样阈值'
+        'OPENAI_PRESENCE'                '重复惩罚阈值'
+        'OPENAI_FREQUENCY'               '频率惩罚阈值'
+        'OPENAI_MAX_TOKENS'              '限制最大输出量'
+        'OPENAI_ENABLE_STREAM'           "启用流式响应 (等价于 ${c32}-n${c0})"
+        'OPENAI_ENABLE_SEARCH'           "启用联网搜索 (如果模型支持, 等价于 ${c32}-g${c0})"
+        'OPENAI_ENABLE_THINKING'         "启用深度思考链 (如果模型支持, 等价于 ${c32}-e${c0})"
+        'OPENAI_ENABLE_PARTIAL'          "启用前缀续写 (如果模型支持, 等价于 ${c32}-j${c0})"
       )
       HELP_ENV_OTHER=(
-        'BAI_COLOR'               "GNU 风格选项行为，是否启用颜色输出 (${c32}never${c0},${c32}auto${c0},${c32}always${c0})"
-        'BAI_TITLE'               "会话标题 (等价于 ${c32}-t${c0})"
-        'BAI_HISTFILE'            "历史记录文件 (等价于 ${c32}-i${c0})"
-        'BAI_USERNAME'            "用户名 (等价于 ${c32}-u${c0})"
-        'BAI_WAIT_STYLE'          "等待时的指示样式 (等价于 ${c32}-w${c0})"
-        'BAI_LIMIT_TURNS'         "是否限制对话轮次 (等价于 ${c32}-l${c0})"
-        'BAI_LIMIT_TOOLS'         "是否限制过小模型的工具调用 (等价于 ${c32}-z${c0})"
-        'BAI_CALLING_FILE'        "Function Calling 文件 (等价于 ${c32}-c${c0})"
+        'BAI_COLOR'                      "GNU 风格选项行为，是否启用颜色输出 (${c32}never${c0},${c32}auto${c0},${c32}always${c0})"
+        'BAI_TITLE'                      "会话标题 (等价于 ${c32}-t${c0})"
+        'BAI_HISTFILE'                   "历史记录文件 (等价于 ${c32}-i${c0})"
+        'BAI_USERNAME'                   "用户名 (等价于 ${c32}-u${c0})"
+        'BAI_WAIT_STYLE'                 "等待时的指示样式 (等价于 ${c32}-w${c0})"
+        'BAI_LIMIT_TURNS'                "是否限制对话轮次 (等价于 ${c32}-l${c0})"
+        'BAI_LIMIT_TOOLS'                "是否限制过小模型的工具调用 (等价于 ${c32}-z${c0})"
+        'BAI_CALLING_FILE'               "Function Calling 文件 (等价于 ${c32}-c${c0})"
+        'BAI_IMAGE_PREVIEW'              "是否启用图像预览 (为 ${c34}false${c0} 时等价于 ${c32}-y${c0})"
       )
 
       HELP_STYLE_OPTION=(
-        'bar'                     '旋转 - 经典杠型'
-        'arc'                     '旋转 - 弧形'
-        'arrow'                   '旋转 - 箭头'
-        'dotmatrix'               '旋转 - Npm 风格点阵'
-        'bell'                    '旋转 - 时间流逝'
-        'dot'                     '来回 - 收缩的点状链'
-        'line'                    '来回 - 移动的下划线'
-        'block'                   '来回 - 点亮方块'
-        'wave'                    '方块 - 上下起伏'
-        'square'                  '方块 - 变换拼角'
-        'pushpull'                '方块 - 前后收缩'
-        'roll'                    '字样 - 滚动显示'
-        'invisible'               '字样 - 逐个隐藏'
+        'bar'                            '旋转 - 经典杠型'
+        'arc'                            '旋转 - 弧形'
+        'arrow'                          '旋转 - 箭头'
+        'dotmatrix'                      '旋转 - Npm 风格点阵'
+        'bell'                           '旋转 - 时间流逝'
+        'dot'                            '来回 - 收缩的点状链'
+        'line'                           '来回 - 移动的下划线'
+        'block'                          '来回 - 点亮方块'
+        'wave'                           '方块 - 上下起伏'
+        'square'                         '方块 - 变换拼角'
+        'pushpull'                       '方块 - 前后收缩'
+        'roll'                           '字样 - 滚动显示'
+        'invisible'                      '字样 - 逐个隐藏'
       )
       echo -e "${c32}$arg0${c0} (${c36}修改于:${c0} ${c35}${status_version[0]}${c0}, ${c36}大小:${c0} ${c35}${status_version[1]}${c0}, ${c36}行数:${c0} ${c35}${status_version[2]}${c0})
 调用 OpenAI API 的终端聊天脚本
@@ -2037,36 +2237,49 @@ $(printf "  %-15b%b\n" "${HELP_EXTEND_VERSION[@]}")
   用法: ${c32}$arg0${c0} [ ${c33}提问${c0} | ${c33}提问文件${c0} | ${c33}选项${c0} ]...
   
   可以在命令行参数中提问，或者指定一个包含提问内容的文件。
-  例如: ${c32}$arg0${c0} ${c33}./issue.txt${c0}   \e[2;37m# bai \"介绍一下你自己\"${c0}
+  ╭──────────────────────────────────────────╮
+  │ ${c35}Command Example${c0}                          │
+  ├──────────────────────────────────────────┤
+  │ ${c32}$arg0${c0} ${c33}./issue.txt${c0}   ${c237}# bai \"介绍一下你自己\"${c0} │
+  ╰──────────────────────────────────────────╯
   
-  此外，还允许使用管道输入文件（单次对话）和使用指令提交文件（多轮对话）
-  例如:
-    ${c32}cat${c0} ${c33}README.md${c0} ${c34}|${c0} ${c32}$arg0${c0} ${c33}\"解释一下这个自述\"${c0}\n
-  或者:
-    ${c36}$user_prompt${c0} ${c32}.file${c0} ${c33}README.md${c0}
-    ${c36}$user_prompt${c0} ${c33}解释一下这个自述${c0}
+  此外，还允许使用管道输入文件（单次对话）
+  ╭────────────────────────────────────────╮
+  │ ${c35}Command Example${c0}                        │
+  ├────────────────────────────────────────┤
+  │ ${c32}cat${c0} ${c33}README.md${c0} ${c34}|${c0} ${c32}$arg0${c0} ${c33}\"解释一下这个自述\"${c0} │
+  ╰────────────────────────────────────────╯
+
+  或使用指令提交文件（多轮对话）
+  ╭─────────────────────────╮
+  │ ${c35}Bai Session${c0}             │
+  ├──────┬──────────────────┤
+  │ ${c36}$user_prompt${c0} │ ${c32}.file${c0} ${c33}README.md${c0}  │
+  │ ${c36}$user_prompt${c0} │ ${c33}解释一下这个自述${c0} │
+  ╰──────┴──────────────────╯
   
   ${c35}选项:${c0}
-$(printf "    \e[1;34m%-27b${c0}%-4b\n" "${HELP_OPTION[@]}")
+$(printf "    \e[1;34m%-32b${c0}%-4b\n" "${HELP_OPTION[@]}")
 
   在需要指定参数的选项支持使用多种方式，以测试选项 ${c33}-a/--argtest${c0} 为例:
-    ${c32}$arg0${c0} ${c33}-a${c0} ${c34}test${c0}
-    ${c32}$arg0${c0} ${c33}-a${c0}${c34}test${c0}
-    ${c32}$arg0${c0} ${c33}-a${c0}:${c34}test${c0}
-    ${c32}$arg0${c0} ${c33}--argtest${c0}:${c34}test${c0}
-    ${c32}$arg0${c0} ${c33}--argtest${c0} ${c34}test${c0}
-    ${c32}$arg0${c0} ${c33}--argtest${c0}=${c34}test${c0}
+    ╭──────────────────────────────────╮
+    │ ${c35}Option List${c0}                      │
+    ├─────────────┬────────────────────┤
+    │ ${c32}$arg0${c0} ${c33}-a${c0} ${c34}test${c0} │ ${c32}$arg0${c0} ${c33}--argtest${c0} ${c34}test${c0} │
+    │ ${c32}$arg0${c0} ${c33}-a${c0}${c34}test${c0}  │ ${c32}$arg0${c0} ${c33}--argtest${c0}=${c34}test${c0} │
+    │ ${c32}$arg0${c0} ${c33}-a${c0}:${c34}test${c0} │ ${c32}$arg0${c0} ${c33}--argtest${c0}:${c34}test${c0} │
+    ╰─────────────┴────────────────────╯
   
   使用前需要注入环境变量
     必选值:  
-$(printf "      ${c33}%-25b${c0}%-4b\n" "${HELP_ENV_MUST[@]}")
+$(printf "      ${c33}%-32b${c0}%-4b\n" "${HELP_ENV_MUST[@]}")
     可选值:  
-$(printf "      ${c33}%-25b${c0}%-4b\n" "${HELP_ENV_OPTAL[@]}")
+$(printf "      ${c33}%-32b${c0}%-4b\n" "${HELP_ENV_OPTAL[@]}")
     额外项:
-$(printf "      ${c33}%-25b${c0}%-4b\n" "${HELP_ENV_OTHER[@]}")
+$(printf "      ${c33}%-32b${c0}%-4b\n" "${HELP_ENV_OTHER[@]}")
 
   样式选项 (${c32}-w${c0}/${c32}--wait-style${c0}):
-$(printf "      ${c33}%-25b${c0}%-4b\n" "${HELP_STYLE_OPTION[@]}")
+$(printf "      ${c33}%-32b${c0}%-4b\n" "${HELP_STYLE_OPTION[@]}")
   
   未在命令参数中提问时将进入连续对话模式，可上下翻阅输入记录
   记录将保存到 ${c35}$HISTFILE${c0}
@@ -2075,31 +2288,37 @@ $(printf "      ${c33}%-25b${c0}%-4b\n" "${HELP_STYLE_OPTION[@]}")
   对于 Function Calling 功能支持：
     工具文件格式要求使用 JSON Lines，以便导入多个工具，以下是基本单位数据结构：
     * 需要参数的函数：
-    \`\`\`json
-$(jq -C <<< '{
-              "name": "函数名, e.g example",
-              "explicitly (可选项)": "true 或 false, 字符串",
-              "depend (可选项)": "需要声明的依赖命令以及可选相应的命令包名，可指定多个, e.g rg:ripgrep,xargs:findutils", 
-              "description": "函数基本描述",
-              "function": "待封装的 Bash 函数代码块, e.g echo $1;echo $2",
-              "parameters (可选项)": {
-                "type": "object",
-                "properties": {
-                  "参数1, e.g arg1": {
-                    "type": "string",
-                    "description": "参数基本描述"
-                    }
-                  }
-                },
-                "required": [
-                  "要使用的参数, e.g arg1"
-                ]
-              }
-            }' 2>/dev/null |
-  sed '12a\      '$'\e[2;37m"参数2"...\e[0m' |
-  sed '17a\    '$'\e[2;37m"参数2"...\e[0m' | 
-  cat -n)
-    \`\`\`
+  ╭────────────────────────────────────────────────────────────────────────────────────────╮
+  │ ${c35}Preview: JSON5, Encoding: UTF-8${c0}                                                        │
+  ├────┬───────────────────────────────────────────────────────────────────────────────────┤
+  │ ${c237}01${c0} │ {                                                                                 │
+  │ ${c237}02${c0} │     ${c34}\"name\"${c0}: ${c32}\"example\"${c0},    ${c237}// 函数名称${c0}                                             │
+  │ ${c237}03${c0} │     ${c34}\"explicitly\"${c0}: ${c32}\"true\"${c0},   ${c237}// 是否向用户显式展示函数调用过程, 可选，字符串类型${c0}   │
+  │ ${c237}04${c0} │     ${c34}\"depend\"${c0}: ${c32}\"rg:ripgrep,xargs:findutils\"${c0},   ${c237}// 依赖的外部命令, 可选，可指定多个${c0} │
+  │ ${c237}05${c0} │                                               ${c237}// 格式: 命令1:包名1,命令2...${c0}       │
+  │ ${c237}06${c0} │     ${c34}\"description\"${c0}: ${c32}\"这是一段函数描述\"${c0},    ${c237}// 函数描述${c0}                             │
+  │ ${c237}07${c0} │     ${c34}\"function\"${c0}: ${c32}\"echo \$1;echo \$2\"${c0},    ${c237}// Bash Shell 函数体${c0}                        │
+  │ ${c237}08${c0} │     ${c34}\"parameters\"${c0}: {    ${c237}// 参数列表, 可选${c0}                                          │
+  │ ${c237}09${c0} │         ${c34}\"type\"${c0}: ${c32}\"object\"${c0},                                                         │
+  │ ${c237}10${c0} │         ${c34}\"properties\"${c0}: {                                                           │
+  │ ${c237}11${c0} │             ${c34}\"arg1\"${c0}: {    ${c237}// 参数名称${c0}                                              │
+  │ ${c237}12${c0} │                 ${c34}\"type\"${c0}: ${c32}\"string\"${c0},                                                 │
+  │ ${c237}13${c0} │                 ${c34}\"description\"${c0}: ${c32}\"这是一段参数描述\"${c0}   ${c237}// 参数描述${c0}                   │
+  │ ${c237}14${c0} │                 ${c34}\"eum\"${c0}: [   ${c237}// 可选枚举值, 可选${c0}                                    │
+  │ ${c237}15${c0} │                     ${c32}\"value1\"${c0},                                                     │
+  │ ${c237}16${c0} │                     ${c32}\"value2\"${c0}                                                      │
+  │ ${c237}17${c0} │                 ]                                                                 │
+  │ ${c237}18${c0} │             }                                                                     │
+  │ ${c237}19${c0} │             ${c237}// arg2...${c0}                                                            │
+  │ ${c237}20${c0} │         },                                                                        │
+  │ ${c237}21${c0} │         ${c34}\"required\"${c0}: [                                                             │
+  │ ${c237}22${c0} │             ${c33}\"arg1\"${c0}   ${c237}// 必需参数列表${c0}                                              │
+  │ ${c237}23${c0} │             ${c237}// arg2...${c0}                                                            │
+  │ ${c237}24${c0} │         ]                                                                         │
+  │ ${c237}25${c0} │     }                                                                             │
+  │ ${c237}26${c0} │ }                                                                                 │
+  ╰────┴───────────────────────────────────────────────────────────────────────────────────╯
+
     * 无参数函数可仅包含 \"name\"  \"description\"  \"function\" 字段
 
   注意:
@@ -2115,23 +2334,30 @@ $(jq -C <<< '{
   提示:
     启用前缀续写功能后，连续对话模式下，在输入问题末尾添加 ${c32}@prefix${c0} 标识
     即可使用前缀续写功能:
-      ${c34}$user_prompt${c0} ${c32}春天来了，万物复苏${c0}${c33}@prefix${c0}
+    ╭──────────────────────────────────╮
+    │ ${c35}Bai Session${c0}                      │
+    ├──────┬───────────────────────────┤
+    │ ${c34}$user_prompt${c0} │ ${c32}春天来了，万物复苏${c0}${c33}@prefix${c0} │
+    ╰──────┴───────────────────────────╯
 
     自 ${c33}$(Print-HighLight-Number <<<"Bash 5.3") 版本开始，${c32}read${c0} 内建得到增强，现已加入对于部分局内指令的补全函数,
     以期增强体验。
     加入可选依赖命令，在安装这些命令后将一定程度上增强使用体验，可通过上述命令行参
     数选择性禁用命令扩展：
-      ${c32}bat${c0}:   对于 ${c32}.copy${c0} 指令和静态非流输出使用高亮语法，以增强视觉效果
-      ${c32}gum${c0}:   对于 用户交互功能增强/替换，但将损失部分特性
-      ${c32}fzf${c0}:   对于 ${c33}Bash${c0} 历史记录反向匹配功能（${c35}Ctrl-R${c0}）增强
-
+    ╭────────────┬───────────────────────────────────────────────────────────╮
+    │${c4} ${c32}bat${c0}${c4}        ${c0}│${c4} 对于 ${c32}.code${c0}${c4} 指令和静态非流输出使用高亮语法，以增强视觉效果 ${c0}│
+    │${c4} ${c32}gum${c0}${c4}        ${c0}│${c4} 对于 用户交互功能增强/替换，但将损失部分特性              ${c0}│
+    │${c4} ${c32}fzf${c0}${c4}        ${c0}│${c4} 对于 ${c33}Bash${c0}${c4} 历史记录反向匹配功能（${c35}Ctrl-R${c0}${c4}）增强              ${c0}│
+    │ ${c32}fastfetch${c0}  │ 对于可控相对尺寸的图片显示 (${c35}Sixel${c0})                        │
+    │${c4}            ${c0}│${c4} 在此并不使用该命令主要的系统信息收集功能                  ${c0}│
+    │ ${c32}catimg${c0}     │ 对于可控尺寸的简单图片显示 (${c35}ASCII${c0})                        │ 
+    ╰────────────┴───────────────────────────────────────────────────────────╯
     退出状态:
-      通常是不确定的，一般情况下仅在发生错误时返回非零值
+      通常为0，一般情况下仅在发生错误时返回非零值
 
   $(Set-Link-Text "$arg0" "https://github.com/hornleaf/bai") 命令行工具 项目地址: <${c4}https://github.com/hornleaf/bai${c0}> 
   请向 <${c4}hornleaf_cn@outlook.com${c0}> 或 <${c4}https://github.com/hornleaf/bai/issues${c0}> 反馈
-  问题或提出改进性建议
-  \n"
+  问题或提出改进性建议\n"
       exit
   esac
 done
@@ -2228,6 +2454,12 @@ for arg in "$@";do
     --conemu-status|-p)
       Limit-Repeation-Arguments SHIFT_P "$1"
       CONEMU_STATUS=true
+      shift
+      ;;
+    # 禁用图像预览
+    --disable-image-preview|-y)
+      Limit-Repeation-Arguments SHIFT_Y "$1"
+      BAI_IMAGE_PREVIEW=false
       shift
       ;;
     # 从参数向脚本内注入变量
@@ -2489,14 +2721,14 @@ for arg in "$@";do
         line
         bell
         wave
-        roll
+        {roll,invisible}{,:{fraktur,double,cursive,glitch}}
         dice
         block
         arrow
+        custom
         square
         phase
         pushpull
-        invisible
         dotmatrix
         rectangle
       )
@@ -2758,11 +2990,9 @@ builtin printf -v data \
   '{
     "model": "%s",
     "stream": %s,
-    "enable_thinking": %s,
-    "enable_search": %s,
     "messages": []
   }' \
-  "$OPENAI_API_MODEL" "$OPENAI_ENABLE_STREAM" "$OPENAI_ENABLE_THINKING" "$OPENAI_ENABLE_SEARCH"
+  "$OPENAI_API_MODEL" "$OPENAI_ENABLE_STREAM"
 
 debug "基本请求体构建完成, 继续扩展请求体..."
 
@@ -2785,6 +3015,9 @@ function system_msg.append(){
   data="$(jq --arg content "$content" '.messages += [{"role": "system", "content": $content}]' <<< "$data")"
 }
 
+${OPENAI_ENABLE_SEARCH:-false} && data.append "enable_search" "true" --no-json
+${OPENAI_ENABLE_THINKING:-false} && data.append "enable_thinking" "true" --no-json
+
 data.append "max_tokens" "$OPENAI_MAX_TOKENS"          # 最大 tokens 输出量
 data.append "n" "$OPENAI_TEXT_NUM"                     # 文本范围
 data.append "temperature" "$OPENAI_API_TEMP"           # 模型温度
@@ -2803,7 +3036,7 @@ debug "正在扩展个性化内容..."
 
 # 用户名
 [ "$BAI_USERNAME" ] && {
-  system_msg.append "你需要以此称呼用户: \"$BAI_USERNAME\", 强调: 这是用户名, 不是你所使用的昵称"
+  system_msg.append "你需要以此称呼用户: \"$BAI_USERNAME\", **强调: 这是用户名, 不是你所使用的昵称** | You need to address the user as follows: \"$BAI_USERNAME\", **emphasize: this is the username, not the nickname you are using**"
   debug "使用的用户名: $BAI_USERNAME"
 }
 
@@ -2817,7 +3050,7 @@ if $BAI_LIMIT_TOOLS;then
   [[ "$OPENAI_API_MODEL" =~ ^.+[:-](([0-4]\.[1-9]|[1-4])[bB])$ ]] && {
     debug "显式指向的模型规模过小，将变量 TOOLS 设置为 false，发出警告"
     TOOLS=false
-    msg "显式指向的模型规模过小 (${c33}${BASH_REMATCH[1]}${c0})，已禁用 ${c32}Function Calling${c0} 功能，请使用更大参数 (${c36}=<${c0}${c35}5b${c0}) 的模型或手动调用指令";}
+    msg "显式指向的模型规模过小 (${c33}${BASH_REMATCH[1]}${c0})，已禁用 ${c32}Function Calling${c0} 功能，请使用更大参数量 (${c36}=<${c0}${c35}5b${c0}) 的模型或手动调用指令";}
 fi
 
 # 启用 Function Calling 功能
@@ -2837,14 +3070,16 @@ if $TOOLS;then
       debug "发现命令行参数要求禁用的函数: $function_fromjson_name"
       continue
     }
-    function_name="$function_head::$function_fromjson_name"
+     function_name="$function_head::$function_fromjson_name"
     declare -A gco_explicitly["$function_name"]="$(cut -d' ' -f2 <<<"$line")"
     for i in $(cut -d' ' -f3 <<< "$line" | tr ',' ' ');do
       [[ "$i" == "NULL" ]] && break
       bai_function_depend_command=${i%%:*}
       bai_function_depend_packname=${i##*:}
-      [[ "$bai_function_depend_command" == "$bai_function_depend_packname" ]] || bai_function_depend_packname+=" ($bai_function_depend_command)"
-      command -v $bai_function_depend_command &>/dev/null || declare -A __bai_function_depend_notfound["$function_fromjson_name"]="$bai_function_depend_packname"
+      [[ "$bai_function_depend_command" == "$bai_function_depend_packname" ]] ||
+        bai_function_depend_packname+=" ($bai_function_depend_command)"
+      command -v $bai_function_depend_command &>/dev/null ||
+        declare -A __bai_function_depend_notfound["$function_fromjson_name"]="$bai_function_depend_packname"
     done
     function_code="$(cut -d' ' -f4- <<<"$line")"
     eval "$function_name(){ $function_code;}"
@@ -3006,13 +3241,13 @@ if $local_complete;then
   esac
 EOM
   # 复制代码块
-  instruct.append copy <<'EOM'
+  instruct.append code <<'EOM'
   local codelet="$(seq $(Get-New-Msg | awk '/^\s*```/ { count++ } END { print count / 2 }'))"
   case "$prev" in
     "$name")
-      COMPREPLY=($(compgen -W "cat $codelet" -- "$cur"))
+      COMPREPLY=($(compgen -W "preview $codelet" -- "$cur"))
     ;;
-    cat)
+    preview)
       COMPREPLY=($(compgen -W "$codelet" -- "$cur"))
     ;;
   esac
@@ -3036,7 +3271,7 @@ EOM
   instruct.append help <<'EOM'
   case "$prev" in
     "$name")
-      COMPREPLY=($(compgen -W "help exit clear copy pass files file run eval set record cls list" -- "$cur"))
+      COMPREPLY=($(compgen -W "help exit clear code pass files file run eval set record cls list" -- "$cur"))
     ;;
   esac
 EOM
@@ -3054,6 +3289,15 @@ EOM
       if [[ "${argv[1]}" == "push" && $cword == 3 ]];then
         COMPREPLY=($(compgen -W "assistants fine-tune file-extract batch" -- "$cur"))
       fi
+    ;;
+  esac
+EOM
+
+  # 用户使用工具函数
+  instruct.append call <<'EOM'
+  case "$prev" in
+    "$name")
+      COMPREPLY=($(compgen -W "${__bai_function_tools[*]}" -- "$cur"))
     ;;
   esac
 EOM
@@ -3089,7 +3333,7 @@ IS_PUSH_IMAGE=false
 ########################################################################
 
 Get-Timer
-debug "PID: $$，当前占用内存：$(ps -o rss= -p $$ | awk '{printf "%.2f MB", $1/1024}')"
+debug "PID: $$，当前占用内存：$(ps -o rss= -p $$ | awk '{printf "%.2f MiB", $1/1024}')"
 debug "所有前置功能已就绪，耗时 $Get_Timer，进入主循环..."
 
 # 限制用户对话轮次
@@ -3121,7 +3365,7 @@ while true;do
       data="$(jq --argjson object "$__return_content" '.messages += [$object]' <<< "$data")"
       $EVAL || data.setkey "choice" "auto"
       $BAI_LIMIT_TURNS && ((__turns++))
-      debug "将助手回答记入对话记录，当前占用内存：$(ps -o rss= -p $$ | awk '{printf "%.2f MB", $1/1024}')"
+      debug "将助手回答记入对话记录，当前占用内存：$(ps -o rss= -p $$ | awk '{printf "%.2f MiB", $1/1024}')"
       unset API_RETURN
     fi
 
@@ -3154,11 +3398,72 @@ while true;do
   ########################################################################
   # 参数解析
   # 注册为指令参数
-  subargv=(${OPENAI_USER_PROMPT})
-  subarg0="${subargv[0]}"
-  subargs=(${subargv[@]/"$OPENAI_USER_PROMPT"/})
-  subargs=(${subargv[@]/'~'/$HOME})
 
+    # 添加一个函数来正确解析带引号的参数
+  Parse-Quoted-Args() {
+      local input="$1"
+      local args=()
+      local arg=''
+      local in_quote=false
+      local quote_char=''
+      local escaped=false
+      local name
+      for ((i=0; i<${#input}; i++)); do
+          char="${input:i:1}"
+          if $escaped; then
+              arg+="$char"
+              escaped=false
+          elif [[ $char == '\' ]]; then
+              escaped=true
+          elif $in_quote; then
+              if [[ $char == $quote_char ]]; then
+                  in_quote=false
+                  args+=("$arg")
+                  arg=''
+              else
+                  arg+="$char"
+              fi
+          else
+              if [[ $char == '"' || $char == "'" ]]; then
+                  in_quote=true
+                  quote_char="$char"
+                  case "$quote_char" in
+                      '"') name="双引号";;
+                      "'") name="单引号";;
+                  esac
+              elif [[ $char == ' ' || $char == $'\t' ]]; then
+                  if [[ -n $arg ]]; then
+                      args+=("$arg")
+                      arg=''
+                  fi
+              else
+                  arg+="$char"
+              fi
+          fi
+      done
+      if $in_quote; then
+          erron "寻找匹配的${name}时遇到了未预期的行结束符"
+          return 1
+      fi
+      if [[ -n $arg ]]; then
+          args+=("$arg")
+      fi
+      printf "%s\n" "${args[@]}"
+  }
+
+
+if [[ "$OPENAI_USER_PROMPT" =~ ^\.(.+)?$ && ! "$OPENAI_USER_PROMPT" =~ ^\.run' '(.+)?$ ]];then
+    readarray -t subargv < <(Parse-Quoted-Args "$OPENAI_USER_PROMPT" || echo ".pass")
+  else
+    subargv=($OPENAI_USER_PROMPT)
+  fi
+  subarg0="${subargv[0]}"
+  subargs=("${subargv[@]:1}")
+  # 替换 ~ 为 $HOME，但保持数组结构
+  for i in "${!subargs[@]}"; do
+    subargs[$i]="${subargs[$i]/'~'/$HOME}"
+  done
+  debug "subarg0='$subarg0', subargs=(${subargs[*]})" >&2
   # 自定义局内指令
   $CHAT && 
   if [[ "$subarg0" =~ ^\.(.+)?$ ]];then
@@ -3177,13 +3482,13 @@ while true;do
         ;;
       exit|bye) 
       # 退出会话
-        exitcode="$[${subargs[1]}]"
+        exitcode="$[${subargs[0]}]"
         debug "退出会话，退出码: $exitcode"
         exit $exitcode
         ;;
       run)
       # 执行命令
-        subexec="${subargs[@]:1}"
+        subexec="${subargs[@]}"
         debug "执行命令: $subexec"
         if $LEXEC;then
           PS1="$BAI_SHELL_PROMPT" eval "$subexec"
@@ -3195,9 +3500,14 @@ while true;do
         debug "命令返回值: $CMD_RETURN"
         continue
         ;;
+      call)
+      # 手动执行工具
+        Get-Call-Tools "${subargs[@]}"
+        continue
+        ;;
       record)   
       # 记录管理
-        Get-Session-Messages ${subargs[@]:1}
+        Get-Session-Messages "${subargs[@]}"
         continue
         ;;
       list)     
@@ -3219,38 +3529,38 @@ while true;do
         ;;
       help|\?)   
       # 显示帮助
-        Get-Session-Help ${subargs[@]:1}
+        Get-Session-Help "${subargs[@]}"
         continue
         ;;
       set)       
       # 设置
-        Set-Session-Functions ${subargs[@]:1}
+        Set-Session-Functions "${subargs[@]}"
         continue
         ;;
       # 尝试执行 shell 命令
       eval)
         debug "提交一段临时的提示词，并启用 EVAL 模式"
-        OPENAI_USER_PROMPT="### 本次对话你只需要提供可以直接使用的终端命令或 Bash 脚本，我将执行它，我不需要你对此做任何解释，我很清楚后果。"$'\n'"${subargs[@]:1}"
+        OPENAI_USER_PROMPT="[!] 本次对话你只需要提供可以直接使用的终端命令或 Bash 脚本，我将执行它，我不需要你对此做任何解释，我很清楚后果。| [!] In this conversation, all you need to do is provide a terminal command or Bash script that can be used directly, and I will execute it. I don't need you to explain anything about it, I am aware of the consequences."$'\n'"${subargs[@]:1}"
         data.setkey "choice" "none"
         EVAL=true
         ;;
-      copy)
+      code)
         debug "复制代码块"
-        Get-New-Msg | Get-MarkDown-CodeBlocks ${subargs[@]:1}
+        Get-New-Msg | Get-MarkDown-CodeBlocks "${subargs[@]}"
         continue
         ;;
       files)      
       # 提交文件
-        Set-FineTune-File ${subargs[@]:1}
+        Set-Temp-File "${subargs[@]}"
         continue
         ;;
       at)
       # 提及在服务商存储的文件并发出提问
-        Get-AtFiles-Ask ${subargs[@]:1} || continue
+        Get-AtFiles-Ask "${subargs[@]}" || continue
         ;;
       # 向对话提供文件内容
       file)
-        Get-Import-File ${subargs[@]:1}
+        Get-Import-File "${subargs[@]}"
         continue
         ;;
       *)        
@@ -3274,6 +3584,13 @@ while true;do
     IS_PUSH_IMAGE=false
   else
     __read="$(jq --arg content "$STDIN_INPUT$OPENAI_USER_PROMPT" '.messages += [{"role": "user", "content": $content}]' <<< "$data")"
+  fi
+
+  if [[ "$OPENAI_USER_PROMPT" == *@file:* ]];then
+    file_id="${OPENAI_USER_PROMPT#*@file:}"
+    user_atfile_prompt="${OPENAI_USER_PROMPT%@file:*}"
+    debug "提及文件ID: $file_id"
+    data="$(jq --arg content "$user_atfile_prompt" --arg file_id "$file_id" '.messages += [{"role": "user", "content": $content, "file_id": $file_id}]' <<< "$data")"
   fi
 
   if $OPENAI_ENABLE_PARTIAL;then
@@ -3366,8 +3683,8 @@ exit $?
 #     local prev=${COMP_WORDS[COMP_CWORD-1]}
 #     local name=%Name%
 #     local i option priority secondary used_option
-#     local long_options=("--help" "--argtest" "--stream" "--baseurl" "--apikey" "--model" "--title" "--inspect" "--conemu-status" "--no-extend" "--sysfile" "--histfile" "--config" "--callfile" "--wait-style" "--no-limit-turns" "--username" "--search" "--partial" "--debug" "--no-tools" "--no-limit-turns" "--no-limit-tools");
-#     local short_options=("-h" "-a" "-n" "-b" "-k" "-m" "-t" "-x" "-p" "-d" "-s" "-i" "-f" "-c" "-w" "-l" "-u" "-g" "-j" "-o" "-q" "-l" "-z")
+#     local long_options=("--help" "--argtest" "--stream" "--baseurl" "--apikey" "--model" "--title" "--inspect" "--conemu-status" "--no-extend" "--sysfile" "--histfile" "--config" "--callfile" "--wait-style" "--no-limit-turns" "--username" "--search" "--partial" "--debug" "--no-tools" "--no-limit-turns" "--no-limit-tools" "--disable-image-preview");
+#     local short_options=("-h" "-a" "-n" "-b" "-k" "-m" "-t" "-x" "-p" "-d" "-s" "-i" "-f" "-c" "-w" "-l" "-u" "-g" "-j" "-o" "-q" "-l" "-z" "-y")
 #     local orphan_options=("--session-help" "--complete")
 #     local all_options="${long_options[*]} ${short_options[*]} ${orphan_options[*]}"
 #     declare -A equivalent_options
