@@ -47,7 +47,7 @@
 ## 依赖项
 
 - 必需：`bash` (推荐 5.3+)、`curl`、`jq`、`sed`、`cat`、`grep`、`file`
-- 可选：`fzf`、`bat`、`gum`（增强体验）
+- 可选(增强体验)：`fzf`、`bat`、`gum`、`fastfetch`、`catimg`
 
 ## 环境兼容
 
