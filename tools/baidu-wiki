@@ -1,0 +1,182 @@
+#!/usr/bin/env bash
+
+: ${__baidu_wiki_format:=text}
+__baidu_wiki_url=https://baike.baidu.com/item
+
+# 以固定模板输出 text
+__print_text(){
+  if $__ERROR;then
+    echo -e "错误: 未找到词条"
+    return 1
+  fi
+  cat <<<"$__TITLE"
+  cat <<<"$__INTRO"
+  cat <<<"$__CONTENT"
+  if [ "$__CARD_JSON" ];then
+    echo -e "\n### 简介"
+    jq -r '.[] | "\(.title): \(.content)"' <<<"$__CARD_JSON"
+    echo "-----------------"
+  fi
+  if $__has_keyword;then
+    echo -e "\n### 同名词条"
+    jq -r '.[] | 
+    "## 名称: \(.title), ItemId: \(.id)\n" +
+    " - 分类: \(.class)\n" +
+    " - 描述: \(.desc)\n" +
+    "-----------------\n"
+    ' <<<"$__KEYWORD"
+  fi
+}
+
+# 以固定模板输出 json
+__print_json(){
+  if $__ERROR;then
+    jq --arg error "未找到词条" '{"error": $error}' <<<'{}'
+    return 1
+  fi
+  jq \
+    --raw-input --slurp \
+    'split("\n") | map(select(. != "")) | {title: (.[0] // null), intro: (.[1] // null), content: (.[2] // null)}' <<<"$__TITLE"$'\n'"$__INTRO"$'\n'"$__CONTENT" |
+    (
+      if $__has_keyword;then
+        jq --argjson keywords "$__KEYWORD" --argjson cards "$__CARD_JSON" '.keywords = $keywords | .cards = $cards'
+      else
+        jq --argjson cards "$__CARD_JSON" '.cards = $cards'
+      fi
+    )
+}
+
+# 以固定模板输出 xml
+__print_xml(){
+  cat <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<baidu_wiki>
+  <title>$(echo "$__TITLE" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&apos;/g')</title>
+  <intro>$(echo "$__INTRO" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&apos;/g')</intro>
+  <content>$(echo "$__CONTENT" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&apos;/g')</content>
+EOF
+
+  if [ "$__CARD_JSON" ]; then
+    echo "  <cards>"
+    jq -r ".[] | 
+    \"    <card>\" +
+    \"\n      <title>\" + (.title | gsub(\"&\"; \"&amp;\") | gsub(\"<\"; \"&lt;\") | gsub(\">\"; \"&gt;\") | gsub(\"\\\"\"; \"&quot;\") | gsub(\"'\"; \"&apos;\")) + \"</title>\" +
+    \"\n      <content>\" + (.content | gsub(\"&\"; \"&amp;\") | gsub(\"<\"; \"&lt;\") | gsub(\">\"; \"&gt;\") | gsub(\"\\\"\"; \"&quot;\") | gsub(\"'\"; \"&apos;\")) + \"</content>\" +
+    \"\n    </card>\"
+    " <<<"$__CARD_JSON"
+    echo "  </cards>"
+  fi
+
+  if $__has_keyword; then
+    echo "  <keywords>"
+    jq -r ".[] | 
+    \"    <keyword>\" +
+    \"\n      <id>\" + (.id | tostring) + \"</id>\" +
+    \"\n      <class>\" + (.class | gsub(\"&\"; \"&amp;\") | gsub(\"<\"; \"&lt;\") | gsub(\">\"; \"&gt;\") | gsub(\"\\\"\"; \"&quot;\") | gsub(\"'\"; \"&apos;\")) + \"</class>\" +
+    \"\n      <description>\" + (.desc | gsub(\"&\"; \"&amp;\") | gsub(\"<\"; \"&lt;\") | gsub(\">\"; \"&gt;\") | gsub(\"\\\"\"; \"&quot;\") | gsub(\"'\"; \"&apos;\")) + \"</description>\" +
+    \"\n    </keyword>\"
+    " <<<"$__KEYWORD"
+    echo "  </keywords>"
+  fi
+
+  cat <<EOF
+</baidu_wiki>
+EOF
+}
+
+__html_code_2_text(){
+  sed -E 's/&quot;/"/g;s/&nbsp;/ /g;s/&lt;/</g;s/&gt/>/g;s/&#34;/”/g' |
+  sed -E 's/&#x([0-9A-Fa-f]{2,4});/\\x\1/g' | printf "%b\n" "`cat`"
+}
+
+# 主要逻辑处理
+__Main__(){
+  # 从百度百科获取数据 in HTML
+  __DATA="$(
+    curl -sL --connect-timeout 3 "$__baidu_wiki_url/$1" ||
+    echo '<title>Error</title><div class="lemmaSummary_ERROR DEMO">Error Message Demo</div>'
+  )"
+
+  # 检查数据是否包含错误信息
+  [[ "$__DATA" == *"lemmaSummary_ERROR DEMO"* ]] && exec echo "请求发生错误，请检查网络"
+
+  # 提取基本简介 in content, ASSCII Text
+  __BASIC_CONTENT="$(
+    grep -Po '<div id="lemmaDesc" class="lemmaDesc_[^"]*">.*?<div class="skeletonContent_[^"]*">' <<<"$__DATA"
+  )"
+
+  # 提取同名词候选 in JSON
+  __KEYWORD_JSON="$(
+    grep -Po "(?<=<script>window\.PAGE_DATA=).*?(?=<\/script>)" <<<"$__DATA"
+  )"
+
+  # 组合提取提取基本内容 in title and content, ASCII Text
+  __MAIN_CONTENT="$(
+    grep -oP '(?<=<title>).*?(?=</title>)' <<<"$__DATA"
+  )"$'\n'"$(
+    grep -Po '<div class="lemmaDescText_[^"]*">.*?</div>' <<<"$__BASIC_CONTENT" | sed -E 's|<[^>]+>||g'
+  )"$'\n'"$(
+    grep -Po '<span class="text_[^>]*>.*?</span>' <<<"$__BASIC_CONTENT" |
+    sed -E 's|<[^>]+>||g' |
+    paste -sd '' -
+  )"
+  __MAIN_CONTENT="$(
+    __html_code_2_text <<<"$__MAIN_CONTENT"
+  )"
+
+  # 提取标题 in title, ASSCII Text
+  __TITLE="$(sed -n '1p' <<<"$__MAIN_CONTENT")"
+
+  # 提取开头介绍 in intro, ASSCII Text
+  __INTRO="$(sed -n '2p' <<<"$__MAIN_CONTENT")"
+
+  # 提取内容 in content, ASSCII Text
+  __CONTENT="$(sed -n '3,$p' <<<"$__MAIN_CONTENT")"
+
+  if ! [ "$__INTRO" ];then
+    __INTRO="$(
+      jq -r '.lemmaDesc' <<<"$__KEYWORD_JSON"
+    )"
+  fi
+
+  if ! [ "$__CONTENT" ];then
+    __CONTENT="$(
+      grep -Po '<meta name="description" content=".*?">' <<<"$__DATA" | sed 's/<meta name="description" content="//;s/">$//' | __html_code_2_text | sed -E 's|<[^>]+>||g'
+    )"
+  fi
+
+  # 提取卡片内容 in JSON
+  __CARD_JSON="$(
+    jq '[(.card.left + .card.right)[] | .title as $title | if (.delimiter | length) > 0 then .delimiter else ", " end as $delimiter | .data | map(select(.text and .text[0]) | .text[0].text) | join($delimiter
+) | {title: $title, content: .}]' <<<"$__KEYWORD_JSON"
+  )"
+
+  # 判断是否包含同名词候选
+  if jq -e '.navigation.lemmas? // [] | length > 0' <<<"$__KEYWORD_JSON" &>/dev/null;then
+    __has_keyword=true
+    __KEYWORD="$(
+      jq '[.navigation.lemmas[] | {id: .lemmaId, title: .lemmaTitle, desc: .lemmaDesc, class: .classify[0]}]' <<<"$__KEYWORD_JSON"
+    )"
+  else
+    __has_keyword=false
+  fi
+
+[[ ! "$__INTRO" && ! "$__CONTENT" ]] && __ERROR=true || __ERROR=false
+  # 格式化输出
+  __print_$__baidu_wiki_format
+}
+
+[ -z "$1" ] && exec echo -e "用法: `basename $BASH_SOURCE` <关键词/词条ID?> --<json|text|xml>\n\n  例: `basename $BASH_SOURCE` \"命令行界面/9910197\" --json\n\n数据来源：百度百科（`dirname $__baidu_wiki_url`）\n作者: HornLeaf, 项目地址: <https://gitee.com/hornleaf/shell-tools>\n"
+
+if ! grep -qE '^[^[:space:]/][^/]*(/[0-9]+)?$' <<<"$1";then
+  exec echo -e "错误: 关键词格式无效\n\n支持的格式:\n  - 纯关键词: CLI\n  - 关键词+词条ID: 命令行界面/9910197\n\n请检查输入格式"
+fi
+
+if [[ "$2" && "$2" =~ --(json|text|xml) ]];then
+  __baidu_wiki_format="${BASH_REMATCH[1]}"
+fi
+__Main__ "$1"
+# cat <<<"$__MAIN_CONTENT"
+jq <<<"$__KEYWORD_JSON" > keyword.json
+# jq <<<"$__CARD_JSON"
+# cat <<<"$__DATA"

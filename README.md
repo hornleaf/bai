@@ -43,11 +43,22 @@
    - `.eval <提示词>` 让模型生成命令
    - `.files <文件>` 上传文件
 
-
 ## 依赖项
 
 - 必需：`bash` (推荐 5.3+)、`curl`、`jq`、`sed`、`cat`、`grep`、`file`
 - 可选(增强体验)：`fzf`、`bat`、`gum`、`fastfetch`、`catimg`
+
+# 语言
+
+内置简体中文 `zh_CN`（不可覆盖），可从文件导入新的本地化语言：
+   ```bash
+   # 使用命令行参数导入
+   bai --add-l10n-file=file1,file2,file3...
+
+   # 使用环境变量导入
+   export BAI_L10N_FILES=file1,file2,file3...
+   ```
+文件格式可参考现有的[英语-美国](./locate/en_US.txt)语言文件
 
 ## 环境兼容
 

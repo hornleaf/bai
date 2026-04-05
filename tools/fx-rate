@@ -1,0 +1,1913 @@
+#!/usr/bin/env bash
+
+for i in jq curl;do
+  command -v "$i" > /dev/null || { echo "Error: $i is not installed"; exit 1; }
+done
+  unset i
+
+function Get-Data(){
+  # 内嵌数据头标记（以此向下一行开始）
+  local head_data_mark_line="$(sed -n '/^## __HEAD_DATA__ ##/=' "$BASH_SOURCE")"
+  # 内嵌数据尾标记（以此向上一行截至）
+  local end_data_mark_line="$(sed -n '/^## __END_DATA__ ##/=' "$BASH_SOURCE")"
+  # 提取并去除注释符
+  local data="$(sed -n "$((head_data_mark_line + 1)),$((end_data_mark_line - 1))p" "$BASH_SOURCE" | sed 's/^# //')"
+  echo "$data"
+}
+
+function Main(){
+  # 获取货币缩写列表
+  local eums=(`Get-Data | jq -r 'keys[]'`)
+  # 获取参数 1*，需要转换的货币的数值
+  local amount="$1"
+  # 获取参数 2*，格式：<当前货币>:<目标货币> or <当前货币> <目标货币>
+  local currency_pair="$2"
+  if [[ "$currency_pair" == *:* ]]; then
+    local from_currency="${currency_pair%:*}"
+    local to_currency="${currency_pair#*:}"
+  else
+    local from_currency="$2"
+    local to_currency="$3"
+  fi
+  # 验证参数完整性
+  if [[ -z "$amount" || -z "$from_currency" || -z "$to_currency" ]];then
+    echo -e "\e[31mError:\e[0m 参数不完整，请提供需要转换的货币数值及货币对，格式如：\n  ${BASH_SOURCE##*/} 100 USD:CNY"
+    exit 1
+  fi
+  # 匹配货币缩写是否合法
+  if [[ " ${eums[*]} " != *" $from_currency "* ]];then
+    echo -e "\e[31mError:\e[0m 输入的当前货币不合法"
+    exit 1
+  elif [[ " ${eums[*]} " != *" $to_currency "* ]];then
+    echo -e "\e[31mError:\e[0m 输入的目标货币不合法"
+    exit 1
+  fi
+
+  # 获取汇率数据
+  local data="$(curl -sL "https://www.xe.com/zh-cn/currencyconverter/convert/?Amount=${amount}&From=${from_currency}&To=${to_currency}")"
+  
+  # 提取转换结果
+  # 输出示例：
+  # line 1 (from): 123
+  # line 2 (to): 456
+  local result_num_array=()
+  readarray -t result_num_array < <(grep -oP '[0-9]+(\.[0-9]+)?(?=</span><span class="amount-input flex items-center whitespace-nowrap">)' <<< "$data")
+
+  # 提取货币符号
+  local result_icon_array=()
+  readarray -t result_icon_array < <(grep -oP 'whitespace-nowrap">\K.(?=<input)' <<< "$data")
+
+  # 获取查询时间
+  local result_query_time="$(grep -oP '<p class="mt-1 text-sm text-xe-neutral-800 md:text-base">\K.+?[A-Za-z]+ [0-9]+:[0-9]+(?=</p>)' <<< "$data")"
+
+  # 输出结果
+  cat <<- EOF
+${from_currency} ${amount}${result_icon_array[0]} ==> ${to_currency} ${result_num_array[1]}${result_icon_array[1]}
+${result_query_time}
+数据来源: xe.com
+EOF
+}
+
+Main "$@";
+
+## __HEAD_DATA__ ##
+# {
+#     "ADA": {
+#         "name": "Cardano",
+#         "relatedTerms": [
+#             "Cardano"
+#         ],
+#         "name_plural": "Cardano"
+#     },
+#     "AED": {
+#         "name": "阿联酋迪拉姆",
+#         "relatedTerms": [
+#             "阿联酋迪拉姆",
+#             "阿拉伯联合酋长国"
+#         ],
+#         "name_plural": "阿联酋迪拉姆"
+#     },
+#     "AFN": {
+#         "name": "阿富汗尼",
+#         "relatedTerms": [
+#             "阿富汗阿富尼",
+#             "阿富汗"
+#         ],
+#         "name_plural": "阿富汗尼"
+#     },
+#     "ALL": {
+#         "name": "阿尔巴尼列克",
+#         "relatedTerms": [
+#             "阿尔巴尼亚列克",
+#             "阿尔巴尼"
+#         ],
+#         "name_plural": "阿尔巴尼列克"
+#     },
+#     "AMD": {
+#         "name": "亚美尼亚德拉姆",
+#         "relatedTerms": [
+#             "亚美尼亚德拉姆",
+#             "亚美尼亚"
+#         ],
+#         "name_plural": "亚美尼亚德拉姆"
+#     },
+#     "ANG": {
+#         "name": "荷兰盾",
+#         "relatedTerms": [
+#             "荷兰安地卡基尔",
+#             "荷属安的列斯",
+#             "博内尔",
+#             "库拉索",
+#             "沙巴岛",
+#             "圣尤斯特歇斯岛",
+#             "圣马丁"
+#         ],
+#         "name_plural": "荷兰盾"
+#     },
+#     "AOA": {
+#         "name": "安哥拉宽扎",
+#         "relatedTerms": [
+#             "安哥拉宽扎",
+#             "安哥拉"
+#         ],
+#         "name_plural": "安哥拉宽扎"
+#     },
+#     "ARS": {
+#         "name": "阿根廷比索",
+#         "relatedTerms": [
+#             "阿根廷比索",
+#             "阿根廷",
+#             "马尔维纳斯群岛"
+#         ],
+#         "name_plural": "阿根廷比索"
+#     },
+#     "ATS": {
+#         "name": "奥地利先令",
+#         "relatedTerms": [
+#             "奥地利先令"
+#         ],
+#         "name_plural": "奥地利先令"
+#     },
+#     "AUD": {
+#         "name": "澳大利亚元",
+#         "relatedTerms": [
+#             "澳大利亚元",
+#             "澳大利亚",
+#             "圣诞岛",
+#             "可可（基林）岛",
+#             "诺福克岛",
+#             "阿什莫尔和卡捷岛",
+#             "澳大利亚南极管辖区",
+#             "珊瑚海群岛",
+#             "赫德岛",
+#             "麦克唐纳群岛",
+#             "基里巴斯"
+#         ],
+#         "name_plural": "澳大利亚元"
+#     },
+#     "AWG": {
+#         "name": "阿鲁巴或荷兰盾",
+#         "relatedTerms": [
+#             "阿鲁巴基尔",
+#             "阿鲁巴岛"
+#         ],
+#         "name_plural": "阿鲁巴或荷兰盾"
+#     },
+#     "AZM": {
+#         "name": "阿塞拜疆马纳特",
+#         "relatedTerms": [
+#             "阿塞拜疆马纳特"
+#         ],
+#         "name_plural": "阿塞拜疆马纳特"
+#     },
+#     "AZN": {
+#         "name": "阿塞拜疆马纳特",
+#         "relatedTerms": [
+#             "阿塞拜疆马纳特",
+#             "阿塞拜疆"
+#         ],
+#         "name_plural": "阿塞拜疆马纳特"
+#     },
+#     "BAM": {
+#         "name": "波斯尼亚可兑换马尔卡",
+#         "relatedTerms": [
+#             "波斯尼亚和黑塞哥维那可兑换马克",
+#             "波斯尼亚和黑塞哥维那"
+#         ],
+#         "name_plural": "波斯尼亚可兑换马尔卡"
+#     },
+#     "BBD": {
+#         "name": "巴巴多斯元",
+#         "relatedTerms": [
+#             "巴巴多斯美元",
+#             "巴巴多斯"
+#         ],
+#         "name_plural": "巴巴多斯元"
+#     },
+#     "BCH": {
+#         "name": "比特币现金",
+#         "relatedTerms": [
+#             "比特币现金"
+#         ],
+#         "name_plural": "比特币现金"
+#     },
+#     "BDT": {
+#         "name": "孟加拉国塔卡",
+#         "relatedTerms": [
+#             "孟加拉塔卡",
+#             "孟加拉国"
+#         ],
+#         "name_plural": "孟加拉国塔卡"
+#     },
+#     "BEF": {
+#         "name": "比利时法郎",
+#         "relatedTerms": [
+#             "比利时法郎"
+#         ],
+#         "name_plural": "比利时法郎"
+#     },
+#     "BGN": {
+#         "name": "保加利亚列弗",
+#         "relatedTerms": [
+#             "保加利亚列夫",
+#             "保加利亚"
+#         ],
+#         "name_plural": "保加利亚列弗"
+#     },
+#     "BHD": {
+#         "name": "巴林第纳尔",
+#         "relatedTerms": [
+#             "巴林第纳尔",
+#             "巴林"
+#         ],
+#         "name_plural": "巴林第纳尔"
+#     },
+#     "BIF": {
+#         "name": "布隆迪法郎",
+#         "relatedTerms": [
+#             "布隆迪法郎",
+#             "布隆迪"
+#         ],
+#         "name_plural": "布隆迪法郎"
+#     },
+#     "BMD": {
+#         "name": "百慕大元",
+#         "relatedTerms": [
+#             "百慕大美元",
+#             "百慕大岛"
+#         ],
+#         "name_plural": "百慕大元"
+#     },
+#     "BND": {
+#         "name": "文莱元",
+#         "relatedTerms": [
+#             "文莱达鲁斯兰美元",
+#             "文莱达鲁萨兰国"
+#         ],
+#         "name_plural": "文莱元"
+#     },
+#     "BOB": {
+#         "name": "玻利维亚诺",
+#         "relatedTerms": [
+#             "玻利维亚博利维亚诺",
+#             "玻利维亚"
+#         ],
+#         "name_plural": "玻利维亚诺"
+#     },
+#     "BRL": {
+#         "name": "巴西雷亚尔",
+#         "relatedTerms": [
+#             "巴西雷亚尔",
+#             "巴西"
+#         ],
+#         "name_plural": "巴西雷亚尔"
+#     },
+#     "BSD": {
+#         "name": "巴哈马元",
+#         "relatedTerms": [
+#             "巴哈马美元",
+#             "巴哈马"
+#         ],
+#         "name_plural": "巴哈马元"
+#     },
+#     "BTC": {
+#         "name": "Bitcoin",
+#         "relatedTerms": [
+#             "BTC"
+#         ],
+#         "name_plural": "比特币"
+#     },
+#     "BTN": {
+#         "name": "不丹努尔特鲁姆",
+#         "relatedTerms": [
+#             "不丹努尔特鲁姆",
+#             "不丹"
+#         ],
+#         "name_plural": "不丹努尔特鲁姆"
+#     },
+#     "BWP": {
+#         "name": "博茨瓦纳普拉",
+#         "relatedTerms": [
+#             "博茨瓦纳普拉",
+#             "博茨瓦纳"
+#         ],
+#         "name_plural": "博茨瓦纳普拉"
+#     },
+#     "BYN": {
+#         "name": "白俄罗斯卢布",
+#         "relatedTerms": [
+#             "白俄罗斯卢布",
+#             "白俄罗斯"
+#         ],
+#         "name_plural": "白俄罗斯卢布"
+#     },
+#     "BYR": {
+#         "name": "白俄罗斯卢布",
+#         "relatedTerms": [
+#             "白俄罗斯卢布",
+#             "白俄罗斯"
+#         ],
+#         "name_plural": "白俄罗斯卢布"
+#     },
+#     "BZD": {
+#         "name": "伯利兹元",
+#         "relatedTerms": [
+#             "伯利兹美元",
+#             "伯利兹"
+#         ],
+#         "name_plural": "伯利兹元"
+#     },
+#     "CAD": {
+#         "name": "加拿大元",
+#         "relatedTerms": [
+#             "加拿大元",
+#             "加拿大"
+#         ],
+#         "name_plural": "加拿大元"
+#     },
+#     "CDF": {
+#         "name": "刚果法郎",
+#         "relatedTerms": [
+#             "刚果/金沙萨法郎",
+#             "刚果/金沙萨"
+#         ],
+#         "name_plural": "刚果法郎"
+#     },
+#     "CHF": {
+#         "name": "瑞士法郎",
+#         "relatedTerms": [
+#             "瑞士法郎",
+#             "瑞士",
+#             "列支敦士登",
+#             "意大利金皮庸",
+#             "布辛根"
+#         ],
+#         "name_plural": "瑞士法郎"
+#     },
+#     "CLP": {
+#         "name": "智利比索",
+#         "relatedTerms": [
+#             "智利比索",
+#             "智利"
+#         ],
+#         "name_plural": "智利比索"
+#     },
+#     "CNH": {
+#         "name": "人民币离岸",
+#         "relatedTerms": [
+#             "中国人民币离岸",
+#             "中国"
+#         ],
+#         "name_plural": "离岸人民币"
+#     },
+#     "CNY": {
+#         "name": "中国人民币",
+#         "relatedTerms": [
+#             "中国人民币",
+#             "中国"
+#         ],
+#         "name_plural": "人民币"
+#     },
+#     "COP": {
+#         "name": "哥伦比亚比索",
+#         "relatedTerms": [
+#             "哥伦比亚比索",
+#             "哥伦比亚"
+#         ],
+#         "name_plural": "哥伦比亚比索"
+#     },
+#     "CRC": {
+#         "name": "哥斯达黎加科朗",
+#         "relatedTerms": [
+#             "哥斯达黎加科朗",
+#             "哥斯达黎加"
+#         ],
+#         "name_plural": "哥斯达黎加科朗"
+#     },
+#     "CUC": {
+#         "name": "古巴可兑换比索",
+#         "relatedTerms": [
+#             "古巴可兑换比索",
+#             "古巴"
+#         ],
+#         "name_plural": "古巴可兑换比索"
+#     },
+#     "CUP": {
+#         "name": "古巴比索",
+#         "relatedTerms": [
+#             "古巴比索",
+#             "古巴"
+#         ],
+#         "name_plural": "古巴比索"
+#     },
+#     "CVE": {
+#         "name": "佛得角埃斯库多",
+#         "relatedTerms": [
+#             "佛得角埃斯库多",
+#             "佛得角"
+#         ],
+#         "name_plural": "佛得角埃斯库多"
+#     },
+#     "CYP": {
+#         "name": "塞浦路斯镑",
+#         "relatedTerms": [
+#             "塞浦路斯镑"
+#         ],
+#         "name_plural": "塞浦路斯镑"
+#     },
+#     "CZK": {
+#         "name": "捷克克朗",
+#         "relatedTerms": [
+#             "捷克共和国克朗",
+#             "捷克共和国"
+#         ],
+#         "name_plural": "捷克克朗"
+#     },
+#     "DEM": {
+#         "name": "德国马克",
+#         "relatedTerms": [
+#             "德国马克"
+#         ],
+#         "name_plural": "德国马克"
+#     },
+#     "DJF": {
+#         "name": "吉布提法郎",
+#         "relatedTerms": [
+#             "吉布提法郎",
+#             "吉布提"
+#         ],
+#         "name_plural": "吉布提法郎"
+#     },
+#     "DKK": {
+#         "name": "丹麦克朗",
+#         "relatedTerms": [
+#             "丹麦克朗",
+#             "丹麦",
+#             "法罗群岛",
+#             "格陵兰"
+#         ],
+#         "name_plural": "丹麦克朗"
+#     },
+#     "DOGE": {
+#         "name": "Dogecoin",
+#         "relatedTerms": [
+#             "狗狗币"
+#         ],
+#         "name_plural": "狗狗币"
+#     },
+#     "DOP": {
+#         "name": "多米尼加比索",
+#         "relatedTerms": [
+#             "多米尼加比索",
+#             "多米尼加共和国"
+#         ],
+#         "name_plural": "多米尼加比索"
+#     },
+#     "DOT": {
+#         "name": "Polkadot",
+#         "relatedTerms": [
+#             "Polkadot"
+#         ],
+#         "name_plural": "Polkadot"
+#     },
+#     "DZD": {
+#         "name": "阿尔及利亚第纳尔",
+#         "relatedTerms": [
+#             "阿尔及利亚第纳尔",
+#             "阿尔及利亚"
+#         ],
+#         "name_plural": "阿尔及利亚第纳尔"
+#     },
+#     "EEK": {
+#         "name": "爱沙尼亚克朗",
+#         "relatedTerms": [
+#             "爱沙尼亚克朗",
+#             "爱沙尼亚"
+#         ],
+#         "name_plural": "爱沙尼亚克朗"
+#     },
+#     "EGP": {
+#         "name": "埃及镑",
+#         "relatedTerms": [
+#             "埃及镑",
+#             "埃及",
+#             "加沙地带"
+#         ],
+#         "name_plural": "埃及镑"
+#     },
+#     "ERN": {
+#         "name": "厄立特里亚纳克法",
+#         "relatedTerms": [
+#             "厄立特里亚纳克法",
+#             "厄立特里亚"
+#         ],
+#         "name_plural": "厄立特里亚纳克法"
+#     },
+#     "ESP": {
+#         "name": "西班牙比塞塔",
+#         "relatedTerms": [
+#             "西班牙比塞塔"
+#         ],
+#         "name_plural": "西班牙比塞塔"
+#     },
+#     "ETB": {
+#         "name": "埃塞俄比亚比尔",
+#         "relatedTerms": [
+#             "埃塞俄比亚比尔",
+#             "埃塞俄比亚",
+#             "厄立特里亚"
+#         ],
+#         "name_plural": "埃塞俄比亚比尔"
+#     },
+#     "ETH": {
+#         "name": "Ethereum",
+#         "relatedTerms": [
+#             "Ethereum"
+#         ],
+#         "name_plural": "Ethereum"
+#     },
+#     "EUR": {
+#         "name": "欧元",
+#         "relatedTerms": [
+#             "欧元区成员国",
+#             "欧元区成员国",
+#             "安道尔",
+#             "奥地利",
+#             "亚速尔群岛",
+#             "巴利阿里（巴利阿里群岛）",
+#             "比利时",
+#             "加那利群岛",
+#             "塞浦路斯",
+#             "芬兰",
+#             "法国",
+#             "法属圭亚那",
+#             "法属南半球领地",
+#             "德国",
+#             "希腊",
+#             "瓜德罗普",
+#             "荷兰",
+#             "罗马教廷（梵蒂冈城）",
+#             "爱尔兰",
+#             "意大利",
+#             "卢森堡",
+#             "马德拉群岛",
+#             "马尔他",
+#             "摩纳哥",
+#             "黑山共和国",
+#             "荷兰",
+#             "葡萄牙",
+#             "留尼汪岛",
+#             "圣皮埃尔和密克隆",
+#             "圣马丁",
+#             "圣马力诺",
+#             "斯洛伐克",
+#             "斯洛文尼亚",
+#             "西班牙",
+#             "梵蒂冈城（罗马教廷）",
+#             "爱沙尼亚",
+#             "立陶宛",
+#             "拉脱维亚"
+#         ],
+#         "name_plural": "欧元"
+#     },
+#     "FIM": {
+#         "name": "芬兰马克",
+#         "relatedTerms": [
+#             "芬兰马克"
+#         ],
+#         "name_plural": "芬兰马克"
+#     },
+#     "FJD": {
+#         "name": "斐济元",
+#         "relatedTerms": [
+#             "斐济元",
+#             "斐济"
+#         ],
+#         "name_plural": "斐济元"
+#     },
+#     "FKP": {
+#         "name": "福克兰群岛镑",
+#         "relatedTerms": [
+#             "福克兰群岛（马尔维纳斯）镑",
+#             "福克兰群岛（马尔维纳斯）"
+#         ],
+#         "name_plural": "福克兰群岛镑"
+#     },
+#     "FRF": {
+#         "name": "法国法郎",
+#         "relatedTerms": [
+#             "法国法郎"
+#         ],
+#         "name_plural": "法国法郎"
+#     },
+#     "GBP": {
+#         "name": "英镑",
+#         "relatedTerms": [
+#             "英镑",
+#             "英国",
+#             "英格兰",
+#             "北爱尔兰",
+#             "苏格兰",
+#             "威尔士",
+#             "福克兰群岛",
+#             "直布罗陀",
+#             "根西岛",
+#             "曼岛",
+#             "泽西岛",
+#             "圣赫勒拿和阿森松",
+#             "南乔治亚和南德桑威奇群岛",
+#             "特里斯坦达昆哈"
+#         ],
+#         "name_plural": "英镑"
+#     },
+#     "GEL": {
+#         "name": "格鲁吉亚拉里",
+#         "relatedTerms": [
+#             "格鲁吉亚拉里",
+#             "格鲁吉亚"
+#         ],
+#         "name_plural": "格鲁吉亚拉里"
+#     },
+#     "GGP": {
+#         "name": "根西岛镑",
+#         "relatedTerms": [
+#             "根西岛镑",
+#             "根西岛"
+#         ],
+#         "name_plural": "根西岛镑"
+#     },
+#     "GHC": {
+#         "name": "加纳塞地",
+#         "relatedTerms": [
+#             "加纳塞地"
+#         ],
+#         "name_plural": "加纳塞地"
+#     },
+#     "GHS": {
+#         "name": "加纳塞地",
+#         "relatedTerms": [
+#             "加纳塞地",
+#             "加纳"
+#         ],
+#         "name_plural": "加纳塞地"
+#     },
+#     "GIP": {
+#         "name": "直布罗陀镑",
+#         "relatedTerms": [
+#             "直布罗陀镑",
+#             "直布罗陀"
+#         ],
+#         "name_plural": "直布罗陀镑"
+#     },
+#     "GMD": {
+#         "name": "冈比亚达拉西",
+#         "relatedTerms": [
+#             "冈比亚达拉西",
+#             "冈比亚"
+#         ],
+#         "name_plural": "冈比亚达拉西"
+#     },
+#     "GNF": {
+#         "name": "几内亚法郎",
+#         "relatedTerms": [
+#             "几内亚法郎",
+#             "几内亚"
+#         ],
+#         "name_plural": "几内亚法郎"
+#     },
+#     "GRD": {
+#         "name": "希腊德拉克马",
+#         "relatedTerms": [
+#             "希腊德拉克马"
+#         ],
+#         "name_plural": "希腊德拉克马"
+#     },
+#     "GTQ": {
+#         "name": "危地马拉格查尔",
+#         "relatedTerms": [
+#             "危地马拉凯查尔",
+#             "危地马拉"
+#         ],
+#         "name_plural": "危地马拉格查尔"
+#     },
+#     "GYD": {
+#         "name": "圭亚那元",
+#         "relatedTerms": [
+#             "圭亚那元",
+#             "圭亚那"
+#         ],
+#         "name_plural": "圭亚那元"
+#     },
+#     "HKD": {
+#         "name": "港币",
+#         "relatedTerms": [
+#             "港元",
+#             "中国香港"
+#         ],
+#         "name_plural": "港币"
+#     },
+#     "HNL": {
+#         "name": "洪都拉斯伦皮拉",
+#         "relatedTerms": [
+#             "洪都拉斯伦皮拉",
+#             "洪都拉斯"
+#         ],
+#         "name_plural": "洪都拉斯伦皮拉"
+#     },
+#     "HRK": {
+#         "name": "克罗地亚库纳",
+#         "relatedTerms": [
+#             "克罗地亚库纳",
+#             "克罗地亚"
+#         ],
+#         "name_plural": "克罗地亚库纳"
+#     },
+#     "HTG": {
+#         "name": "海地古德",
+#         "relatedTerms": [
+#             "海地古尔德",
+#             "海地"
+#         ],
+#         "name_plural": "海地古德"
+#     },
+#     "HUF": {
+#         "name": "匈牙利福林",
+#         "relatedTerms": [
+#             "匈牙利福林",
+#             "匈牙利"
+#         ],
+#         "name_plural": "匈牙利福林"
+#     },
+#     "IDR": {
+#         "name": "印度尼西亚卢比",
+#         "relatedTerms": [
+#             "印尼卢比",
+#             "印度尼西亚",
+#             "东帝汶"
+#         ],
+#         "name_plural": "印度尼西亚卢比"
+#     },
+#     "IEP": {
+#         "name": "爱尔兰镑",
+#         "relatedTerms": [
+#             "爱尔兰镑"
+#         ],
+#         "name_plural": "爱尔兰镑"
+#     },
+#     "ILS": {
+#         "name": "以色列谢克尔",
+#         "relatedTerms": [
+#             "以色列谢克尔",
+#             "以色列",
+#             "巴勒斯坦领土"
+#         ],
+#         "name_plural": "以色列谢克尔"
+#     },
+#     "IMP": {
+#         "name": "曼岛镑",
+#         "relatedTerms": [
+#             "曼岛镑",
+#             "曼岛"
+#         ],
+#         "name_plural": "曼岛镑"
+#     },
+#     "INR": {
+#         "name": "印度卢比",
+#         "relatedTerms": [
+#             "印度卢比",
+#             "印度",
+#             "不丹",
+#             "尼泊尔"
+#         ],
+#         "name_plural": "印度卢比"
+#     },
+#     "IQD": {
+#         "name": "伊拉克第纳尔",
+#         "relatedTerms": [
+#             "伊拉克第纳尔",
+#             "伊拉克"
+#         ],
+#         "name_plural": "伊拉克第纳尔"
+#     },
+#     "IRR": {
+#         "name": "伊朗里亚尔",
+#         "relatedTerms": [
+#             "伊朗里亚尔",
+#             "伊朗"
+#         ],
+#         "name_plural": "伊朗里亚尔"
+#     },
+#     "ISK": {
+#         "name": "冰岛克朗",
+#         "relatedTerms": [
+#             "冰岛克朗",
+#             "冰岛"
+#         ],
+#         "name_plural": "冰岛克朗"
+#     },
+#     "ITL": {
+#         "name": "意大利里拉",
+#         "relatedTerms": [
+#             "意大利里拉"
+#         ],
+#         "name_plural": "意大利里拉"
+#     },
+#     "JEP": {
+#         "name": "泽西岛镑",
+#         "relatedTerms": [
+#             "泽西岛镑",
+#             "泽西岛"
+#         ],
+#         "name_plural": "泽西岛镑"
+#     },
+#     "JMD": {
+#         "name": "牙买加元",
+#         "relatedTerms": [
+#             "牙买加元",
+#             "牙买加"
+#         ],
+#         "name_plural": "牙买加元"
+#     },
+#     "JOD": {
+#         "name": "约旦第纳尔",
+#         "relatedTerms": [
+#             "约旦第纳尔",
+#             "约旦"
+#         ],
+#         "name_plural": "约旦第纳尔"
+#     },
+#     "JPY": {
+#         "name": "日元",
+#         "relatedTerms": [
+#             "日元",
+#             "日本"
+#         ],
+#         "name_plural": "日元"
+#     },
+#     "KES": {
+#         "name": "肯尼亚先令",
+#         "relatedTerms": [
+#             "肯尼亚先令",
+#             "肯尼亚"
+#         ],
+#         "name_plural": "肯尼亚先令"
+#     },
+#     "KGS": {
+#         "name": "吉尔吉斯斯坦索姆",
+#         "relatedTerms": [
+#             "吉尔吉斯斯坦索姆",
+#             "吉尔吉斯斯坦"
+#         ],
+#         "name_plural": "吉尔吉斯斯坦索姆"
+#     },
+#     "KHR": {
+#         "name": "柬埔寨瑞尔",
+#         "relatedTerms": [
+#             "柬埔寨瑞尔",
+#             "柬埔寨"
+#         ],
+#         "name_plural": "柬埔寨瑞尔"
+#     },
+#     "KMF": {
+#         "name": "科摩罗法郎",
+#         "relatedTerms": [
+#             "科摩罗法郎",
+#             "科摩罗"
+#         ],
+#         "name_plural": "科摩罗法郎"
+#     },
+#     "KPW": {
+#         "name": "朝鲜元",
+#         "relatedTerms": [
+#             "朝鲜元",
+#             "朝鲜"
+#         ],
+#         "name_plural": "朝鲜元"
+#     },
+#     "KRW": {
+#         "name": "韩元",
+#         "relatedTerms": [
+#             "韩国元",
+#             "韩国"
+#         ],
+#         "name_plural": "韩元"
+#     },
+#     "KWD": {
+#         "name": "科威特第纳尔",
+#         "relatedTerms": [
+#             "科威特第纳尔",
+#             "科威特"
+#         ],
+#         "name_plural": "科威特第纳尔"
+#     },
+#     "KYD": {
+#         "name": "开曼元",
+#         "relatedTerms": [
+#             "开曼群岛元",
+#             "开曼群岛"
+#         ],
+#         "name_plural": "开曼元"
+#     },
+#     "KZT": {
+#         "name": "哈萨克斯坦坚戈",
+#         "relatedTerms": [
+#             "哈萨克斯坦坚戈",
+#             "哈萨克斯坦"
+#         ],
+#         "name_plural": "哈萨克斯坦坚戈"
+#     },
+#     "LAK": {
+#         "name": "老挝基普",
+#         "relatedTerms": [
+#             "老挝基普",
+#             "老挝"
+#         ],
+#         "name_plural": "老挝基普"
+#     },
+#     "LBP": {
+#         "name": "黎巴嫩镑",
+#         "relatedTerms": [
+#             "黎巴嫩镑",
+#             "黎巴嫩"
+#         ],
+#         "name_plural": "黎巴嫩镑"
+#     },
+#     "LINK": {
+#         "name": "Chainlink",
+#         "relatedTerms": [
+#             "Chainlink"
+#         ],
+#         "name_plural": "Chainlink"
+#     },
+#     "LKR": {
+#         "name": "斯里兰卡卢比",
+#         "relatedTerms": [
+#             "斯里兰卡卢比",
+#             "斯里兰卡"
+#         ],
+#         "name_plural": "斯里兰卡卢比"
+#     },
+#     "LRD": {
+#         "name": "利比里亚元",
+#         "relatedTerms": [
+#             "利比里亚美元",
+#             "利比里亚"
+#         ],
+#         "name_plural": "利比里亚元"
+#     },
+#     "LSL": {
+#         "name": "巴索托洛蒂",
+#         "relatedTerms": [
+#             "莱索托洛蒂",
+#             "莱索托"
+#         ],
+#         "name_plural": "巴索托洛蒂"
+#     },
+#     "LTC": {
+#         "name": "Litecoin",
+#         "relatedTerms": [
+#             "Litecoin"
+#         ],
+#         "name_plural": "Litecoin"
+#     },
+#     "LTL": {
+#         "name": "立陶宛立特",
+#         "relatedTerms": [
+#             "立陶宛立特",
+#             "立陶宛"
+#         ],
+#         "name_plural": "立陶宛立特"
+#     },
+#     "LUF": {
+#         "name": "卢森堡法郎",
+#         "relatedTerms": [
+#             "卢森堡法郎"
+#         ],
+#         "name_plural": "卢森堡法郎"
+#     },
+#     "LUNA": {
+#         "name": "Terra",
+#         "relatedTerms": [
+#             "Terra"
+#         ],
+#         "name_plural": "Terra"
+#     },
+#     "LVL": {
+#         "name": "拉脱维亚拉特",
+#         "relatedTerms": [
+#             "拉脱维亚拉特",
+#             "拉脱维亚"
+#         ],
+#         "name_plural": "拉脱维亚拉特"
+#     },
+#     "LYD": {
+#         "name": "利比亚第纳尔",
+#         "relatedTerms": [
+#             "利比亚第纳尔",
+#             "利比亚"
+#         ],
+#         "name_plural": "利比亚第纳尔"
+#     },
+#     "MAD": {
+#         "name": "摩洛哥迪拉姆",
+#         "relatedTerms": [
+#             "摩洛哥迪拉姆",
+#             "摩洛哥",
+#             "西撒哈拉"
+#         ],
+#         "name_plural": "摩洛哥迪拉姆"
+#     },
+#     "MDL": {
+#         "name": "摩尔多瓦列伊",
+#         "relatedTerms": [
+#             "摩尔多瓦列伊",
+#             "摩尔多瓦"
+#         ],
+#         "name_plural": "摩尔多瓦列伊"
+#     },
+#     "MGA": {
+#         "name": "马尔加什阿里亚",
+#         "relatedTerms": [
+#             "马达加斯加阿里亚里",
+#             "马达加斯加"
+#         ],
+#         "name_plural": "马尔加什阿里亚"
+#     },
+#     "MGF": {
+#         "name": "马达加斯加法郎",
+#         "relatedTerms": [
+#             "马达加斯加法郎"
+#         ],
+#         "name_plural": "马达加斯加法郎"
+#     },
+#     "MKD": {
+#         "name": "马其顿第纳尔",
+#         "relatedTerms": [
+#             "北马其顿第纳尔",
+#             "马其顿"
+#         ],
+#         "name_plural": "马其顿第纳尔"
+#     },
+#     "MMK": {
+#         "name": "缅元",
+#         "relatedTerms": [
+#             "缅甸（伯尔马）基亚特",
+#             "缅甸"
+#         ],
+#         "name_plural": "缅元"
+#     },
+#     "MNT": {
+#         "name": "蒙古图格里克",
+#         "relatedTerms": [
+#             "蒙古图格里克",
+#             "蒙古"
+#         ],
+#         "name_plural": "蒙古图格里克"
+#     },
+#     "MOP": {
+#         "name": "澳门元",
+#         "relatedTerms": [
+#             "澳门币",
+#             "中国澳门"
+#         ],
+#         "name_plural": "澳门元"
+#     },
+#     "MRO": {
+#         "name": "毛里塔尼亚乌吉亚",
+#         "relatedTerms": [
+#             "毛里塔尼亚乌吉亚",
+#             "毛里塔尼亚"
+#         ],
+#         "name_plural": "毛里塔尼亚乌吉亚"
+#     },
+#     "MRU": {
+#         "name": "毛里塔尼亚乌吉亚",
+#         "relatedTerms": [
+#             "毛里塔尼亚乌吉亚",
+#             "毛里塔尼亚"
+#         ],
+#         "name_plural": "毛里塔尼亚乌吉亚"
+#     },
+#     "MTL": {
+#         "name": "马耳他里拉",
+#         "relatedTerms": [
+#             "马耳他里拉"
+#         ],
+#         "name_plural": "马耳他里拉"
+#     },
+#     "MUR": {
+#         "name": "毛里求斯卢比",
+#         "relatedTerms": [
+#             "毛里求斯卢比",
+#             "毛里求斯"
+#         ],
+#         "name_plural": "毛里求斯卢比"
+#     },
+#     "MVR": {
+#         "name": "马尔代夫拉菲亚",
+#         "relatedTerms": [
+#             "马尔代夫（马尔代夫群岛）卢菲亚",
+#             "马尔代夫（马尔代夫群岛）"
+#         ],
+#         "name_plural": "马尔代夫拉菲亚"
+#     },
+#     "MWK": {
+#         "name": "马拉维克瓦查",
+#         "relatedTerms": [
+#             "马拉维克瓦查",
+#             "马拉维"
+#         ],
+#         "name_plural": "马拉维克瓦查"
+#     },
+#     "MXN": {
+#         "name": "墨西哥比索",
+#         "relatedTerms": [
+#             "墨西哥比索",
+#             "墨西哥"
+#         ],
+#         "name_plural": "墨西哥比索"
+#     },
+#     "MYR": {
+#         "name": "马来西亚林吉特",
+#         "relatedTerms": [
+#             "马来西亚林吉特",
+#             "马来西亚"
+#         ],
+#         "name_plural": "马来西亚林吉特"
+#     },
+#     "MZM": {
+#         "name": "莫桑比克梅蒂卡尔",
+#         "relatedTerms": [
+#             "莫桑比克美提卡尔"
+#         ],
+#         "name_plural": "莫桑比克梅蒂卡尔"
+#     },
+#     "MZN": {
+#         "name": "莫桑比克梅蒂卡尔",
+#         "relatedTerms": [
+#             "莫桑比克美提卡尔",
+#             "莫桑比克"
+#         ],
+#         "name_plural": "莫桑比克梅蒂卡尔"
+#     },
+#     "NAD": {
+#         "name": "纳米比亚元",
+#         "relatedTerms": [
+#             "纳米比亚元",
+#             "纳米比亚"
+#         ],
+#         "name_plural": "纳米比亚元"
+#     },
+#     "NGN": {
+#         "name": "尼日利亚奈拉",
+#         "relatedTerms": [
+#             "尼日利亚奈拉",
+#             "尼日利亚"
+#         ],
+#         "name_plural": "尼日利亚奈拉"
+#     },
+#     "NIO": {
+#         "name": "尼加拉瓜科多巴",
+#         "relatedTerms": [
+#             "尼加拉瓜科多巴",
+#             "尼加拉瓜"
+#         ],
+#         "name_plural": "尼加拉瓜科多巴"
+#     },
+#     "NLG": {
+#         "name": "荷兰盾",
+#         "relatedTerms": [
+#             "荷兰盾"
+#         ],
+#         "name_plural": "荷兰盾"
+#     },
+#     "NOK": {
+#         "name": "挪威克朗",
+#         "relatedTerms": [
+#             "挪威克朗",
+#             "挪威",
+#             "布维岛",
+#             "斯瓦尔巴特",
+#             "扬马延岛",
+#             "毛德皇后地",
+#             "彼得一世岛"
+#         ],
+#         "name_plural": "挪威克朗"
+#     },
+#     "NPR": {
+#         "name": "尼泊尔卢比",
+#         "relatedTerms": [
+#             "尼泊尔卢比",
+#             "尼泊尔",
+#             "印度（印度和尼泊尔边界附近，非公认）"
+#         ],
+#         "name_plural": "尼泊尔卢比"
+#     },
+#     "NZD": {
+#         "name": "新西兰元",
+#         "relatedTerms": [
+#             "新西兰元",
+#             "新西兰",
+#             "库克群岛",
+#             "纽埃",
+#             "皮特凯恩群岛",
+#             "托克劳"
+#         ],
+#         "name_plural": "新西兰元"
+#     },
+#     "OMR": {
+#         "name": "阿曼里亚尔",
+#         "relatedTerms": [
+#             "阿曼里亚尔",
+#             "阿曼"
+#         ],
+#         "name_plural": "阿曼里亚尔"
+#     },
+#     "PAB": {
+#         "name": "巴拿马巴波亚",
+#         "relatedTerms": [
+#             "巴拿马巴尔博亚",
+#             "巴拿马"
+#         ],
+#         "name_plural": "巴拿马巴波亚"
+#     },
+#     "PEN": {
+#         "name": "秘鲁索尔",
+#         "relatedTerms": [
+#             "秘鲁索尔",
+#             "秘鲁"
+#         ],
+#         "name_plural": "秘鲁索尔"
+#     },
+#     "PGK": {
+#         "name": "巴布亚新几内亚基那",
+#         "relatedTerms": [
+#             "巴布亚新几内亚基那",
+#             "巴布亚新几内亚"
+#         ],
+#         "name_plural": "巴布亚新几内亚基那"
+#     },
+#     "PHP": {
+#         "name": "菲律宾比索",
+#         "relatedTerms": [
+#             "菲律宾比索",
+#             "菲律宾"
+#         ],
+#         "name_plural": "菲律宾比索"
+#     },
+#     "PKR": {
+#         "name": "巴基斯坦卢比",
+#         "relatedTerms": [
+#             "巴基斯坦卢比",
+#             "巴基斯坦"
+#         ],
+#         "name_plural": "巴基斯坦卢比"
+#     },
+#     "PLN": {
+#         "name": "波兰兹罗提",
+#         "relatedTerms": [
+#             "波兰兹罗提",
+#             "波兰"
+#         ],
+#         "name_plural": "波兰兹罗提"
+#     },
+#     "PTE": {
+#         "name": "葡萄牙埃斯库多",
+#         "relatedTerms": [
+#             "葡萄牙埃斯库多"
+#         ],
+#         "name_plural": "葡萄牙埃斯库多"
+#     },
+#     "PYG": {
+#         "name": "巴拉圭瓜拉尼",
+#         "relatedTerms": [
+#             "巴拉圭瓜拉尼",
+#             "巴拉圭"
+#         ],
+#         "name_plural": "巴拉圭瓜拉尼"
+#     },
+#     "QAR": {
+#         "name": "卡塔尔里亚尔",
+#         "relatedTerms": [
+#             "卡塔尔里亚尔",
+#             "卡塔尔"
+#         ],
+#         "name_plural": "卡塔尔里亚尔"
+#     },
+#     "ROL": {
+#         "name": "罗马尼亚列伊",
+#         "relatedTerms": [
+#             "罗马尼亚列伊"
+#         ],
+#         "name_plural": "罗马尼亚列伊"
+#     },
+#     "RON": {
+#         "name": "罗马尼亚新列伊",
+#         "relatedTerms": [
+#             "罗马尼亚列伊",
+#             "罗马尼亚"
+#         ],
+#         "name_plural": "罗马尼亚新列伊"
+#     },
+#     "RSD": {
+#         "name": "塞尔维亚第纳尔",
+#         "relatedTerms": [
+#             "塞尔维亚第纳尔",
+#             "塞尔维亚"
+#         ],
+#         "name_plural": "塞尔维亚第纳尔"
+#     },
+#     "RUB": {
+#         "name": "俄罗斯卢布",
+#         "relatedTerms": [
+#             "俄罗斯卢布",
+#             "俄罗斯",
+#             "塔吉克斯坦"
+#         ],
+#         "name_plural": "俄罗斯卢布"
+#     },
+#     "RWF": {
+#         "name": "卢旺达法郎",
+#         "relatedTerms": [
+#             "卢旺达法郎",
+#             "卢旺达"
+#         ],
+#         "name_plural": "卢旺达法郎"
+#     },
+#     "SAR": {
+#         "name": "沙特里亚尔",
+#         "relatedTerms": [
+#             "沙特里亚尔",
+#             "沙特阿拉伯"
+#         ],
+#         "name_plural": "沙特里亚尔"
+#     },
+#     "SBD": {
+#         "name": "所罗门群岛元",
+#         "relatedTerms": [
+#             "所罗门群岛元",
+#             "所罗门群岛"
+#         ],
+#         "name_plural": "所罗门群岛元"
+#     },
+#     "SCR": {
+#         "name": "塞舌尔卢比",
+#         "relatedTerms": [
+#             "塞舌尔卢比",
+#             "塞舌尔"
+#         ],
+#         "name_plural": "塞舌尔卢比"
+#     },
+#     "SDD": {
+#         "name": "苏丹第纳尔",
+#         "relatedTerms": [
+#             "苏丹第纳尔"
+#         ],
+#         "name_plural": "苏丹第纳尔"
+#     },
+#     "SDG": {
+#         "name": "苏丹镑",
+#         "relatedTerms": [
+#             "苏丹镑",
+#             "苏丹"
+#         ],
+#         "name_plural": "苏丹镑"
+#     },
+#     "SEK": {
+#         "name": "瑞典克朗",
+#         "relatedTerms": [
+#             "瑞典克朗",
+#             "瑞典"
+#         ],
+#         "name_plural": "瑞典克朗"
+#     },
+#     "SGD": {
+#         "name": "新加坡元",
+#         "relatedTerms": [
+#             "新加坡元",
+#             "新加坡"
+#         ],
+#         "name_plural": "新加坡元"
+#     },
+#     "SHP": {
+#         "name": "圣赫勒拿镑",
+#         "relatedTerms": [
+#             "圣赫勒拿镑",
+#             "圣赫勒拿"
+#         ],
+#         "name_plural": "圣赫勒拿镑"
+#     },
+#     "SIT": {
+#         "name": "斯洛文尼亚托拉尔",
+#         "relatedTerms": [
+#             "斯洛文尼亚托拉尔"
+#         ],
+#         "name_plural": "斯洛文尼亚托拉尔"
+#     },
+#     "SKK": {
+#         "name": "斯洛伐克克朗",
+#         "relatedTerms": [
+#             "斯洛伐克克朗"
+#         ],
+#         "name_plural": "斯洛伐克克朗"
+#     },
+#     "SLE": {
+#         "name": "塞拉利昂利昂",
+#         "relatedTerms": [
+#             "塞拉利昂利昂"
+#         ],
+#         "name_plural": "塞拉利昂利昂"
+#     },
+#     "SLL": {
+#         "name": "塞拉利昂利昂",
+#         "relatedTerms": [
+#             "塞拉利昂利昂",
+#             "塞拉利昂"
+#         ],
+#         "name_plural": "塞拉利昂利昂"
+#     },
+#     "SOS": {
+#         "name": "索马里先令",
+#         "relatedTerms": [
+#             "索马里先令",
+#             "索马里"
+#         ],
+#         "name_plural": "索马里先令"
+#     },
+#     "SPL": {
+#         "name": "塞波加大公国 Luigino",
+#         "relatedTerms": [
+#             "塞博尔加卢伊吉诺",
+#             "塞波加大公国"
+#         ],
+#         "name_plural": "塞波加大公国 Luigino"
+#     },
+#     "SRD": {
+#         "name": "苏里南元",
+#         "relatedTerms": [
+#             "苏里南元",
+#             "苏里南"
+#         ],
+#         "name_plural": "苏里南元"
+#     },
+#     "SRG": {
+#         "name": "苏里南盾",
+#         "relatedTerms": [
+#             "苏里南基尔德"
+#         ],
+#         "name_plural": "苏里南盾"
+#     },
+#     "STD": {
+#         "name": "圣多美多布拉",
+#         "relatedTerms": [
+#             "圣多美和普林西比多布拉",
+#             "普林西比",
+#             "圣多美"
+#         ],
+#         "name_plural": "圣多美多布拉"
+#     },
+#     "STN": {
+#         "name": "圣多美多布拉",
+#         "relatedTerms": [
+#             "圣多美和普林西比多布拉",
+#             "圣多美和普林西比"
+#         ],
+#         "name_plural": "圣多美多布拉"
+#     },
+#     "SVC": {
+#         "name": "萨尔瓦多科朗",
+#         "relatedTerms": [
+#             "萨尔瓦多科朗",
+#             "萨尔瓦多"
+#         ],
+#         "name_plural": "萨尔瓦多科朗"
+#     },
+#     "SYP": {
+#         "name": "叙利亚镑",
+#         "relatedTerms": [
+#             "叙利亚镑",
+#             "叙利亚"
+#         ],
+#         "name_plural": "叙利亚镑"
+#     },
+#     "SZL": {
+#         "name": "斯威士兰里兰吉尼",
+#         "relatedTerms": [
+#             "斯威士兰里兰吉尼",
+#             "斯威士兰"
+#         ],
+#         "name_plural": "斯威士兰里兰吉尼"
+#     },
+#     "THB": {
+#         "name": "泰铢",
+#         "relatedTerms": [
+#             "泰铢",
+#             "泰国"
+#         ],
+#         "name_plural": "泰铢"
+#     },
+#     "TJS": {
+#         "name": "塔吉克斯坦索莫尼",
+#         "relatedTerms": [
+#             "塔吉克斯坦索莫尼",
+#             "塔吉克斯坦"
+#         ],
+#         "name_plural": "塔吉克斯坦索莫尼"
+#     },
+#     "TMM": {
+#         "name": "土库曼斯坦马纳特",
+#         "relatedTerms": [
+#             "土库曼斯坦马纳特"
+#         ],
+#         "name_plural": "土库曼斯坦马纳特"
+#     },
+#     "TMT": {
+#         "name": "土库曼斯坦马纳特",
+#         "relatedTerms": [
+#             "土库曼斯坦马纳特",
+#             "土库曼斯坦"
+#         ],
+#         "name_plural": "土库曼斯坦马纳特"
+#     },
+#     "TND": {
+#         "name": "突尼斯第纳尔",
+#         "relatedTerms": [
+#             "突尼斯第纳尔",
+#             "突尼斯"
+#         ],
+#         "name_plural": "突尼斯第纳尔"
+#     },
+#     "TOP": {
+#         "name": "汤加潘加",
+#         "relatedTerms": [
+#             "汤加帕安加",
+#             "汤加"
+#         ],
+#         "name_plural": "汤加潘加"
+#     },
+#     "TRL": {
+#         "name": "土耳其里拉",
+#         "relatedTerms": [
+#             "土耳其里拉"
+#         ],
+#         "name_plural": "土耳其里拉"
+#     },
+#     "TRY": {
+#         "name": "土耳其里拉",
+#         "relatedTerms": [
+#             "土耳其里拉",
+#             "土耳其",
+#             "北塞浦路斯"
+#         ],
+#         "name_plural": "土耳其里拉"
+#     },
+#     "TTD": {
+#         "name": "特立尼达元",
+#         "relatedTerms": [
+#             "特立尼达和多巴哥元",
+#             "特立尼达",
+#             "多巴哥"
+#         ],
+#         "name_plural": "特立尼达元"
+#     },
+#     "TVD": {
+#         "name": "图瓦卢元",
+#         "relatedTerms": [
+#             "图瓦卢元",
+#             "图瓦卢"
+#         ],
+#         "name_plural": "图瓦卢元"
+#     },
+#     "TWD": {
+#         "name": "新台币",
+#         "relatedTerms": [
+#             "台湾新台币",
+#             "中国台湾"
+#         ],
+#         "name_plural": "新台币"
+#     },
+#     "TZS": {
+#         "name": "坦桑尼亚先令",
+#         "relatedTerms": [
+#             "坦桑尼亚先令",
+#             "坦桑尼亚"
+#         ],
+#         "name_plural": "坦桑尼亚先令"
+#     },
+#     "UAH": {
+#         "name": "乌克兰格里夫纳",
+#         "relatedTerms": [
+#             "乌克兰赫夫尼亚",
+#             "乌克兰"
+#         ],
+#         "name_plural": "乌克兰格里夫纳"
+#     },
+#     "UGX": {
+#         "name": "乌干达先令",
+#         "relatedTerms": [
+#             "乌干达先令",
+#             "乌干达"
+#         ],
+#         "name_plural": "乌干达先令"
+#     },
+#     "UNI": {
+#         "name": "Uniswap",
+#         "relatedTerms": [
+#             "Uniswap"
+#         ],
+#         "name_plural": "Uniswap"
+#     },
+#     "USD": {
+#         "name": "美元",
+#         "relatedTerms": [
+#             "美元",
+#             "美国",
+#             "美属萨摩亚",
+#             "美属维尔京群岛",
+#             "英属印度洋领地",
+#             "英属维尔京群岛",
+#             "厄瓜多尔",
+#             "萨尔瓦多",
+#             "关岛",
+#             "海地",
+#             "密克罗尼西亚",
+#             "北马里亚纳群岛",
+#             "帕劳",
+#             "巴拿马",
+#             "波多黎各",
+#             "特克斯和凯科斯群岛",
+#             "美国本土外小岛屿",
+#             "威克岛",
+#             "东帝汶"
+#         ],
+#         "name_plural": "美元"
+#     },
+#     "UYU": {
+#         "name": "乌拉圭比索",
+#         "relatedTerms": [
+#             "乌拉圭比索",
+#             "乌拉圭"
+#         ],
+#         "name_plural": "乌拉圭比索"
+#     },
+#     "UZS": {
+#         "name": "乌兹别克斯坦索姆",
+#         "relatedTerms": [
+#             "乌兹别克斯坦索姆",
+#             "乌兹别克斯坦"
+#         ],
+#         "name_plural": "乌兹别克斯坦索姆"
+#     },
+#     "VAL": {
+#         "name": "梵蒂冈里拉",
+#         "relatedTerms": [
+#             "梵蒂冈里拉"
+#         ],
+#         "name_plural": "梵蒂冈里拉"
+#     },
+#     "VEB": {
+#         "name": "委内瑞拉玻利瓦尔",
+#         "relatedTerms": [
+#             "委内瑞拉玻利瓦尔"
+#         ],
+#         "name_plural": "委内瑞拉玻利瓦尔"
+#     },
+#     "VEF": {
+#         "name": "委内瑞拉玻利瓦尔",
+#         "relatedTerms": [
+#             "委内瑞拉玻利瓦尔",
+#             "委内瑞拉"
+#         ],
+#         "name_plural": "委内瑞拉玻利瓦尔"
+#     },
+#     "VES": {
+#         "name": "委内瑞拉玻利瓦尔",
+#         "relatedTerms": [
+#             "委内瑞拉玻利瓦尔",
+#             "委内瑞拉"
+#         ],
+#         "name_plural": "委内瑞拉玻利瓦尔"
+#     },
+#     "VND": {
+#         "name": "越南盾",
+#         "relatedTerms": [
+#             "越南盾",
+#             "越南"
+#         ],
+#         "name_plural": "越南盾"
+#     },
+#     "VUV": {
+#         "name": "瓦努阿图瓦图",
+#         "relatedTerms": [
+#             "瓦努阿图瓦图",
+#             "瓦努阿图"
+#         ],
+#         "name_plural": "瓦努阿图瓦图"
+#     },
+#     "WST": {
+#         "name": "萨摩亚塔拉",
+#         "relatedTerms": [
+#             "萨摩亚塔拉",
+#             "萨摩亚"
+#         ],
+#         "name_plural": "萨摩亚塔拉"
+#     },
+#     "XAF": {
+#         "name": "中非金融合作法郎",
+#         "relatedTerms": [
+#             "非洲金融共同体（BEAC）法郎BEAC",
+#             "非洲金融共同体 (BEAC)",
+#             "喀麦隆",
+#             "中非共和国",
+#             "乍得",
+#             "刚果/布拉柴维尔",
+#             "赤道几内亚",
+#             "加蓬"
+#         ],
+#         "name_plural": "中非金融合作法郎"
+#     },
+#     "XAG": {
+#         "name": "银（盎司）",
+#         "relatedTerms": [
+#             "银",
+#             "银"
+#         ],
+#         "name_plural": "银（盎司）"
+#     },
+#     "XAU": {
+#         "name": "金（盎司）",
+#         "relatedTerms": [
+#             "金",
+#             "金"
+#         ],
+#         "name_plural": "金（盎司）"
+#     },
+#     "XCD": {
+#         "name": "东加勒比元",
+#         "relatedTerms": [
+#             "东加勒比元",
+#             "东加勒比",
+#             "安圭拉岛",
+#             "安提瓜和巴布达",
+#             "多米尼加",
+#             "格林纳达",
+#             "格林纳丁斯和圣文森特",
+#             "蒙特塞拉特"
+#         ],
+#         "name_plural": "东加勒比元"
+#     },
+#     "XCG": {
+#         "name": "加勒比盾",
+#         "relatedTerms": [],
+#         "name_plural": "加勒比盾"
+#     },
+#     "XDR": {
+#         "name": "国际货币基金组织特别提款权",
+#         "relatedTerms": [
+#             "国际货币基金组织（IMF）特别提款权",
+#             "国际货币基金组织 (IMF)"
+#         ],
+#         "name_plural": "国际货币基金组织特别提款权"
+#     },
+#     "XEU": {
+#         "name": "欧洲货币单位",
+#         "relatedTerms": [
+#             "欧洲货币单位"
+#         ],
+#         "name_plural": "欧洲货币单位"
+#     },
+#     "XLM": {
+#         "name": "Stellar Lumen",
+#         "relatedTerms": [
+#             "Stellar Lumen"
+#         ],
+#         "name_plural": "恒星币"
+#     },
+#     "XOF": {
+#         "name": "CFA 法郎",
+#         "relatedTerms": [
+#             "非洲金融共同体（BCEAO）法郎",
+#             "非洲金融共同体 (BCEAO)",
+#             "贝宁",
+#             "布基纳法索",
+#             "科特迪瓦",
+#             "几内亚比绍",
+#             "马里",
+#             "尼日尔",
+#             "塞内加尔",
+#             "多哥"
+#         ],
+#         "name_plural": "CFA 法郎"
+#     },
+#     "XPD": {
+#         "name": "钯（盎司）",
+#         "relatedTerms": [
+#             "钯",
+#             "钯"
+#         ],
+#         "name_plural": "钯（盎司）"
+#     },
+#     "XPF": {
+#         "name": "CFP 法郎",
+#         "relatedTerms": [
+#             "法属太平洋法郎（CFP）",
+#             "太平洋法兰西共同体 (CFP)",
+#             "法属玻利尼西亚",
+#             "新喀里多尼亚",
+#             "瓦利斯和富图纳群岛"
+#         ],
+#         "name_plural": "CFP 法郎"
+#     },
+#     "XPT": {
+#         "name": "铂（盎司）",
+#         "relatedTerms": [
+#             "铂",
+#             "铂"
+#         ],
+#         "name_plural": "铂（盎司）"
+#     },
+#     "XRP": {
+#         "name": "Ripple",
+#         "relatedTerms": [
+#             "Ripple"
+#         ],
+#         "name_plural": "Ripple"
+#     },
+#     "YER": {
+#         "name": "也门里亚尔",
+#         "relatedTerms": [
+#             "也门里亚尔",
+#             "也门"
+#         ],
+#         "name_plural": "也门里亚尔"
+#     },
+#     "ZAR": {
+#         "name": "南非兰特",
+#         "relatedTerms": [
+#             "南非兰特",
+#             "南非",
+#             "莱索托",
+#             "纳米比亚"
+#         ],
+#         "name_plural": "南非兰特"
+#     },
+#     "ZMK": {
+#         "name": "赞比亚克瓦查",
+#         "relatedTerms": [
+#             "赞比亚克瓦查",
+#             "赞比亚"
+#         ],
+#         "name_plural": "赞比亚克瓦查"
+#     },
+#     "ZMW": {
+#         "name": "赞比亚克瓦查",
+#         "relatedTerms": [
+#             "赞比亚克瓦查",
+#             "赞比亚"
+#         ],
+#         "name_plural": "赞比亚克瓦查"
+#     },
+#     "ZWD": {
+#         "name": "津巴布韦元",
+#         "relatedTerms": [
+#             "津巴布韦元",
+#             "津巴布韦"
+#         ],
+#         "name_plural": "津巴布韦元"
+#     },
+#     "ZWL": {
+#         "name": "津巴布韦元",
+#         "relatedTerms": [
+#             "津巴布韦元"
+#         ],
+#         "name_plural": "津巴布韦元"
+#     },
+#     "ZWG": {
+#         "relatedTerms": [
+#             "津巴布韦元"
+#         ],
+#         "name": "津巴布韦元",
+#         "name_plural": "津巴布韦元"
+#     }
+# }
+## __END_DATA__ ##

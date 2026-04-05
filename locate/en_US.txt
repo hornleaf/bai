@@ -1,0 +1,446 @@
+Language: en_US
+api_return_error.network_error Network request failed
+api_return_error.null_response The request was not properly accepted
+args_parse.error Parameter parsing error...
+bai_prompt.bye Bye ~
+bai_prompt.user_input | you:
+bai_prompt.assisant assisant:
+bai_prompt.assisant_think assisant(think):
+bai_prompt.system.username_notification You need to address the user as follows: \"%s\", **emphasize: this is the username, not the nickname you are using**
+bai_prompt.system.no_username ~~The user did not fill in their name~~
+bai_prompt.system.no_gender ~~User did not fill in gender~~
+bai_prompt.system.no_age ~~User did not fill in age~~
+check_tools.error Tool unavailable
+check_tools.json_syntax_error JSON syntax error:
+check_tools.no_lines Tool unavailable, file has fewer than 1 line, cannot perform preliminary review
+check_tools_seq.all_lines_checked Error exists on all lines, %s considers this file not a tool file, please ensure parameters are correctly used
+check_tools_seq.location_prefix Located at %s
+check_tools_seq.range_lines Line %s to line %s
+check_tools_seq.range_lines_extra Line %s to line %s, 
+check_tools_seq.single_line Line %s
+check_tools_seq.single_line_extra Line %s, 
+check_tools.tools_format_error Tool format error:
+debug.accepting_stdin_input Accepting content from standard input...
+debug.all_ready All prerequisite functions ready, took %s, entering main loop...
+debug.assistant_response_recorded Assistant response recorded to conversation log, current memory usage: %s MiB
+debug.at_file Mentioned file ID: %s
+debug.building_openai_basic_request_body Building OpenAI basic request body...
+debug.checking_disabled_functions Screening functions specified by command line arguments but not present in tool file
+debug.check_tools Checking if tools are used
+debug.clear_conversation Clearing conversation round data and submitted files...
+debug.clear_screen Clearing screen
+debug.command_return_value Command return value: %s
+debug.copy_code_block Copy code block
+debug.disabled_functions_not_found Non-existent functions in command line exclusions, %s should refuse to start
+debug.empty_instruction Empty instruction, skipping
+debug.env_vars_check_failed Environment variable type check failed, exiting script
+debug.eval_mode Submitting a temporary prompt and enabling EVAL mode
+debug.execute_command Executing command: %s
+debug.exit_session Exiting session, exit code: %s
+debug.expanding_personalized_content Expanding personalized content...
+debug.function_calling_enabled Function Calling enabled, loading tool preprocessing...
+debug.function_disabled_by_user Found function disabled by command line argument: %s
+debug.get_tool_return Getting tool return
+debug.init_tool_call Initializing tool call
+debug.instruct_registered Instructions registered, instruction operations ready
+debug.limiting_tools_detected Detected tool calling limitation, checking model size...
+debug.loading_main_functions Starting to load main functions...
+debug.local_complete_available Bash ReadLine advanced completion available, registering instructions...
+debug.memory_usage Current memory usage:
+debug.missing_dependencies_found Found tools with missing dependency commands
+debug.openai_basic_request_body_complete Basic request body built, continuing to expand request body...
+debug.partial_prompt Using partial prompt
+debug_prefix Debug
+debug.push_image Submitting image data
+debug.readline_configured ReadLine configuration complete, binding keys...
+debug.readline_configuring Configuring ReadLine options...
+debug.request_ready Request body ready
+debug.script_init_complete Script initialization complete, took: %s
+debug.send_post_request_to_baseurl Sending POST request to this BaseURL: %s, using model: %s
+debug.session_init_ready Session initialization complete, preparing to enter interactive mode...
+debug.session_ready Session operations ready, preparing to register instructions...
+debug.setting_openai_api_key OpenAI API key set (hidden): %s
+debug.setting_openai_api_model OpenAI API model set: %s
+debug.setting_openai_base_url OpenAI API base URL set: %s
+debug.setting_terminal_title Pre-setting terminal title: %s
+debug.small_model_detected Explicitly pointed model is too small, setting TOOLS variable to false, issuing warning
+debug.starting_type_check Starting variable type screening...
+debug.stream_disabled_detected Detected disabled stream output, will push system prompt limiting multi-turn tool calls
+debug.tools_found Found model using tools
+debug.tools_loaded Tool preprocessing loading complete
+debug.tools_not_used Model has not used tools yet
+debug.type_check_complete.value Variable type screening complete, continuing to check composite type variables...
+debug.type_check_complete.values Variable type check complete, converting composite type variables to arrays...
+debug.user_input_empty User input empty, skipping
+debug.username_used Username used: %s
+debug.variable_type_check_failed Variable \e[32m%s\e[0m type check failed, added to invalid values list
+env.invalid_explanation_detail.value Variable \e[32m%%s\e[0m should use \e[34m%%s\e[0m type, but incorrectly used \e[31m%%s\e[0m type
+env.invalid_explanation_detail.values Variable \e[32m%%s\e[0m has some values \e[33m%%s\e[0m that are not \e[34m%%s\e[0m type, but incorrectly used \e[31m%%s\e[0m type
+env.vars_composite_type_invalid Environment variable composite type error
+env.vars_invalid_explanation Explanation:
+env.vars_invalid_list Invalid variables:
+env.vars_type_invalid Environment variable type error
+error.empty_command Empty command
+error_prefix Error
+error.quote_unmatched Unexpected end of line while looking for matching %s
+error.request_not_accepted The request was not properly accepted
+error.tool_execution_failed Tool execution failed
+error.unexpected_request_error Unexpected error occurred during request
+error.unknown_command Unknown command \"%s\"
+get_assisant_command.cancel_execution Cancel execution
+get_assisant_command.confirm.execute_command Execute command?
+get_assisant_command.debug.processing_model_output Processing model output...
+get_assisant_command.error.invalid_command_content Invalid command content
+get_command_output.status Tool return status:
+get_import_file.debug_input_image_to_stdin Submitting image to standard input (Data format: Base64 Data URI)
+get_import_file.debug_input_to_stdin Submitting file to standard input
+get_import_file.file_not_exist File does not not exist
+get_import_file.file_replaced Latest submitted file
+get_import_file.file_submitted File submitted
+get_import_file.file_too_large File too large
+get_import_file.image_replaced Latest submitted image
+get_import_file.image_submitted Image submitted
+get_import_file.image_tips Image recognition requires model support, this feature may not work properly
+get_import_file.input_prompt Please continue to enter description or related questions about the image...
+get_import_file.invalid_file_type Invalid file type
+get_import_file.no_filepath No file path entered
+get_import_file.unknown_image_type Unknown image type, using default type image/png
+get_markdown_codeblocks.error.out_of_range Specified to extract code block %s, but there are %s code blocks in conversation, out of range
+get_markdown_codeblocks.info.copied_code_block Copied code block %s
+get_markdown_codeblocks.info.found_n_code_blocks Found %s code blocks in conversation
+get_markdown_codeblocks.warning.no_code_blocks No code blocks in conversation
+get_session_history.assistant_label Assistant:
+get_session_history.file_label File
+get_session_history.image_label Image
+get_session_history.reasoning_label Thinking
+get_session_history.run_function_label Calling tool:
+get_session_history.system_label System prompt:
+get_session_messages.cancelled Operation cancelled
+get_session_messages.default_username User
+get_session_messages.empty_session Conversation record is empty
+get_session_messages.export_ask Exporting conversation record will overwrite current file, confirm?
+get_session_messages.export_read_failed Failed to read conversation record
+get_session_messages.export_success Export successful
+get_session_messages.import_ask Importing conversation record will overwrite current conversation record, confirm?
+get_session_messages.import_data_structure_error Data structure error
+get_session_messages.import_read_failed Failed to read conversation record
+get_session_messages.import_success Import successful
+get_session_messages.import_write_failed Failed to write conversation record
+get_session_messages.no_file_specified No file specified
+get_session_messages.no_operation No operation specified
+get_session_messages.unknown_behavior Unknown behavior
+get_session_messages.unknown_operation Unknown operation
+help.dependencies Dependencies:
+help.env_must.api_key API key (equivalent to \e[32m-k\e[0m)
+help.env_must.api_model Model name (equivalent to \e[32m-m\e[0m)
+help.env_optal.api_temp Sampling temperature
+help.env_optal.base_url Base URL (default is \e[34mopenai\e[0m, equivalent to \e[32m-b\e[0m)
+help.env_optal.enable_partial Enable prefix continuation (if model supports, equivalent to \e[32m-j\e[0m)
+help.env_optal.enable_search Enable web search (if model supports, equivalent to \e[32m-g\e[0m)
+help.env_optal.enable_stream Enable streaming response (equivalent to \e[32m-n\e[0m)
+help.env_optal.enable_thinking Enable deep thinking chain (if model supports, equivalent to \e[32m-e\e[0m)
+help.env_optal.frequency Frequency penalty threshold
+help.env_optal.max_tokens Limit maximum output tokens
+help.env_optal.presence Presence penalty threshold
+help.env_optal.stop_texts Stop sequences
+help.env_optal.text_num Number of output texts
+help.env_optal.top_k Top-k sampling threshold
+help.env_optal.top_p Top-p sampling threshold
+help.env_other.calling_file Function Calling file (equivalent to \e[32m-c\e[0m)
+help.env_other.color GNU-style option behavior, whether to enable color output
+help.env_other.histfile History file (equivalent to \e[32m-i\e[0m)
+help.env_other.image_preview Whether to enable image preview (when \e[34mfalse\e[0m, equivalent to \e[32m-y\e[0m)
+help.env_other.l10n_files Localization language files (file paths separated by commas)
+help.env_other.limit_tools Whether to limit tool calling for small models (equivalent to \e[32m-z\e[0m)
+help.env_other.limit_turns Whether to limit conversation turns (equivalent to \e[32m-l\e[0m)
+help.env_other.title Session title (equivalent to \e[32m-t\e[0m)
+help.env_other.userage User age (equivalent to \e[32m-ua\e[0m)
+help.env_other.usergender User gender (equivalent to \e[32m-ug\e[0m)
+help.env_other.username Username (equivalent to \e[32m-un\e[0m)
+help.env_other.wait_style Waiting indicator style (equivalent to \e[32m-w\e[0m)
+help.example.env_must_required Required values:
+help.example.env_optal_optional Optional values:
+help.example.env_other_extra Extra items:
+help.example.env_requirement Environment variables need to be injected before use
+help.example.get_file_command Or use command to submit file (multi-turn conversation)
+help.example.get_option_file Ask in command line arguments, or specify a file containing the question content.
+help.example.get_pipe_file Additionally, pipe input files are allowed (single conversation)
+help.example.option_multiple Parameters can be specified in multiple ways for options that require them, taking test option \e[33m-a/--argtest\e[0m as an example:
+help.exit_status.line1 Usually 0, generally returns non-zero only when an error occurs
+help.exit_status.title Exit status:
+help.feedback.line1 Please provide feedback to <\e[4m%s\e[0m> or <\e[4m%s\e[0m>
+help.feedback.line2 regarding issues or suggestions for improvement
+help.footer %s Command line tool Project address: <\e[4m%s\e[0m>
+help.function_calling.line1 For Function Calling feature support:
+help.function_calling.line2 Tool file format requires JSON Lines to import multiple tools, here is the basic unit data structure:
+help.function_calling.line3 Function requiring parameters:
+help.function_calling.no_param_function Parameterless functions can contain only \"name\" \"description\" \"function\" fields
+help.function_calling.warning.line1 \e[32mFunction Calling\e[0m support is in final stage testing, verified to work basically
+help.function_calling.warning.line2 normally under multiple models, but not recommended for production use yet.
+help.function_calling.warning.line3 Streaming response has entered formal testing stage, will not use built-in word-by-word output function to cache output.
+help.function_calling.warning.line4 Currently \e[32mdeepseek-reasoner\e[0m thinking chain compatibility is only applied in streaming response mode, with poor performance
+help.function_calling.warning.line5 Streaming response has attempted to build error handling mechanism, but some features may still be lost.
+help.function_calling.warning.line6 Due to historical legacy issues, %s temporarily cannot support GNU-style parameter \e[33m--color\e[0m, but environment
+help.function_calling.warning.line7 variable \e[32mBAI_COLOR\e[0m can be used instead.
+help.function_calling.warning.line8 Currently unable to interrupt large model responses, still in planning.
+help.function_calling.warning.title Note:
+help.header %s (\e[34mModified:\e[35m %s\e[0m, \e[34mSize:\e[35m %s\e[0m, \e[34mLines:\e[35m %s\e[0m)
+help.help_command Use internal command \e[32m.help\e[0m in continuous conversation mode to view usage
+help.intro Terminal chat script calling OpenAI API
+help.l10n.line1 This script supports localization languages, built-in language is Simplified Chinese (zh_CN), cannot be directly overwritten, here is a localization file example:
+help.l10n.line2 First line is language identifier, subsequent lines are key-value pairs, separated by space, key is string identifier, value is corresponding translation text
+help.l10n.line3 There are two ways to import localization files:
+help.l10n.line4 1. Specify one or more localization files via command line option \e[32m--add-l10n-file\e[0m, option can be used multiple times:
+help.l10n.line5 2. Specify one or more localization files via environment variable \e[32mBAI_L10N_FILES\e[0m, file paths separated by commas:
+help.no_prompt When no question is provided in command arguments, will enter continuous conversation mode, can scroll through input history
+help.option.add_l10n_file Add a localization language file to script environment
+help.optional_dependencies Optional dependencies:
+help.option.apikey Specify API key
+help.option.argtest Test parameter combination
+help.option.baseurl Specify OpenAI API BaseURL
+help.option.callfile Specify a tool file
+help.option.complete Print bash command completion script copied from BAI
+help.option.conemu_status Enable ConEmu progress indicator feature
+help.option.config Specify an environment variable file
+help.option.debug Enable debug output
+help.option.disable_image_preview No longer preview images when submitting materials in conversation
+help.option.help Show this help
+help.option.histfile Specify a history file
+help.option.inspect Only inspect this script's request method
+help.option.model Specify model
+help.option.no_extend Disable specified optional dependency commands
+help.option.no_limit_tools Remove tool restriction for small-scale %s models
+help.option.no_limit_turns Remove conversation turn limit (limit: 32)
+help.option.no_tools Disable specified function tools
+help.option.partial Enable prefix continuation (if model supports)
+help.option.search Explicitly enable web search (if model supports)
+help.option.session_help Show session help
+help.options.title Options:
+help.option.stream Enable streaming response (if provider supports)
+help.option.sysfile Specify a command prompt file
+help.option.thinking Explicitly enable deep thinking chain (if model supports)
+help.option.title Specify session title (multi-turn conversation)
+help.option.userage Specify user age
+help.option.usergender Specify user gender
+help.option.username Specify username
+help.option.value Assign value to script environment, option can be repeated
+help.option.wait_style Specify waiting indicator style
+help.prefix_suffix.line1 After enabling prefix continuation feature, in continuous conversation mode, add \e[32m@prefix\e[0m identifier at the end of input question
+help.prefix_suffix.line2 to use prefix continuation feature:
+help.prefix_suffix.title Hint:
+help.read_enhancement.line1 Since \e[33m%s version, \e[32mread\e[0m built-in has been enhanced, now includes completion functions for some internal commands,
+help.read_enhancement.line2 to enhance experience.
+help.read_enhancement.line3 Added optional dependency commands, after installing these commands will enhance experience to some extent,
+help.read_enhancement.line4 can selectively disable command extensions via above command line parameters:
+help.save_history Records in current environment will be saved to \e[35m%s\e[0m
+help.style_option Style options (\e[32m-w\e[0m/\e[32m--wait-style\e[0m):
+help.style_option.arc Spin - Arc
+help.style_option.arrow Spin - Arrow
+help.style_option.bar Spin - Classic bar
+help.style_option.bell Spin - Time passing
+help.style_option.block Back - Light up blocks
+help.style_option.dot Back - Contracting dot chain
+help.style_option.dotmatrix Spin - Npm style dot matrix
+help.style_option.invisible Text - Hide one by one
+help.style_option.line Back - Moving underline
+help.style_option.pushpull Block - Contract front and back
+help.style_option.roll Text - Rolling display
+help.style_option.square Block - Transforming corners
+help.style_option.wave Block - Up and down wave
+help.system_prompt_variable.line1 For system prompt, this script reserves user profile specified parameters and corresponding prompt variables:
+help.system_prompt_variable.line2 All profile items are optional, unless the corresponding system prompt file needs to frequently reference these values
+help.system_prompt_variable.line3 *Username will be used more frequently than other items
+help.usage Usage: \e[32m%s\e[0m [ \e[33mquestion\e[0m | \e[33mquestion file\e[0m | \e[33moption\e[0m ]...
+help.version_info.unknown [Unknown]
+help.version_title.command Command
+help.version_title.installed_version Installed version
+help.version_title.install_no_version [No version number, but installed]
+limit_filesize.warning Command prompt file content must not be [greater than %s] / [less than %s]
+msg.all_functions_disabled Disabled all function tools? At least one available function tool is needed when specifying a tool file.
+msg.conversation_cleared Conversation cleared
+msg.disabled_functions_not_found Non-existent function tools:
+msg.gum_placeholder User input...
+msg.histfile_not_found %s history file not created, please enter at least once before trying to use
+msg.missing_dependencies_found The following function tools are unavailable due to missing declared command dependencies:
+msg.missing_dependencies_found_for_function Function tool \e[32m%s\e[0m requires \e[33m%s\e[0m
+msg.quote.double Double quote
+msg.quote.single Single quote
+msg.set_description.call_tools Whether to allow executing functions, default value is %s
+msg.set_description.chat_model Switch model from multiple presets, initial preset model is %s
+msg.set_description.debug_output Enable debug output (no obvious effect)
+msg.set_description.erron_effect Delay block when pushing warnings
+msg.set_description.eval_skipask Skip ask and execute directly after generating terminal command via instruction
+msg.set_description.local_execute Execute command via instruction in %s internal environment
+msg.set_description.print_effect Use smooth word-by-word recitation effect in non-stream mode
+msg.small_model_warning Explicitly pointed model is too small (\e[33m%s\e[0m), \e[32mFunction Calling\e[0m feature disabled, please use a larger parameter model (\e[36m=<\e[0m\e[35m5b\e[0m) or manually call commands
+msg.stdin_chat_unsupported Cannot process this session
+msg.stream_disabled_detected Due to disabled stream output, multi-turn tool calling will be limited, if you notice user intent to use multiple tools, please refuse the request
+msg.turns_limit_reached Conversation turn limit reached, resetting conversation
+option.add_l10n_file.file_not_exist File does not not exist
+option.add_l10n_file.invalid_mark Missing required localization mark in file
+option.add_l10n_file.no_arg_value Localization file not specified
+option.apikey.no_arg_value API key not specified
+option.argtest.no_arg_value Parameter not specified
+option.baseurl.no_arg_value OpenAI API BaseURL not specified
+option.callfile.file_not_exist File not found: %s
+option.callfile.is_directory Is a directory
+option.callfile.no_arg_value File not specified
+option.config.file_not_exist File does not not exist
+option.config.no_arg_value Environment variable file not specified
+option.config.sensitive_content Sensitive file content
+option.histfile.no_arg_value History file not specified
+option.missing_env_vars Missing environment variables\nMust provide at least \e[32mAPI key\e[0m and \e[32mAPI model\e[0m\nSee usage at \e[32m$arg0\e[0m \e[33m--help\e[0m\n
+option.model.no_arg_value Model not specified
+option.no-extend.command_not_found Command does not not exist
+option.no-extend.invalid_list Invalid command exclusion list
+option.no-extend.no_arg_value Exclusion not specified
+option.no-extend.not_extend_command Not an optional dependency command
+option.no-tools.invalid_list Invalid function disable list
+option.no-tools.no_arg_value Exclusion not specified
+option.sysfile.file_not_exist File not found: %s
+option.sysfile.is_directory Is a directory
+option.sysfile.no_arg_value Basic prompt file not specified
+option.title.no_arg_value Title not specified
+option.too_many_prompts Too many questions
+option.unknown_option Unknown option: \e[33m%s\e[0m
+option.unknown_option_with_similar Unknown option: \e[33m%s\e[0m, found option containing \"\e[32m%s\e[0m\":
+option.unknown_option_with_similar_and_similar Unknown option: \e[33m%s\e[0m, found closest option \e[32m--%s\e[0m
+option.userage.no_arg_value User age not specified
+option.usergender.no_arg_value User gender not specified
+option.username.no_arg_value Username not specified
+option.value.inject_failed Variable injection failed
+option.value.invalid_format Variable assignment does not conform to specification
+option.value.invalid_name Variable name does not conform to specification
+option.value.no_arg_value Variable not specified
+option.value.value_occupied Variable %s has already been injected
+option.wait-style.no_arg_value Wait style not specified
+option.wait-style.unknown_style Unknown wait style: \e[32m%s\e[0m, found style containing \"\e[32m%s\e[0m\":
+option.wait-style.unknown_style Unknown wait style: \e[33m%s\e[0m
+option.wait-style.unknown_style_with_similar Unknown wait style: \e[33m%s\e[0m, found closest style \e[32m%s\e[0m
+session_help.call Execute function tool
+session_help.clear Clear all conversations
+session_help.cls Clear screen, or .run clear
+session_help.code Copy code block from latest conversation
+session_help.eval Try to let large model generate command
+session_help.exit Exit current session
+session_help.file Submit file to current conversation
+session_help.files Upload fine-tuning files to service provider
+session_help.help Show this help information
+session_help.keys.cancel Cancel search (not replaced, Bash default behavior)
+session_help.keys.clear Clear screen (run command: clear)
+session_help.keys.copy Copy first code block of most recent conversation round
+session_help.keys.exit Exit current session
+session_help.keys.help Show this help
+session_help.keys.search Search history input records (if fzf is installed and not disabled, use fzf search)
+session_help.list List all conversation records
+session_help.msg.call Usage: .call <function name> <parameters>?\n  Manually execute imported function tool\n  Try completion when using this command to view available functions
+session_help.msg.clear Clear all current conversation records, and reset conversation turns
+session_help.msg.cls Clear screen, behavior equivalent to .run clear
+session_help.msg.code Usage: .code preview? <index>?\n  Copy code block from latest conversation round\n  When <index> is not specified, will prompt for number of copyable code blocks\n  If <index> is specified, will copy specified index code block\n  If preview behavior is specified, will display but not copy specified index code block content
+session_help.msg.eval Usage: .eval <prompt>\n  Try to let large model generate command and execute\n  When config eval-skipask = true (disabled by default), will execute generated command directly without confirmation
+session_help.msg.exit Usage: .exit [exit code]?\n  Exit current session, if exit code is not specified, default exit code is 0
+session_help.msg.file Usage: .file <file>\n  Submit or overwrite last submitted file to current conversation
+session_help.msg.files Usage: .files [operation] <file>|<fileID>\n  Manage temporary files in service provider's knowledge base\n  Operations:\n   list - List files in knowledge base\n   push - Upload file to knowledge base, <file>\n   rm   - Delete file from knowledge base, <fileID>
+session_help.msg.help Usage: .help [command]?\n  Show help information for command, if command is not specified, show brief help information and key descriptions for all commands
+session_help.msg.list List all conversation records
+session_help.msg.not_found Help for command %s not found
+session_help.msg.pass No operation, nothing will happen after execution
+session_help.msg.record Usage: .record <file> <operation> [behavior]?\n  Import or export current conversation record (excluding command execution)\n  Operations:\n    import - Import conversation record, import <file>\n    export - Export conversation record, <file> export [behavior]\n  Behaviors:\n    @no:tool  - Exclude tool call records\n    @no:system - Exclude system prompt records\n    @use:all  - Export all records, including sensitive information: API path, API key, model\n    @default  - Default export behavior, export all conversations including tool call information\n  Note: @use:all export behavior has no full import compatibility, only conversation records are used when importing
+session_help.msg.run Usage: .run <command>\n  Execute Shell command via Bash\n  When config local-execute = true (disabled by default) will share BAI's internal Shell environment, otherwise will execute in isolated subprocess
+session_help.msg.set Usage: .set <config item>? <value>?\n  Set current session properties, when all parameters are not specified, will list all config items and their values, descriptions in readable form\n  If <config item> is specified, will show value of specified config item, if <config item> and <value> are specified, will set value of specified config item
+session_help.pass No operation, equivalent to pressing Enter directly
+session_help.record Record management
+session_help.run Execute Shell command
+session_help.set Set current session properties
+session_help.title Session command help
+session_help.title_instructions Commands:
+session_help.title_keys Keys (for other key bindings please refer to Bash official documentation):
+set_session_functions.debug.print_setting Print current setting of %s
+set_session_functions.debug.setting_bool Setting is boolean: value of %s will be set to %s
+set_session_functions.debug.setting_number Setting is numeric: value of %s will be set to %s
+set_session_functions.debug.setting_string Setting is string: value of %s will be set to %s
+set_session_functions.error.invalid_bool Only boolean values allowed
+set_session_functions.error.invalid_number Only numeric values allowed
+set_session_functions.error.unknown_option Unknown option %s
+set_session_functions.error.unknown_type Unknown type %s
+set_session_functions.title.alias Alias
+set_session_functions.title.description Description
+set_session_functions.title.value Value
+set_temp_file_messages.assistant_return_time Model return took: %s, output %s bytes
+set_temp_file_messages.assoc_array_odd_count Associative array parameters must have even count
+set_temp_file_messages.building_tool_call Building tool call...
+set_temp_file_messages.cancelled_selection Selection cancelled
+set_temp_file_messages.checking_if_tools_used Checking if tools are used
+set_temp_file_messages.choose_file_negative Selection cannot be negative
+set_temp_file_messages.choose_file_to_delete Please select file number to delete: 
+set_temp_file_messages.choose_file_too_large Selection too large
+set_temp_file_messages.deleting_file Deleting file...
+set_temp_file_messages.direct_output_with_syntax_highlighting Direct output result, if possible, will use bat syntax highlighting
+set_temp_file_messages.duplicate_option Duplicate option
+set_temp_file_messages.entering_command_processing_mode Entering command processing mode...
+set_temp_file_messages.exception_during_session_processing Exception occurred during this session processing
+set_temp_file_messages.file_deleted File ID %s deleted
+set_temp_file_messages.file_delete_error Error encountered while deleting file
+set_temp_file_messages.file_list_error Error encountered while getting file list
+set_temp_file_messages.file_not_found File does not not exist: %s
+set_temp_file_messages.file_service_request_failed File service request failed, please inform user
+set_temp_file_messages.file_suffix_invalid File suffix does not meet requirements
+set_temp_file_messages.file_uploaded File upload complete %s, purpose: %s
+set_temp_file_messages.file_upload_error Error encountered while uploading file
+set_temp_file_messages.file_upload_failed File upload failed
+set_temp_file_messages.getting_file_list Getting file list...
+set_temp_file_messages.invalid_file_id Not a valid file ID, please re-specify
+set_temp_file_messages.invalid_file_type Invalid file type
+set_temp_file_messages.jq_check_status jq check returned status: %s
+set_temp_file_messages.link_text_empty Text cannot be empty
+set_temp_file_messages.link_url_empty Link cannot be empty
+set_temp_file_messages.missing_commands Missing commands %s
+set_temp_file_messages.model_return_empty Model return is empty, please check if API is correctly configured
+set_temp_file_messages.no_args No parameters specified
+set_temp_file_messages.no_file_id_specified Required file ID not specified
+set_temp_file_messages.no_file_path No file path specified
+set_temp_file_messages.no_files_available No available file list obtained, please submit file or refresh list
+set_temp_file_messages.no_files_found No files stored by service provider
+set_temp_file_messages.no_files_to_delete No files to delete, may need to list files to refresh
+set_temp_file_messages.no_prompt_specified No question initiated, please initiate question when mentioning file
+set_temp_file_messages.option_empty Option cannot be empty
+set_temp_file_messages.request_not_accepted The request was not properly accepted
+set_temp_file_messages.standard_openai_response Stream mode: Standard OpenAI response, response took: %s
+set_temp_file_messages.starting_stream_request Sending POST request to this BaseURL: %s, using model: %s, using streaming response
+set_temp_file_messages.stream_data_header Following is data returned by API:
+set_temp_file_messages.thinking_chain_response Stream mode: Deep thinking chain, response took: %s, continue waiting...
+set_temp_file_messages.thinking_chain_tokens Thinking took: %s, output $_tokens bytes
+set_temp_file_messages.tool_calling Tool calling
+set_temp_file_messages.tools_call_response Stream mode: Tool call, response took: %s
+set_temp_file_messages.tools_call_status Tool call status: %s
+set_temp_file_messages.tools_execution_failed Tool execution failed
+set_temp_file_messages.tools_not_found Tool function %s not found
+set_temp_file_messages.tools_not_used Model has not used tools yet
+set_temp_file_messages.tools_used Found model using tools
+set_temp_file_messages.typing_effect_output Using typing effect output
+set_temp_file_messages.uploading_file Waiting to upload file...
+set_temp_file_messages.variable_empty Variable cannot be empty
+set_temp_file_messages.waiting_for_api_response Waiting for API response...
+set_temp_file_messages.waiting_for_assistant_response Waiting for assistant response
+show_sixel_image.condition.mode1 Terminal: width >= height, Image: height > width, mode%s
+show_sixel_image.condition.mode2 Terminal: width >= height, Image: width >= height, mode%s
+show_sixel_image.condition.mode3 Terminal: height > width, Image: height > width, mode%s
+show_sixel_image.condition.mode4 Terminal: height > width, Image: width >= height, mode%s
+show_sixel_image.debug.condition.message Image size decision condition:
+show_sixel_image.debug.decision.message Image size decision result: [Overall scaling]
+show_sixel_image.decision.mode1 Image height set to terminal height/2+3
+show_sixel_image.decision.mode2 Image width set to terminal width/2
+show_sixel_image.decision.mode3 Image height set to terminal height/2
+show_sixel_image.decision.mode4 Image width set to terminal width/2+3
+show_sixel_image.warning.not_support_sixel_preview This terminal does not support Sixel Image preview
+stdin_input_prefix This is content from standard input:
+switch_model.already_using Duplicate setting
+switch_model.model_unknown Please specify model
+switch_model.switched_to_model Switched to %s
+switch_model.switching_to_model Switching model to %s
+switch_model.unknown_model Unknown model %s
+test_string.test1 This is a test string\n
+test_string.test2 This is a test string with parameter: %s\n
+wait_task.error.custom_wait_task_frame_not_set Custom wait task animation variable BAI_CUSTOM_WAIT_TASK_FRAME not set
+wait_task.executing_command Tool is executing command...
+wait_task.waiting Waiting
