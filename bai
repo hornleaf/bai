@@ -197,7 +197,7 @@ Import-String(){
     local lang=""
     while IFS= read -r line || [[ -n "$line" ]];do
         # 遇到注释直接跳过
-        [[ "$line" ~= ^"# " ]] && continue
+        [[ "$line" =~ ^"# " ]] && continue
 
         [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
         
