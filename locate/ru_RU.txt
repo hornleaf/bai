@@ -1,0 +1,779 @@
+Language: ru_RU
+api_return_error.network_error Сбой сетевого запроса
+api_return_error.null_response Этот запрос не был корректно принят.
+api_style.unsupported интерфейсный стиль %s ещё не реализован (адаптационная слоя уже зарезервирован, в настоящее время поддерживается только chat)
+args_parse.error Ошибка анализа параметров...
+bai_prompt.assisant Помощник:
+bai_prompt.assisant_think Помощник размышляет:
+bai_prompt.bye До свидания ~
+bai_prompt.system.username_notification Вам нужно называть пользователя так: „%s“, **обратите внимание: это именно имя пользователя, а не его никнейм**.
+bai_prompt.user_input ❯
+check_tools.error Инструмент недоступен
+check_tools.json_syntax_error Ошибка синтаксиса JSON:
+check_tools.no_lines Инструмент недоступен, количество новых строк в файле меньше 1, невозможно провести первичный анализ.
+check_tools_seq.all_lines_checked ошибка: все строки проверены. %s считает этот файл не файлом инструментов. Убедитесь, что параметры используются правильно.
+check_tools_seq.location_prefix находится в %s
+check_tools_seq.range_lines строка %s до строки %s
+check_tools_seq.range_lines_extra строки от %s до %s,
+check_tools_seq.single_line строка %s
+check_tools_seq.single_line_extra строка %s,
+check_tools.tools_format_error Неправильный формат инструмента:
+choose_file.unselected_file Не выбрано файл
+compact.auto_trigger Контекст занимает %s%%, запускает автоматическое сжатие
+compact.done Контекстное сжатие завершено: около %s → %s токенов (%s)
+compact.image_omitted (Изображение опущено: не удалось создать описание)
+compact.image_prompt Опишите ключевые моменты этой картинки в одном предложении, сохранив информацию, связанную с текущим диалогом (текстовый контент, элементы интерфейса, ключевые числа). Только вывод описания.
+compact.nothing_to_do Нет сжимаемой истории (оставлена последняя %s итераций оригинала)
+compact.status Контекстное оценочное количество токенов %s / %s (занимает %s%%)｜Автоматическое сжатие: %s｜Порог: %s%%｜Сохраняется последние %s раундов｜Аналитическая модель: %s
+compact.status_unknown Контекстное оценочное количество токенов %s (длина контекста неизвестна)｜Автоматическое сжатие: %s｜Порог: %s%%｜Сохраняется последние %s раундов
+compact.summary_failed Генерация резюме не удалась, ранний диалог был прямо утерян.
+compact.summary_prefix Здесь приведен сжатый отчет по диалогу (текст опущен):
+compact.summary_system Вы — помощник по сжатию диалогов. Пожалуйста, сжмите предоставленный историю диалога в ключевые моменты, сохраняя: цели и предпочтения пользователя, принятые решения, ключевые факты и числа, пути к файлам/команды/имена интерфейсов, а также незавершенные задачи. Не выдумывайте, не выводите вежливые слова.
+compact.summary_user_first Записи диалога: \n%s\n\nПожалуйста, выведите резюме.
+compact.summary_user_update Уже есть резюме: \n%s\n\nНовые диалоги: \n%s\n\nПожалуйста, выведите полное резюме после объединения.
+compact.undo_done восстановлен диалог до процедуры сжатия
+compact.undo_missing нет восстановимых записей сжатия
+compact.unknown_arg Неизвестные параметры сжатия: %s
+create_config.already_have_file Файл %s уже существует
+create_config.bai_assisant_prompt Модель возвращает подсказку
+create_config.bai_bye_prompt Выходной командный промпт
+create_config.bai_calling_file — имя файла инструмента
+create_config.bai_conemu_status — активация функции отображения прогресса в ConEmu
+create_config.bai_disable_multiselect Отключить указанные опциональные зависимые команды
+create_config.bai_env_file файл переменных окружения
+create_config.bai_histfile Исторический файл
+create_config.bai_image_preview — активация предпросмотра изображения
+create_config.bai_l10n_files - Файлы локализации языка
+create_config.bai_limit_turns — ограничивает количество раундов диалога?
+create_config.bai_limit_turns — ограничивает использование инструментов для маленьких моделей?
+create_config.bai_logo_file - Файл с уникальным логотипом
+create_config.bai_logo_mode logo Цветовой режим
+create_config.bai_print_welcome Отображает приветственную фразу
+create_config.bai_rc_file Файл, который выполняется при запуске
+create_config.bai_reasoning_prompt Промпт для логической цепочки мышления
+create_config.bai_reasoning_replace Смена интенсивности мышления
+create_config.bai_stream_syntax — активировано ли синтаксис Markdown в режиме потока?
+create_config.bai_system_file – файл системных подсказок
+create_config.bai_title Тема сессии
+create_config.bai_userage Возраст пользователя
+create_config.bai_usergender Пол пользователя
+create_config.bai_username Имя пользователя
+create_config.bai_user_prompt — подсказка для ввода пользователя
+create_config.bai_wait_dual_colors Цвета двух концов градиента двухцветного эффекта (r,g,b:r,g,b)
+create_config.bai_wait_frame — префикс для отображения кадра с анимацией ожидания
+create_config.bai_wait_gradient — индикатор ожидания режима градиента
+create_config.bai_wait_gray_style Стиль градиента серого
+create_config.bai_wait_style Стиль указаний во время ожидания
+create_config.empty_input Введение пустое, пожалуйста, повторите попытку.
+create_config.home_title Выберите параметр, который нужно настроить.
+create_config.illegal_filepath Неправильный путь к файлу %s
+create_config.input_filepath Введите путь к файлу для сохранения.
+create_config.input_filepath_confirm_exit Уверены, что хотите отменить сохранение и выйти?
+create_config.openai_api_key интерфейс ключа
+create_config.openai_api_model Название модели
+create_config.openai_api_temp Семплирование температуры
+create_config.openai_base_url Начальный адрес
+create_config.openai_enable_partial Включить префикс для продолжения
+create_config.openai_enable_search Включить поиск в интернете
+create_config.openai_enable_stream Включить потоковый ответ
+create_config.openai_enable_thinking Включить цепочку мышления
+create_config.openai_frequency Порог штрафа за частоту
+create_config.openai_include_usage Отключить статистику токенов
+create_config.openai_max_text_num ограничивает количество символов в выводе
+create_config.openai_max_token ограничивает максимальное количество вывода
+create_config.openai_presence повторяющийся порог наказания
+create_config.openai_stop_texts Завершающая надпись
+create_config.openai_top_k Грабительный порог сэмплирования
+create_config.openai_top_p – порог сжатия сэмплирования
+create_config.overwrite_file_confirm Файл уже существует, хотите перезаписать его?
+create_coproc.error_name_conflict Конфликт названий корутин
+create_pipe.error_name_conflict Несовместимость названий трубок
+debug.accepting_stdin_input принимает содержимое из стандартного ввода...
+debug.all_ready Все предварительные функции готовы, время выполнения %s, переход в основной цикл...
+debug.assistant_response_recorded Записан запись сеанса текущего раунда, объем памяти, занятый текущим процессом: %s МБ
+debug.at_file упоминает ID файла: %s
+debug.building_openai_basic_request_body Создание основного тела запроса OpenAI...
+debug.builtin_tools_registered — встроенные инструменты зарегистрированы (send_image=%s, run_command=%s, *_prompt=%s)
+debug.checking_disabled_functions – функции, указанные в параметрах командной строки, но не существующие в файле инструмента.
+debug.check_tools проверяет, используются ли инструменты.
+debug.clear_conversation – Удаление данных раундов диалога и файлов, отправленных...
+debug.clear_screen Очистить экран
+debug.command_return_value – Возвращаемое значение команды: %s
+debug.command_return_value_shortcut Команда возвращает значение: %s
+debug.copy_code_block Копирование блока кода
+debug.disabled_functions_not_found В списке исключений, указанном в параметрах командной строки, есть функции, которые отсутствуют. %s должен отказаться запуститься.
+debug.empty_instruction Пустая инструкция, пропускается
+debug.env_vars_check_failed – Проверка параметров окружения не прошла, скрипт завершен.
+debug.eval_mode Отправьте временный запрос и активируйте режим EVAL.
+debug.execute_command Выполнение команды: %s
+debug.execute_command_shortcut Краткий способ выполнения команды: %s
+debug.exit_session – выход из сессии, код выхода: %s
+debug.expanding_personalized_content расширяет персонализированный контент...
+debug.function_calling_enabled – Вызов функций активен, загрузка предварительной обработки инструментов в процессе...
+debug.function_disabled_by_user обнаружил, что параметр командной строки требует отключения функции: %s, необходимо удалить её из запроса.
+debug.init_tool_call Инициализация вызова инструмента
+Правила дополнения инструкций debug.instruct_registered зарегистрированы.
+debug.key_bindings_set завершено привязка клавиш
+debug.limiting_tools_detected Обнаружена функция вызова инструментов ограничения; проверяется размер модели...
+debug.loading_main_functions Начинается загрузка основных функций...
+debug.local_complete_available Bash ReadLine Функция продвинутого дополнения доступна, в процессе регистрации правил дополнения команд...
+debug.memory_usage Актуальное использование памяти процесса:
+debug.missing_dependencies_found Обнаружена функция, использующая команду, для которой нет зависимостей.
+debug.models_context_detected Длина контекста обнаружена из списка моделей: %s
+debug.model_size_ok Модель не имеет явного указания, пропускаем проверку и продолжаем загрузку инструментальной предобработки
+debug.openai_basic_request_body_complete – Форма основного запроса построена, продолжаем расширять запрос...
+debug.partial_prompt использует локальный запрос
+debug.permission_cache_hit Соблюдение прав доступа: кэш попал в цель: %s=%s
+Инструмент debug.permission_default %s не указал уровень прав, следует использовать medium.
+debug_prefix Настройка отладки
+debug.print_logo_from_file использует пользовательский файл logo: %s
+debug.push_image — отправка данных изображений (всего %s штук)
+debug.readline_configured Конфигурация ReadLine завершена, затем связано нажатие клавиш
+debug.readline_configuring Настройка параметров ReadLine...
+debug.request_ready Тело запроса готов к отправке.
+debug.script_init_complete Скрипт инициализирован, время выполнения: %s
+debug.send_post_request_to_baseurl отправляет POST-запрос к этой BaseURL: %s, используемая модель: %s
+debug.session_init_ready Инициализация записей сессии завершена, загрузка опций инструкций...
+debug.session_ready Опции сессии готовы, проверка функции дополнения команд...
+debug.setting_openai_api_key — ключ API OpenAI установлен (скрыт): %s
+debug.setting_openai_api_model — Настроен модель OpenAI API: %s
+debug.setting_openai_base_url установлен оригинальный адрес API OpenAI: %s
+debug.setting_terminal_title Предустановка заголовка терминала: %s
+debug.small_model_detected — размер модели слишком мал, установите переменную TOOLS в значение false, чтобы получить предупреждение.
+debug.starting_type_check Начинается проверка типов переменных...
+debug.stream_disabled_detected Обнаружен отключенный потоковый вывод, система ограничивает отправку уведомлений, связанных с множественными вызовами инструментов.
+debug.tools_found – Обнаружено, что модель использует инструменты.
+debug.tools_loaded – Предварительная обработка инструментов завершена
+debug.tools_not_used Модель ещё не использовала инструменты
+debug.type_check_complete.value – Проверка типов переменных завершена, продолжаем проверку переменных множественных типов...
+debug.type_check_complete.values – проверка типов переменных завершена; переменные множественных типов преобразованы в массив...
+debug.user_input_empty Введенные пользователем данные пусты, пропускаем.
+debug.username_used Используемое имя пользователя: %s
+debug.variable_type_check_failed переменная \e[32m%s\e[0m типа проверки не прошла, добавлена в список некорректных значений
+debug.wait_gradient Индикатор ожидания режима градиента: %s (стиль серого цвета %s)
+Значение переменной env.invalid_explanation_detail.value \e[32m%%s\e[0m должно иметь тип \e[34m%%s\e[0m, но оно используется неправильно — тип \e[31m%%s\e[0m.
+Переменная env.invalid_explanation_detail.values \e[32m%%s\e[0m, некоторые её значения \e[33m%%s\e[0m не являются типа \e[34m%%s\e[0m, а используются неправильно типа \e[31m%%s\e[0m.
+env.vars_composite_type_invalid – Ошибка в переменной окружения для множественного типа
+env.vars_invalid_explanation Описание:
+env.vars_invalid_list – некорректные переменные:
+env.vars_type_invalid – некорректный тип переменной окружения
+error.empty_command Пустая команда
+error_prefix Ошибка
+Ошибка.quote_unmatched При поиске совпадения с %s не удалось найти неожиданный символ конца строки.
+Ошибка request_not_accepted – этот запрос не был корректно принят.
+error.tool_execution_failed — Не удалось выполнить инструмент.
+error.unexpected_request_error Произошла неожиданная ошибка при запросе
+ошибка.unknown_command Неизвестная команда „%s“
+eval_mode.confirm_cancel Отмена
+eval_mode.confirm_message Подтвердить выполнение вышеуказанной команды?
+get_assisant_command.cancel_execution Отмена выполнения
+get_assisant_command.confirm.execute_command Выполнить команду?
+get_assisant_command.debug.processing_model_output обрабатывает результаты модели...
+get_assisant_command.error.invalid_command_content Неправильное содержание команды
+get_command_output.status – Статус, возвращаемый инструментом:
+get_command_output.timeout – Время ожидания выполнения инструмента (в секундах %s), процесс прерван.
+get_import_file.debug_input_image_to_stdin — отправка изображения в стандартный ввод (формат данных: Base64 Data URI)
+get_import_file.debug_input_to_stdin — отправка файла в стандартный ввод
+get_import_file.file_not_exist Файл отсутствует
+get_import_file.file_replaced Последнее поданное файло
+get_import_file.file_submitted Подано файл
+get_import_file.file_too_large Слишком большой файл
+get_import_file.image_appended Добавление изображения %s, текущих для отправки %s
+get_import_file.image_submitted Подано изображение
+get_import_file.image_tips. Для распознавания изображений требуется поддержка модели; возможно, эта функция не будет работать корректно.
+get_import_file.input_prompt Пожалуйста, продолжите вводить описание изображения или связанные вопросы...
+get_import_file.invalid_file_type Неправильный тип файла
+get_import_file.no_filepath Не указан путь к файлу
+get_import_file.unknown_image_type — неизвестный тип изображения, используется стандартный тип image/png
+get_markdown_codeblocks.error.out_of_range Указано извлечение %s кода-блока, но в диалоге есть %s кода-блоков, что выходит за рамки.
+get_markdown_codeblocks.info.copied_code_block — копируется %s блоков кода
+get_markdown_codeblocks.info.found_n_code_blocks нашел %s кодовых блоков в диалоге
+get_markdown_codeblocks.warning.no_code_blocks В диалоге нет кодовых блоков
+get_session_history.assistant_label Асистент:
+get_session_history.file_label Файл
+get_session_history.image_label Изображение
+get_session_history.reasoning_label Процесс размышлений
+get_session_history.run_function_label Вызов инструмента:
+get_session_history.system_label Системное сообщение:
+get_session_messages.cancelled Отмена операции
+get_session_messages.default_username Пользователь
+get_session_messages.empty_session Записи диалога пусты
+get_session_messages.export_ask Экспорт записей диалога пересоберёт текущий файл. Вы уверены?
+get_session_messages.export_read_failed Ошибка при чтении записей диалога
+get_session_messages.export_success Выгрузка успешна
+get_session_messages.import_ask Импорт записей диалога перезапишет текущие записи диалога. Вы согласны?
+get_session_messages.import_data_structure_error Ошибка в структуре данных
+get_session_messages.import_read_failed Не удалось прочитать записи диалога.
+get_session_messages.import_success Импорт успешен.
+get_session_messages.import_write_failed Не удалось записать записи диалога.
+get_session_messages.no_file_specified Не указан файл
+get_session_messages.no_operation Не указана операция
+get_session_messages.unknown_behavior Неизвестное поведение
+get_session_messages.unknown_operation Неизвестная операция
+help.env_must.api_key Ключ интерфейса (\e[32m-k\e[0m)
+help.env_optal.api_model Название модели (\e[32m-m\e[0m)
+help.env_optal.api_model.desc.1 ┃ Формат названия модели поддерживает прямое указание модели или список моделей, разделенный запятыми.
+help.env_optal.api_model.desc.2 ┃ Скрипт автоматически выберет первую доступную модель.
+help.env_optal.api_model.desc.3 ┃ Если модель не указана ни в каком виде, будет получена список доступных моделей от сервиса.
+help.env_optal.api_model.desc.4 ┗ и преобразовано в формат списка, пригодный для использования.
+help.env_optal.api_temp Температура отбора
+help.env_optal.base_url – начальный адрес (по умолчанию: \e[34mopenai\e[0m, \e[32m-b\e[0m)
+help.env_optal.enable_partial Включить частичное продолжение префикса (если модель поддерживает, \e[32m-j\e[0m)
+help.env_optal.enable_search Включить поиск в интернете (если модель поддерживает, \e[32m-g\e[0m)
+help.env_optal.enable_stream Включить потоковый ответ (\e[32m-n\e[0m)
+help.env_optal.enable_thinking Включить цепочку мышления (если модель поддерживает, \e[32m-e\e[0m)
+help.env_optal.frequency Терминус для штрафа за частоту
+help.env_optal.include_usage Включить статистику токенов (\e[32m--include-usage\e[0m)
+help.env_optal.max_tokens Ограничивает максимальное количество символов вывода
+help.env_optal.presence – порог наказания за повторение
+help.env_optal.reasoning_effort Сила мышления
+help.env_optal.stop_texts Завершающая надпись
+help.env_optal.text_num — количество выводимых текстов
+help.env_optal.top_k - Порог жадного сэмплирования
+help.env_optal.top_p - Порог сжатия выборки
+help.env_other.assistant_prompt Модель возвращает подсказку
+help.env_other.bye_prompt Промпт выхода
+help.env_other.calling_file Функция Вызова файла (\e[32m-c\e[0m)
+help.env_other.color Параметры стиля GNU, отображение цветов, активировано или нет
+help.env_other.compress_keep_turns Сохранять последние N строк при сжатии
+help.env_other.compress_model Аннотированная модель, по умолчанию используется текущая модель
+help.env_other.compress_threshold – Порог автоматического сжатия (процент занимаемого пространства в контексте)
+help.env_other.compress_tool_limit Длина сокращения результатов старых инструментов (символы)
+help.env_other.conemu_status — активация функции отображения прогресса в ConEmu (\e[32m-p\e[0m)
+help.env_other.context_compress Включить автоматическое сжатие контекста (\e[32m--auto-compact\e[0m)
+help.env_other.context_from_api — проверяет длину контекста из /models (по умолчанию: true)
+help.env_other.double_ctrlc_window – Время работы окна Ctrl+C, нажатие двойным кликом [с] (по умолчанию: 2)
+help.env_other.env_file Файл переменных окружения (\e[32m-f\e[0m)
+help.env_other.histfile Файл истории (\e[32m-i\e[0m)
+help.env_other.image_preview — активировано отображение изображения (при \e[34mfalse\e[0m: \e[32m-y\e[0m)
+help.env_other.interrupt — разрешает ли прерывание файлов (по умолчанию: true)
+help.env_other.interrupt_file Путь к файлу меток прерывания
+help.env_other.l10n_files Локализованные языковые файлы (file1,file2,file3,...)
+help.env_other.latex_dpi – Диапазон разрешения изображений в формулах (по умолчанию: 300)
+help.env_other.latex_img_rows – количество строк высоты изображений формул (по умолчанию: 6)
+help.env_other.latex_mode – способ рендеринга формул (auto, image, unicode, off)
+help.env_other.latex_probe – Проводится тест компиляции формул при запуске (по умолчанию: true, результат хранится в кэше).
+help.env_other.latex_render — отображается ли формулы LaTeX (при \e[34mfalse\e[0m: \e[32m--no-latex\e[0m)
+help.env_other.limit_tools — ограничивает ли вызов инструментов для слишком маленьких моделей (\e[32m-z\e[0m)
+help.env_other.limit_turns — ограничивает количество диалогов (\e[32m-l\e[0m)
+help.env_other.llamacpp_port llama.cpp Порт сервиса (по умолчанию: 9931)
+help.env_other.llamacpp_timeout – количество секунд ожидания после запуска (по умолчанию: 0)
+help.env_other.logo_file Файл логотипа по усмотрению (\e[32m--logo-file\e[0m)
+help.env_other.logo_mode logo Цветовой режим (auto,color,gray,none)
+help.env_other.mcp — активировано ли MCP (по умолчанию: true)?
+help.env_other.mcp_config Путь к конфигурационному файлу MCP
+help.env_other.models_cache_ttl Количество секунд жизни кэша списка моделей (по умолчанию 86400)
+help.env_other.no_extend Отключить указанные опциональные зависимые команды (\e[32m-ne\e[0m)
+help.env_other.permission_mode – режим разрешений инструмента (normal, full, auto)
+help.env_other.print_welcome Отображает приветственную фразу (при \e[34mfalse\e[0m: \e[32m--no-chat-welcome\e[0m)
+help.env_other.rc_file Файл, который выполняется при запуске
+help.env_other.reasoning_effort_replace Сила мышления замена (\e[32m--reasoning-effort-replace\e[0m)
+help.env_other.reasoning_prompt Промпт для логической цепочки
+help.env_other.session_autosave — автоматическое сохранение сессии (по умолчанию: false)
+help.env_other.session_dir - Папка для сохранения сессий
+help.env_other.stream_safe – потоковая обработка с откатом старых версий анализа по полям (при \e[34mtrue\e[0m: \e[32m--safe-stream\e[0m)
+help.env_other.stream_syntax — активировано ли улучшение синтаксиса Markdown в режиме потока (при \e[34mfalse\e[0m: \e[32m-ns\e[0m)?
+help.env_other.system_file Файл системных подсказок (\e[32m-s\e[0m)
+help.env_other.term_width — принудительная ширина терминала (используется для разбивки строк в меню подтверждения прав; устанавливается, если ширина отображаемого текста терминала нестабильна)
+help.env_other.title Название сессии (\e[32m-t\e[0m)
+help.env_other.tool_output_limit Максимальное количество символов в выводе инструмента за одну операцию (\e[32m--tool-output-limit\e[0m)
+help.env_other.tool_timeout – количество секунд задержки при выполнении инструмента (\e[32m--tool-timeout\e[0m)
+help.env_other.userage Возраст пользователя (\e[32m-ua\e[0m)
+help.env_other.usergender Пол пользователя (\e[32m-ug\e[0m)
+help.env_other.username Имя пользователя (\e[32m-un\e[0m)
+help.env_other.user_prompt Уведомление пользователя
+help.env_other.wait_dual_colors – Цвет концов двухцветного градиента (r,g,b: r,g,b; по умолчанию 255,128,255: 128,255,255)
+help.env_other.wait_dual_style – двухцветный градиентный стиль (band=светлая полоса, по умолчанию / flow=градиентное течение / static=статический градиент)
+help.env_other.wait_frame — префикс для отображения кадра ожидания (true/false)
+help.env_other.wait_gradient Ожидание режима градиента индикатора (\e[32m--wait-gradient\e[0m)
+help.env_other.wait_gray_style — стиль серого цвета (band, sine, white, breath, contrast, ramp)
+help.env_other.wait_style Стиль указаний во время ожидания (\e[32m-w\e[0m)
+help.example.env_must_required Обязательное значение:
+help.example.env_optal_optional Допускаемые значения:
+help.example.env_other_extra Дополнительные параметры:
+help.example.env_requirement Необходимо ввести переменные окружения перед использованием.
+help.example.get_file_command или использование команды для отправки файла (многократный диалог)
+help.example.get_option_file — это параметр командной строки или указание файла, содержащего данные для запроса.
+help.example.get_pipe_file Кроме того, разрешается использование файла в качестве потока входа (однократный диалог).
+help.example.option_multiple – В опциях, требующих указания параметров, поддерживается несколько способов использования, в качестве примера можно привести \e[33m-a/--argtest\e[0m:
+help.exit_status.line1 обычно равен 0; в большинстве случаев возвращается нечетное значение только при возникновении ошибки.
+help.exit_status.title Статус выхода:
+help.feedback.line1 Пожалуйста, отправьте отзывы по адресу <\e[4m\e[34m%s\e[0m> или <\e[4m\e[34m%s\e[0m>.
+help.feedback.line2 Проблемы или предложения по улучшению
+help.footer %s Командный инструмент: адрес проекта: <\e[4m\e[34m%s\e[0m>
+help.function_calling.arg_alias.line1 После настройки модель преобразует JSON-параметры в соответствии с клавишами в опции командной строки и добавляет их в конец функции для выполнения.
+help.function_calling.arg_alias.line2 поддерживает три способа написания:
+help.function_calling.arg_alias.line3 Пример: Модель возвращает {\"query\":\"AGI\",\"count\":5,\"need_content\":true}.
+help.function_calling.arg_alias.line4 Алиасы таблицы {\"query\":\"--search\",\"count\":\"--count\",\"need_content\":\"--need_content\"}
+help.function_calling.arg_alias.line5  после расширения выполняется: cmd --search 'AGI' --count '5' --need_content 'true'
+help.function_calling.arg_alias.line6: Инструменты, не настроенные с помощью arg_alias, будут работать по старому способу: принимают только значения в формате JSON и объединяют их в позиционные параметры.
+help.function_calling.arg_alias.line7 Значение содержит пробелы, кавычки, \$ и другие специальные символы, которые безопасно экранируются, и не подвергаются вторичной обработке shell.
+help.function_calling.arg_alias.title параметр-псевдоним arg_alias:
+help.function_calling.line1 — поддержка функции Function Calling:
+help.function_calling.line2 Формат файлов инструментов требует использования JSON Lines для импорта нескольких инструментов. Ниже представлена структура данных базовой единицы.
+Функция help.function_calling.line3 требует параметров:
+help.function_calling.no_param_function Функция без параметров может содержать только поля \"name\", \"description\" и \"function\".
+help.function_calling.warning.line1 Из-за исторических проблем %s не может поддерживать параметры стиля GNU \e[33m--color\e[0m, но можно использовать переменную окружения \e[32mBAI_COLOR\e[0m вместо нее.
+help.function_calling.warning.title Обратите внимание:
+help.help_command используется в режиме непрерывного диалога с внутренним командой \e[32m.help\e[0m для проверки использования.
+help.intro Bai: Используйте скрипт Bash для чата с ИИ | Терминальный скрипт для чата, вызывающий API OpenAI (ChatCompletions или Responses)
+help.l10n.line1 Этот скрипт поддерживает локализацию языков, встроенный язык — китайский с китайской письменностью (zh_CN), его нельзя наносить напрямую. Ниже приведены примеры локализационных файлов:
+help.l10n.line2 – первая строка — идентификатор языка, следующие строки — пары ключ-значение, разделенные пробелами. Ключ — строковый идентификатор, значение — соответствующий переводный текст.
+help.l10n.line3 Импорт локализованных файлов осуществляется двумя способами:
+help.l10n.line4 1. С помощью параметра командной строки \e[32m--add-l10n-file\e[0m можно указать один или несколько локализационных файлов; этот параметр может использоваться повторно:
+help.l10n.line5 2. Указать один или несколько локализационных файлов через переменную окружения \e[32mBAI_L10N_FILES\e[0m, пути к файлам разделены запятыми:
+help.no_prompt Если не задать вопрос в параметрах команды, начнется режим непрерывного диалога; можно просматривать записи ввода вверх и вниз.
+help.option.add_l10n_file Добавить один или несколько файлов локализации в BAI
+help.option.apikey Указание ключа интерфейса
+help.option.api_style — указывает стиль интерфейса OpenAI API (chat, responses)
+help.option.argtest Проверка комбинации параметров
+help.option.auto_compact Включить автоматическое сжатие контекста
+help.option.baseurl Указывает BaseURL API OpenAI
+help.option.callfile — указывает на файл инструмента.
+help.option.compact_keep Сохранение последних N итераций оригинального текста при сжатии
+help.option.compact_model — указывает модель сжатия
+help.option.compact_threshold – порог автоматического сжатия (процент занимаемого контекста)
+help.option.complete Печать скрипта дополнения команд bash, скопированного из BAI
+help.option.conemu_status — активация функции отображения прогресса в ConEmu
+help.option.config — это файл окружения, указывающий параметры.
+help.option.continue Продолжить последнюю сессию; приоритет имеет сессиия текущей директории.
+help.option.create_config Создание/перезапись конфигурационного файла BAI
+help.option.debug — включить вывод отладки
+help.option.disable_image_preview Не показывается изображение при отправке материалов в диалоге
+help.option.edit_rcfile — редактирование файла \e[32m%s\e[0m, если есть
+help.option.export_func выводит встроенные функции
+help.option.export_l10n_file Экспортировка встроенного локализованного текста в файл
+help.option.help — отображает эту помощь
+help.option.help_simple Показывает краткое руководство
+help.option.histfile — имя файла истории
+help.option.include_usage Отключить статистику токенов (если поддерживается поставщиком)
+help.option.inspect Только проверяет способ запроса этого скрипта
+help.option.latex_mode – способ рендеринга формул
+help.option.llamacpp_launch запускает и подключает llama.cpp; все последующие параметры будут переданы.
+help.option.logo_file Загрузка пользовательского логотипа из файла
+help.option.logo_mode — указывает режим цвета логотипа.
+help.option.mcp_config — файл конфигурации сервера MCP (\e[33mтип: \e[32mjson\e[0m)
+help.option.model — указание модели
+help.option.models — вывод моделей поставщиков и длины контекста, затем выход.
+help.option.no_chat_welcome Когда входит в режим непрерывного диалога, приветственное сообщение больше не отображается
+help.option.no_extend Отключить указанные опциональные зависимые команды.
+help.option.no_latex Отключить рендеринг формул LaTeX
+help.option.no_limit_tools Снять ограничения на инструменты для моделей малого размера %s
+help.option.no_limit_turns Отключить ограничение количества диалогов (ограничение: 32)
+help.option.no_mcp Отключить MCP
+help.option.no_rc Запрещает выполнение файла rc.
+help.option.no_stream_syntax Отключение улучшения синтаксиса Markdown в режиме потока
+help.option.no_tools Отключить указанные функциональные инструменты
+help.option.partial Включить частичное продолжение префикса (если модель поддерживает)
+help.option.permission_mode Режим прав доступа инструмента
+help.option.reasoning_effort — индикатор степени усилий при мышлении
+help.option.reasoning_option_replace — указывает на замену опции размышлений, кроме значения default.
+help.option.resume Восстановить указанную сессию (id, last)
+help.option.safe_stream Потоковая обработка с откатом к старой версии анализа по полям
+help.option.save_session Запись текущей сессии
+help.option.search – эксплицитное активацию поиска в интернете (если модель поддерживает).
+help.option.session_help Отображает помощь по сессиям.
+Опция help.options.title:
+help.option.stream Включить потоковый ответ (если поддерживается поставщиком)
+help.option.sysfile — указывает файл командной строки
+help.option.thinking – эксплицитное активация мышления (если модель поддерживает)
+help.option.title — указание заголовка сессии (многократный диалог)
+help.option.tool_output_limit Максимальное количество символов для вывода инструмента за один раз
+help.option.tool_timeout Количество секунд задержки при выполнении инструмента
+help.option.userage — указание возраста пользователя
+help.option.usergender Указание пола пользователя
+help.option.username — имя пользователя
+help.option.value — присваивает значение в сценарий среды, опции могут повторяться
+help.option.version Отображает информацию о версии.
+help.option.wait_gradient Ожидание режима градиента индикатора
+help.option.wait_style — указывает стиль индикатора во время ожидания.
+help.prefix_suffix.line1 После активации функции продолжения с префиксом, в режиме непрерывного диалога после ввода вопроса добавляется обозначение \e[32m@prefix\e[0m
+help.prefix_suffix.line2 — можно использовать функцию продолжения с префиксом:
+help.prefix_suffix.line3 Кроме того, разрешается прямое цитирование нескольких путей к файлам для одновременного подачи нескольких файлов и изображений, например:
+help.prefix_suffix.title Предупреждение:
+help.read_enhancement.line1 Начиная с версии \e[33m%s, функция \e[32mread\e[0m была улучшена. Теперь добавлены функции дополнения для некоторых внутренних команд.
+help.read_enhancement.line2 для улучшения пользовательского опыта.
+help.read_enhancement.line3 Добавлены опциональные команды зависимостей. После установки этих команд улучшится пользовательский опыт. Их можно использовать через командную строку.
+help.read_enhancement.line4 Селективное отключение командного расширения:
+help.save_history В текущей среде записи будут сохранены в \e[35m%s\e[0m
+help_simple.option_apikey Указывает ключ API интерфейса.
+help_simple.option_baseurl — указывает базовый URL API OpenAI
+help_simple.option_help Отображает полную помощь и инструкции по использованию.
+help_simple.option_help_simple Отображает эту помощь
+help_simple.option_model — указание модели
+параметры help_simple.options
+help_simple.option_version Отображает информацию о версии.
+help_simple.usage Использование: %s [-abcefgHhijklmnopstuVvwxyz|Опции] [Запрос|Файл]
+help.style_option Вариант стиля (\e[32m-w\e[0m/\e[32m--wait-style\e[0m):
+help.style_option.arc Вращение – дуговой
+help.style_option.arrow Вращение – стрелка
+help.style_option.bar Вращение – классический тип стрелки
+help.style_option.bell Вращение – Проход времени
+help.style_option.block Возвращение – разгорение куба
+help.style_option.dot Возвращение – сжатая точечная цепочка
+help.style_option.dotmatrix Ортогональная вращение - Npm стильный дотмассив
+Текст help.style_option.invisible - скрываем по одному
+help.style_option.line Возвращение – Перемещение подчеркивания
+help.style_option.pushpull Квадрат – сжатие спереди и сзади
+Текст help.style_option.roll – прокрутка отображения
+help.style_option.square Квадрат - Изменение углов
+help.style_option.wave Блок – наклоны вверх и вниз
+help.system_prompt_variable.line1 Для системных подсказок этот скрипт предусматривает параметры, указанные в профиле пользователя, и соответствующие переменные в подсказках:
+help.system_prompt_variable.line2 Все поля являются выборными значениями, если только соответствующий файл системного подсказки не требует частого использования этих значений.
+help.system_prompt_variable.line3 *Имя пользователя будет использоваться чаще, чем другие элементы
+help.usage Использование: \e[32m%s\e[0m [ \e[33mВопрос\e[0m | \e[33mФайл вопроса\e[0m | \e[33mОпции\e[0m ]...
+interrupt.before_request Обнаружен маркер прерывания, запрос пропущен
+interrupt.double_quit Снова получено Ctrl+C, прямое завершение программы
+interrupt.input_hint Ещё один нажатие Ctrl+C для выхода
+interrupt.message уже был прерван в соответствии с метками файла текущей запроса
+interrupt.signal_received Получено сигнал Ctrl+C, в процессе прерывание текущего запроса... (Еще один нажатие — прерывание без остатка)
+interrupt.suffix ｜[Прервано]
+interrupt.tools_skipped уже прерван по файловому метки, пропущено %s оставшихся вызовов инструментов
+limit_filesize.warning Файл не должен быть [больше %s байт] / [меньше %s байт], текущий размер файла составляет %s байт.
+llamacpp.died llama.cpp Сервис завершён (PID %s), выход.
+llamacpp.exited llama.cpp Процесс завершился, конец лога:
+llamacpp.loading Загрузка модели в процессе... %ss (Ctrl+C — отмена)
+llamacpp.not_found Не найдена команда llama-server или llama, невозможно запустить сервис llama.cpp
+llamacpp.ready llama.cpp готов: %s (PID %s)
+llamacpp.starting запускается llama.cpp: %s %s (логи: %s)
+llamacpp.timeout Ожидание завершения работы llama.cpp превышает таймаут (%s секунд), конец лога:
+logo.builtin Встроенное
+logo.file_not_found Файл отсутствует, нечитаем или пуст: %s
+logo.file_unreadable Пользовательский файл logo нечитаем или пуст: %s, откатлен встроенный logo
+logo.loaded — кастомный логотип загружен: %s
+logo.mode_set logo Цветовой режим установлен на: %s (вступает в силу: %s)
+logo.restored восстановлен встроенный логотип
+logo.status Текущий файл logo: %s | Режим цветов: %s (в силе с: %s)
+logo.usage Использование: .logo [preview|off|color|gray|dual|none|auto|<путь к файлу>]
+Ошибка вызова MCP: %s (сервер: %s)
+В конфигурации MCP.duplicate_name есть сервер с одинаковым именем: %s (имя будет использоваться в качестве префикса инструмента, должно быть уникальным).
+Ошибка инициализации сервера MCP: %s (Лог: %s)
+mcp.invalid_config Конфигурация MCP невалидна: %s
+mcp.loaded загрузило %s серверов MCP, инструменты объединены
+mcp.name_too_long Названия инструментов MCP превышают 64 символа, возможно, они будут отклонены через интерфейс. Пожалуйста, сократите имя сервера или имя инструмента: %s
+mcp.need_arg не может автоматически определить имя параметра, пожалуйста, передайте JSON: {"参数":"值"}
+mcp.none Нет загруженного сервера MCP (конфигурация: %s)
+message.login.msg_1 BAI диалоговый скрипт | Адрес проекта: <\e[4m\e[34m%s\e[0m>\n
+message.login.msg_2 Текущая модель: \e[35m%s\e[0m, используйте \e[32m.set \e[33mchat-model \e[2m37><название модели>\e[0m для смены модели\n
+message.login.wolcome_user Добро пожаловать, %s\n
+model_list.illegal_length_marking Модель \e[33m%s\e[0m: Неправильное обозначение длины контекста \e[35m%s\e[0m
+models.effort_fallback вернулся к стандартному режиму %s
+models.effort_unsupported Модель %s не поддерживает интенсивность мышления %s (Поддержка: %s)
+models.fetch_failed Получение списка моделей не удалось
+models.image_unsupported Модель %s не объявила возможности ввода изображений (input_modalities: %s), изображения могут быть проигнорированы.
+models.legend （* обозначает текущую модель, ~ обозначает модель, выведенную из встроенной таблицы, ? обозначает, что сервер не предоставил её）
+models.table_headline | Модель | Название | Контекст | Вывод | Вход | Уровень размышлений |
+msg.all_functions_disabled Все функции отключены? При указании файла инструмента необходимо иметь хотя бы одну работающую функцию.
+msg.conversation_cleared Диалог очищен
+msg.disabled_functions_not_found Не существует функции:
+msg.gum_placeholder Ввод пользователем...
+msg.histfile_not_found %s Исторический файл не создан, пожалуйста, введите текст хотя бы один раз, а затем попробуйте снова.
+msg.missing_dependencies_found Поскольку отсутствуют зависимости команд, необходимые для объявления, следующие функции и инструменты недоступны:
+msg.missing_dependencies_found_for_function Инструмент функции \e[32m%s\e[0m требует \e[33m%s\e[0m
+msg.quote.double Двойные кавычки
+msg.quote.single Одинарные кавычки
+msg.set_description.api_style Стиль интерфейса: chat=chat/completions (по умолчанию), responses=Responses API (зарезервировано)
+msg.set_description.call_tools — разрешает выполнение функции, значение по умолчанию: %s
+msg.set_description.chat_model Переключение модели из нескольких предустановленных вариантов; начальная предустановленная модель — %s
+msg.set_description.compress_auto При приближении к максимальному размеру контекста автоматически сжимается история.
+msg.set_description.compress_keep При сжатии сохраняется последние N строк оригинала
+msg.set_description.compress_model — указывает модель сжатия (пусто = текущая модель)
+msg.set_description.compress_threshold – порог автоматического сжатия (процент занимаемого контекста, по умолчанию 50)
+msg.set_description.context_from_api — проверяет, извлекает ли контекст длины из /models
+msg.set_description.debug_output — включить вывод отладки (не имеет значимого эффекта)
+msg.set_description.double_ctrlc_window — время окна, за которое необходимо нажать дважды Ctrl+C (по умолчанию 2 секунды).
+msg.set_description.enable_search — активация функции сетевого поиска для поставщика.
+msg.set_description.enable_thinking – эксплицитное активацию логической цепочки модели.
+msg.set_description.erron_effect – задержка при отправке предупреждения
+msg.set_description.eval_skipask — после создания терминального команды с помощью инструкции пропускается вопрос и команду выполняется непосредственно
+msg.set_description.interact_complete — активация команд дополнения при взаимодействии с списком
+msg.set_description.latex_mode – режим рендеринга формул (auto/image/unicode/off)
+msg.set_description.latex_render — отключено ли рендеринг формул LaTeX (если включено, то формулировки будут выведены такими, какие есть).
+msg.set_description.local_execute выполняет команду через внутреннее окружение %s при выполнении команды.
+msg.set_description.logo_file Путь к файлу логотипа (пусто = встроенный, поддержка цветных токенов R, G, B и прогрессивных меток {{...}}).
+msg.set_description.logo_mode logo Цветовой режим: auto = следование за гамма-изменением / color / gray / none
+msg.set_description.models_ttl Количество секунд для кэширования списка моделей (по умолчанию 86400)
+msg.set_description.permission_mode – режим прав инструмента: normal – разрешение по уровням; / full – полное разрешение; / auto – автоматический контроль, только высокорискованные действия требуют подтверждения.
+msg.set_description.print_effect — при нестримном режиме используется плавный друкарский эффект.
+msg.set_description.reasoning_effort — контролирует интенсивность рассуждений модели; значение по умолчанию — default
+msg.set_description.safe_stream – потоковая обработка с откатом к старой версии анализа по полям (приоритет совместимости, медленно).
+msg.set_description.session_autosave — записывает ли сессию (по умолчанию отключено, эквивалентно --save-session)?
+msg.set_description.session_keep Максимальное количество файлов сессий, которые будут сохранены (по умолчанию 50)
+msg.set_description.tool_output_limit Максимальное количество символов для вывода инструмента за одну операцию (0 = без ограничений)
+msg.set_description.tool_timeout Количество секунд задержки при выполнении инструмента (0 = без ограничений)
+msg.set_description.wait_dual_colors – двухцветная градиентная цвета концов, формат r,g,b:r,g,b (по умолчанию 255,128,255:128,255,255)
+msg.set_description.wait_frame — указывает на то, показывает ли префикс кадра для анимации ожидания (по умолчанию true; false — показывает только текст и таймер).
+msg.set_description.wait_gradient – Индикатор ожидания режима градиента: dual = двухцветный градиент (по умолчанию), color = цветной градиент, gray = серый цвет, none = без градиента.
+msg.set_description.wait_gray_style – Эффект серого цвета: band=темная поверхность с белым светом (по умолчанию) / sine / white / breath / contrast / ramp
+msg.small_model_warning Выраженное указание на слишком маленький размер модели (\e[33m%s\e[0m), функция \e[32mFunction Calling\e[0m отключена. Пожалуйста, используйте модель с большим количеством параметров (\e[36m=<\e[0m\e[35m5b\e[0m) или ручные команды вызова.
+msg.stdin_chat_unsupported Невозможно обработать этот сеанс
+msg.stream_disabled_detected: Из-за отключения потокового вывода будет ограничено использование множества инструментов. Если вы заметите, что пользователь хочет использовать несколько инструментов, откажитесь от запроса.
+msg.turns_limit_reached Количество раундов диалога достигло максимального значения, необходимо сбросить диалог
+option.add_l10n_file.file_not_exist Файл отсутствует
+option.add_l10n_file.invalid_mark В файле отсутствуют необходимые локализационные метки.
+option.add_l10n_file.no_arg_value Не указана файла локализации
+option.apikey.no_arg_value Не указан ключ интерфейса
+option.argtest.no_arg_value Не указаны параметры
+option.baseurl.no_arg_value Не указан BaseURL API OpenAI
+option.callfile.file_not_exist Файл не найден: %s
+option.callfile.is_directory — это директория.
+option.callfile.no_arg_value Не указан файл
+option.compact_keep.no_arg_value Не указано количество раундов сжатия для сохранения.
+option.compact_model.no_arg_value Не указан модель проверки
+option.compact_threshold.no_arg_value Не указан процентный порог сжатия
+option.config.file_not_found Файл не найден
+option.config.no_arg_value Не указан файл переменных окружения
+option.config.sensitive_content Секретное содержимое файла
+option.export_l10n_file.cannot_create Невозможно создать файл
+option.export_l10n_file.export_successfully Успешно экспортирован локализованный текст в файл:
+option.export_l10n_file.file_exists Файл уже существует
+option.export_l10n_file.no_arg_value Не указан файл экспорта
+option.histfile.no_arg_value Не указан файл истории
+option.invalid_value Недопустимое значение
+option.invalid_value Недопустимое значение (auto/image/unicode/off)
+option.logo_file.file_not_found Файл логотипа отсутствует, нечитаем или пустой: %s
+option.logo_file.no_arg_value Не указан файл логотипа
+option.logo_mode.no_arg_value Не указан режим цвета LOGO
+option.mcp_config.no_arg_value Не указано настройки сервера MCP
+option.missing_env_vars не хватает переменных окружения\nПо крайней мере необходим ключ интерфейса \e[32m\e[0m\nПодробные инструкции см. в \e[32m%s\e[0m \e[33m--help\e[0m\n
+option.model.auto_detected_models Список доступных моделей, полученный от сервиса: %s
+option.model.auto_detecting_models не указан OPENAI_API_MODEL, будет попытка получить список доступных моделей от сервиса. Таймаут: 10 с. |
+option.model.get_model_list_failed — не удалось получить список моделей. Пожалуйста, ручно указать переменную окружения OPENAI_API_MODEL или использовать опцию \e[32m--model\e[0m для указания модели.
+option.model.no_arg_value Не указан модель
+option.no-extend.command_not_found Команда не существует
+option.no-extend.invalid_list – некорректный список исключений команд
+option.no-extend.no_arg_value Не указаны элементы исключения
+option.no-extend.not_extend_command – Необязательный командный объект для зависимостей
+option.no-tools.invalid_list – некорректный список заблокированных функций
+option.no-tools.no_arg_value Не указаны элементы исключения
+option.permission_mode.no_arg_value Не указан модель проверки
+option.reasoning_effort.default_value — используется стандартный уровень интеллектуальных усилий поставщика
+option.reasoning_effort.invalid_value Опция силы рассуждения некорректна: \e[33m%s\e[0m, допустимые значения: \e[32m%s\e[0m
+option.reasoning_effort.no_arg_value Не указан уровень усилий в рассуждениях
+option.reasoning_effort_replace.no_arg_value Не указан параметр силы мышления, который нужно заменить
+option.reasoning_effort.set_value Сила рассуждения установлена на: \e[32m%s\e[0m
+option.resume.no_arg_value Не указан стиль интерфейса
+option.resume.no_arg_value Не указан ID исторической сессии
+option.search.del_value – параметр поиска будет использовать значение по умолчанию поставщика.
+option.search.disable_value Параметр поиска отключен
+option.search.enable_value Параметр поиска активирован.
+option.search.invalid_value Вариант поиска некорректен: \e[33m%s\e[0m, допустимые значения: \e[32m%s\e[0m
+option.sysfile.file_not_exist Файл не найден: %s
+option.sysfile.is_directory — это каталог.
+option.sysfile.no_arg_value Не указан файл основного примера сообщения
+option.thinking.del_value – Варианты мышления будут использовать значение по умолчанию поставщика.
+option.thinking.disable_value Варианты мышления отключены
+option.thinking.enable_value Включен режим выбора.
+option.thinking.invalid_value Вариант мысли некорректен: \e[33m%s\e[0m, допустимые значения: \e[32m%s\e[0m
+option.title.no_arg_value Не указан заголовок
+option.tool_output_limit.no_arg_value Не указан лимит вывода инструмента
+option.tool_timeout.no_arg_value Не указано количество рабочих циклов для сжатия
+option.too_many_prompts Слишком много вопросов
+option.unknown_option Неизвестный параметр: \e[33m%s\e[0m
+option.unknown_option_with_similar Неизвестный параметр: \e[33m%s\e[0m, найден параметр, содержащий \"\e[32m%s\e[0m\":
+option.unknown_option_with_similar_and_similar Неизвестный параметр: \e[33m%s\e[0m, найден ближайший параметр \e[32m--%s\e[0m
+option.userage.no_arg_value Не указано возраст пользователя
+option.usergender.no_arg_value Не указан пол нейтральный для пользователя
+option.username.no_arg_value Не указан имя пользователя
+option.value.inject_failed – Ошибка в внедрении переменной
+Переменная option.value.invalid_format не соответствует стандартам присвоения значений.
+Имя переменной option.value.invalid_name не соответствует стандартам.
+option.value.no_arg_value не указана переменная
+option.value.value_occupied переменная %s уже была введена в использование
+option.wait_gradient.no_arg_value Не указан режим градиента
+option.wait_gradient.unknown_mode Неизвестный режим градиента: %s (можно выбрать color/gray/dual/none)
+option.wait-style.no_arg_value Не указан стиль ожидания.
+option.wait-style.unknown_style Неизвестный стиль ожидания: \e[32m%s\e[0m, найден стиль, содержащий \"\e[32m%s\e[0m\":
+option.wait-style.unknown_style Неизвестный стиль ожидания: \e[33m%s\e[0m
+option.wait-style.unknown_style_with_similar Неизвестный стиль ожидания: \e[33m%s\e[0m, найден ближайший стиль \e[32m%s\e[0m
+permission.auto_risky – операция высокого риска, определенная автоматическим контролем.
+permission.changed Заменено право доступа %s из %s временно на %s
+permission.denied — разрешение на использование инструмента %s отклонено.
+permission.invalid_level – некорректный уровень прав: %s (never|low|medium|always)
+permission.invalid_mode Неправильный режим доступа: %s (normal|full|auto)
+permission.level_always Уровень: Всегда | Этот инструмент требует подтверждения каждый раз
+permission.level_low Уровень: Низкий | Обнаружена потенциально опасная операция
+permission.level_medium Уровень: Средний | При первом использовании необходимо подтвердить
+permission.mode_changed Порядок прав изменился на %s
+permission.none Нет загруженных инструментов
+Для инструмента %s требуется подтверждение пользователя, но текущий терминал не является интерактивным, поэтому запрос отклонен.
+permission.opt_deny Отказ
+permission.opt_once Данный раз это разрешено
+permission.opt_session Данная сессия разрешена
+permission.reset_done восстановил права %s до объявленного значения %s
+permission.reset_usage. Способ использования: .perms reset <имя инструмента>
+permission.review_mode.current_mode текущий режим: %s (normal/full/auto)
+permission.review_mode.disabled – Рецензирование кэша: отключено
+permission.review_mode.list Пересмотр кэша: %s записей (%s)
+permission.review.table_headline | Инструмент | Права | Утверждено на этот раз |
+permission.set_usage Использование: .perms set <имя_инструмента> <never|low|medium|always>
+permission.timeout Подтверждение таймаута (%s секунд), запрос отклонен
+permission.tool_not_found Не найдена инструмент: %s
+permission.unknown_arg Неизвестный параметр прав: %s (list|set|reset|mode)
+permission.user_reject [права] инструмент %s не получил разрешения от пользователя, выполнение пропущено.
+permission.warning \e[31mПредупреждение: %s сейчас значение never, запрос подтверждения больше не будет\e[0m
+permission.warning.no_request \e[31mПредупреждение: Инструмент %s заявляет о правах never, он никогда не запрашивает подтверждение от пользователя\e[0m
+responses.failed Ответ не удался: %s
+session_help.api Просмотр информации о самопроверке слоя адаптации интерфейса
+session_help.call выполняет функцию-инструмент.
+session_help.clear Очистить все диалоги
+session_help.cls Очистить экран, или .run clear
+session_help.code – копируйте блок кода из последней диалоговой встречи
+session_help.compact Сжимает текущий контекст (аннотация старого диалога, сохраняется последнее N отрезка текста)
+session_help.eval Попытка заставить крупную модель создать команду
+session_help.exit Выход из текущего сессии
+session_help.file — отправка файла в текущий диалог
+session_help.files Загрузка файлов в сервисный провайдер
+session_help.help.help Отображает эту информацию помощи.
+session_help.keys.cancel Отмена поиска (не заменяется, стандартное поведение Bash)
+session_help.keys.clear – Очистка экрана (выполнить команду: clear).
+session_help.keys.copy Копируем первый блок кода из последней диалоговой сессии.
+session_help.keys.exit – завершение текущего сессии.
+session_help.keys.help Показывает эту помощь.
+session_help.keys.search – история поисковых записей (если установлен fzf и не отключен, используется поиск через fzf).
+session_help.list — выводит все записи диалогов
+session_help.logo - Пользовательский логотип (предпросмотр/восстановление встроенного/цветной режим/файл)
+session_help.mcp Просмотр количества загруженных MCP серверов и инструментов
+session_help.models — список моделей, предоставленных поставщиком, и длина контекста
+session_help.msg.api Использование: .api\n Показывает текущий стиль интерфейса (chat/responses), адрес запроса и статус реализации.
+session_help.msg.call Использование: .call <имя функции> <параметры>?\n   Ручное выполнение импортированного функционального инструмента\n   При использовании этой команды попробуйте дополнить параметры, чтобы увидеть существующие функции
+session_help.msg.clear Очистить все текущие записи диалогов и сбросить счётчик диалогов.
+session_help.msg.cls Очистить экран, поведение аналогично .run clear
+session_help.msg.code Использование: .code preview? <индекс>?\n   Копируется блок кода из последней диалоговой встречи\n   Если <индекс> не указан, будет показано количество копируемых блоков кода\n   Если указан <индекс>, будет скопирован блок кода со指定ным индексом\n   Если указано действие preview, будет отображен, но не скопирован содержимое блока кода со指定ным индексом
+session_help.msg.compact Использование: .compact [show|undo|tools]?\n   Сжимает текущий контекст диалога: результаты старых инструментов обрезаются, старые изображения преобразуются в текстовое описание, более ранние диалоги сжимаются в системное сообщение\n  show — отображает занятость, undo — восстанавливает состояние до сжатия, tools — только обрезает результаты инструментов
+session_help.msg.eval.Использование: ..eval <запрос>\n   Попробуйте попросить крупную модель создать команду и выполнить её\n   Когда параметр eval-skipask = true (по умолчанию отключен), команда будет выполнена напрямую без подтверждения
+session_help.msg.exit Использование: .exit [статус_код]?\n  Выход из текущей сессии. Если статус_код не указан, по умолчанию используется статус_код 0.
+session_help.msg.file Использование: .file <файл>\n   Отправка или перезапись файла, отправленного в предыдущем диалоге
+session_help.msg.files Использование: .files [операция] <файл>|<ID_файла> [назначение]\n   Файлы, хранящиеся в временном хранилище сервисного провайдера\n   Операции:\n   list – обновить список файлов в базе знаний\n   push – загрузить файл в базу знаний, <файл>\n   del – удалить файл из базы знаний, <ID_файла>\n   Назначение:\n   Доступные параметры: assistants, batch, file-extract, fine-tune, user_data
+session_help.msg.help. Использование: .help [команда]?\n   Показать помощь по команде. Если команда не указана, будет показана краткая помощь по всем командам и описание клавиш.
+session_help.msg.list — выводит все записи диалогов
+session_help.msg.logo Использование: .logo [preview|off|color|gray|none|auto|<путь к файлу>]\n  Просмотр или переключение логотипа\n  Без параметров отображается текущая настройка и способ использования; preview — предпросмотр текущего логотипа; off — восстановление встроенного логотипа\n  color/gray/none/auto — настройка режима цвета логотипа; <путь к файлу> — использование указанного файла в качестве логотипа
+session_help.msg.mcp Использование: .mcp\n Показывает загруженные серверы MCP, PID и количество инструментов.
+session_help.msg.models. Использование: .models\nПоказать модели, предоставленные поставщиком, и длину контекста
+session_help.msg.not_found Не найдена помощь по команде %s
+session_help.msg.pass — пустая операция; после выполнения ничего не произойдет.
+session_help.msg.perms Использование: .perms [list|set|reset|mode]\n .perms                       Показать права и статус авторизации инструмента\n .perms set <инструмент> <уровень>   Изменить уровень во время работы (never/low/medium/always)\n .perms reset <инструмент>           Восстановить до объявленного значения\n .perms mode <режим>            Переключить режим (normal/full/auto)
+session_help.msg.record. Использование: .record <файл> <действие> [действие]?\n   импортирует или экспортирует записи текущей диалога (не включая выполнение команд)\n   Действия:\n    import - импортирует записи диалога, import <файл>\n    export - экспортирует записи диалога, <файл> export [действие]\n   Действия:\n    @no:tool - не включает записи вызова инструментов\n    @no:system - не включает записи системных сообщений\n    @use:all - экспортирует все записи, включая конфиденциальную информацию: пути API, ключи API, модели\n    @default - стандартный способ экспорта, экспортирует все диалоги, включая информацию о вызовах инструментов\n   Примечание: способ @use:all не имеет полной совместимости с импортом, при импорте используются только записи диалога
+session_help.msg.run. Использование: .run <команда>\n   Выполнение команд сhell с помощью Bash\n   Когда параметр local-execute = true (по умолчанию отключен), будет использоваться внутренний shell-среда BAI; в противном случае команды выполняются в изолированном子процессе
+session_help.msg.sessions Использование: .sessions\n  Показать последние сохраненные сессии (* обозначает текущую сессию)
+Способ использования session_help.msg.set: .set <параметр_настройки>? <значение>?\n   Установка параметров текущей сессии. Если все параметры не указаны, будет выведен список всех параметров на настройках с их значениями и описаниями в читаемом формате.\n   Если указан <параметр_настройки>, будет выведено значение указанного параметра. Если указаны <параметр_настройки> и <значение>, будет установлено значение указанного параметра.
+session_help.msg.term. Использование: .term\n Показывает источники измерения размера терминала и окончательный результат Get-TWidth.
+session_help.pass — пустая операция, эквивалентно нажатию клавиши Enter
+session_help.perms Просмотр уровня прав инструментов и состояния разрешений
+session_help.prefix.run выполняет команду через Shell (также .run)
+session_help.prefix.tool Использование функционального инструмента (также .call)
+session_help.record Управление записями
+session_help.run выполняет команды Shell.
+session_help.sessions — список последних сохраненных сессий
+session_help.set — установка свойств текущей сессии
+session_help.term Просмотр источников обнаружения размеров терминала (/dev/tty, stdin, tput, COLUMNS)
+session_help.tips.at_mention При задании вопроса можно напрямую использовать пути @ для ссылок на файлы или изображения, например @src/main.c, @\"my photo.png\"\n  Можно подавать несколько файлов одновременно. Изображения и текстовые файлы будут отправлены вместе с вопросом, и если путь отсутствует, они сохранятся без изменений.
+session_help.title Помощь по инструкциям для сессий
+session_help.title_instructions Инструкции:
+session_help.title_keys Клавиши ввода (для связи других клавиш см. официальную документацию Bash):
+session_help.title_prefixes Инструкция по префиксам:
+session_help.title_tips Советы:
+session.legend (* обозначает текущую сессию; для возобновления используйте --resume <id>)
+session.list_failed нет сессий, которые можно вывести
+session.resumed — сесия восстановлена %s (%s сообщений, модель %s)
+session.resume_failed Не найдена восстановимая сесия: %s
+session.table_headline | Сессия | Время обновления | Модель | Количество раундов | Первая фраза |
+set_session_functions.debug.print_setting Выводить текущую настройку %s
+set_session_functions.debug.setting_bool Установка параметра в булево значение: значение %s будет установлено в %s
+set_session_functions.debug.setting_number Установите значение для поля числового типа: %s как %s.
+set_session_functions.debug.setting_string Установка параметра в виде строки: значение %s будет установлено в %s.
+set_session_functions.error.file_not_readable Файл отсутствует, нечитаем или пуст: %s
+set_session_functions.error.invalid_bool Разрешается использовать только булевы значения.
+set_session_functions.error.invalid_number Разрешается использовать только числовые значения.
+set_session_functions.error.invalid_option разрешает использовать только следующие опции: %s
+set_session_functions.error.unknown_option Неизвестный параметр %s
+set_session_functions.error.unknown_type Неизвестный тип %s
+set_session_functions.title.alias Алиас
+set_session_functions.title.description Описание
+set_session_functions.title.value значение
+Время возврата модели set_temp_file_messages.assistant_return_time: %s, выходило около %s токенов.
+set_temp_file_messages.assoc_array_odd_count Параметры ассоциативного массива должны иметь нечетное количество элементов.
+set_temp_file_messages.building_tool_call Вызов инструментария...
+set_temp_file_messages.checking_if_tools_used — проверка того, используются ли инструменты.
+set_temp_file_messages.code_coloring {{BAI применяет цветование к коду}}
+set_temp_file_messages.curl_error_details CURL детали ошибки:
+set_temp_file_messages.deleting_file {{Отмена удаления файла}}
+set_temp_file_messages.dialogue_data_report Завершена диалоговая сессия, потрачено %s Токенов (ввод: %s, вывод: %s), успешное попадание в кэш: %s Токенов, неудачное попадание в кэш: %s Токенов, время выполнения: %ss, уровень попаданий в кэш: %s%%
+set_temp_file_messages.dialogue_data_report_total Историческая статистика: Использовано %s токенов (вход: %s, выход: %s), успешных попаданий в кэш: %s токенов, неудачных попаданий в кэш: %s токенов, процент успешных попаданий в кэш: %s%%
+set_temp_file_messages.direct_output_with_syntax_highlighting — прямое выводие результатов, при возможности используется синтаксис с выделением цветом bat.
+set_temp_file_messages.duplicate_option Повторяющийся параметр
+set_temp_file_messages.exception_during_session_processing Произошла ошибка при обработке текущего сеанса.
+set_temp_file_messages.file_deleted Файл ID %s удален.
+set_temp_file_messages.file_delete_error Ошибка при удалении файла
+set_temp_file_messages.file_list_error При получении списка файлов возникла ошибка.
+set_temp_file_messages.file_not_found Файл не найден: %s
+set_temp_file_messages.file_suffix_invalid Формат суффикса файла не соответствует требованиям
+set_temp_file_messages.file_uploaded Файл подан успешно %s, назначение: %s
+set_temp_file_messages.file_upload_error Ошибка при загрузке файла
+set_temp_file_messages.file_upload_failed Ошибка при загрузке файла
+set_temp_file_messages.getting_file_list {{Получение списка файлов}
+set_temp_file_messages.http_error_details HTTP-ответ с деталями ошибки:
+set_temp_file_messages.http_response_headers_details HTTP ответные заголовки:\n
+set_temp_file_messages.invalid_file_id — неактивный ID файла, пожалуйста, укажите его заново.
+set_temp_file_messages.invalid_file_type Неправильный тип файла
+set_temp_file_messages.jq_check_status jq При проверке возвращает статус: %s
+set_temp_file_messages.link_text_empty Текст не может быть пустым.
+set_temp_file_messages.link_url_empty Ссылка не может быть пустой.
+set_temp_file_messages.message_append_failed Ошибка при записи сообщений сессии
+set_temp_file_messages.missing_commands Отсутствующие команды %s
+set_temp_file_messages.model_return_empty Модель вернула пустой результат, возможно произошла ошибка. Будут указаны полезные сведения.
+set_temp_file_messages.no_args Не указаны параметры
+set_temp_file_messages.no_file_id_specified Не указан необходимый ID файла.
+set_temp_file_messages.no_file_path Не указан путь к файлу.
+set_temp_file_messages.no_files_available Не удалось получить список доступных файлов, попробуем обновить список.
+set_temp_file_messages.no_files_available_again Не удалось получить доступную список файлов.
+set_temp_file_messages.no_files_found Сервисор не нашёл файлов для хранения
+set_temp_file_messages.no_files_to_delete Нет файлов для удаления, попробуем очистить.
+set_temp_file_messages.no_files_to_delete_again Нет файлов, которые можно удалить снова
+set_temp_file_messages.no_prompt_specified Не было задано вопроса, пожалуйста, задайте вопрос при упоминании файла.
+Параметр set_temp_file_messages.option_empty не может быть пустым.
+set_temp_file_messages.request_not_accepted Этот запрос не был правильно принят.
+set_temp_file_messages.standard_openai_response потоковый режим: стандартный ответ OpenAI, время отклика: %s
+set_temp_file_messages.starting_stream_request Отправка POST-запроса к этой BaseURL: %s, Используемая модель: %s, Используется потоковый ответ
+set_temp_file_messages.stream_data_header HTTP возвращает:
+set_temp_file_messages.stream_safe_mode – режим потоковой обработки с использованием старого совместимого режима
+set_temp_file_messages.table_rendering {{BAI создает таблицу}}
+set_temp_file_messages.thinking_chain_response режим потока: логическая цепочка, время отклика: %s, продолжаю ожидать...
+set_temp_file_messages.thinking_chain_tokens Время размышления: %s, Примерно вышло %s Токенов
+set_temp_file_messages.tool_calling Импульс вызова инструмента
+set_temp_file_messages.tool_calling_multiple Опрос в процессе вызова инструмента (%s/%s)
+set_temp_file_messages.tools_call_response Режим потока: вызов инструмента, время отклика: %s
+set_temp_file_messages.tools_call_status Статус вызова инструмента: %s
+set_temp_file_messages.tools_execution_failed Ошибка выполнения инструмента
+set_temp_file_messages.tools_not_found Не найдена функция инструмента %s
+set_temp_file_messages.tools_not_used Модель ещё не использовала инструменты.
+set_temp_file_messages.tools_used Обнаружено, что модель использует инструменты
+set_temp_file_messages.typing_effect_output Использование вывода эффекта печати
+set_temp_file_messages.uploading_file {{Загрузка файла в процессе}}
+set_temp_file_messages.variable_empty Переменная не может быть пустой
+set_temp_file_messages.waiting_for_api_response Ожидание ответа от интерфейса...
+set_temp_file_messages.waiting_for_assistant_response {{Подождите немного, BAI работает на сервере}}
+show_sixel_image.condition.mode1 Терминал: ширина больше или равна высоте, изображение: высота больше ширины, режим %s
+show_sixel_image.condition.mode2 Терминал: ширина не меньше высоты, изображение: ширина не меньше высоты, режим %s
+show_sixel_image.condition.mode3 Терминал: Высота больше ширины, Изображение: Высота больше ширины, режим %s
+show_sixel_image.condition.mode4 Терминал: Высота больше ширины, Изображение: Ширина не меньше высоты, режим %s
+show_sixel_image.debug.condition.message Условия принятия решения о размере изображения:
+show_sixel_image.debug.decision.message Результат решения по размеру изображения: [Общий масштаб]
+show_sixel_image.decision.mode1 Высота изображения установлена на половину высоты терминала плюс 3.
+show_sixel_image.decision.mode2 — ширина изображения установлена на половину ширины терминала
+show_sixel_image.decision.mode3 Высота изображения установлена на половину высоты терминала
+show_sixel_image.decision.mode4 Ширина изображения установлена на половину ширины терминала плюс 3.
+show_sixel_image.warning.not_support_sixel_preview Этот терминал не поддерживает превью Sixel Image.
+stdin_input_prefix Это содержимое из стандартного ввода:
+switch_model.already_using — повторяющееся установление
+switch_model.model_unknown Пожалуйста, укажите модель
+switch_model.switched_to_model переключён на %s
+switch_model.switching_to_model Переключить модель на %s
+switch_model.unknown_model Неизвестная модель %s
+test_string.test1 Это тестовый строка\n
+test_string.test2 Это тестовый строка с параметром: %s\n
+tools.message_prompt …[Символы %s опущены, полный вывод см. в %s (можно просмотреть сегменты с помощью sed -n -n p)…]…
+tools.run_command.need_parameter [run_command] не имеет параметра command
+wait_task.error.custom_wait_task_frame_not_set — Параметры для анимации задержки задачи не установлены, BAI_CUSTOM_WAIT_TASK_FRAME
+wait_task.executing_command {{Инструмент выполняет команду}}
+wait_task.waiting {{Ожидание}}

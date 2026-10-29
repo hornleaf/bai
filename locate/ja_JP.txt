@@ -1,0 +1,779 @@
+Language: ja_JP
+api_return_error.network_error ネットワークリクエスト失敗
+api_return_error.null_response このリクエストは正しく受け付けられませんでした
+api_style.unsupported インターフェーススタイル %s はまだ実装されていません（アダプタ層は予約されており、現在はchatのみ対応）
+args_parse.error パラメータ解析エラー...
+bai_prompt.assisant 助手:
+bai_prompt.assisant_think 助手が考えている:
+bai_prompt.bye さようなら ~
+bai_prompt.system.username_notification ユーザーには「%s」と呼ぶ必要があります。**注意: これはユーザー名であり、あなたが使用しているニックネームではありません**。
+bai_prompt.user_input ❯
+check_tools.error ツールが使用できません
+check_tools.json_syntax_error JSONの構文エラー：
+check_tools.no_lines ツールが使用できない、ファイルの改行数が1未満で、初期レビューが行えない
+check_tools_seq.all_lines_checked エラーが全行に発生しており、%sはそのファイルをツールファイルとはみなしていません。パラメータが正しく使用されているか確認してください。
+check_tools_seq.location_prefix は%sにあります
+check_tools_seq.range_lines 行 %s から行 %sまで
+check_tools_seq.range_lines_extra 行 %s から行 %sまで、
+check_tools_seq.single_line 行 %s
+check_tools_seq.single_line_extra 行 %s,
+check_tools.tools_format_error ツール形式の異常:
+choose_file.unselected_file 未選択ファイル
+compact.auto_trigger のコンテキスト使用量は %s%%、自動圧縮が実行されます
+compact.done コンテキスト圧縮完了：約 %s → %s トークン（%s）
+compact.image_omitted （画像が省略されています：説明を生成できませんでした）
+compact.image_prompt この画像の要点を一言で説明してください。現在の会話に関連する情報（テキスト内容、インターフェース要素、重要な数字）を保持し、説明そのもののみを出力してください。
+compact.nothing_to_do 圧縮可能な履歴はありません（最近の %s ラウンドの原文が保持されます）
+compact.status コンテキスト推定 %sトークン / %s（使用率 %s%%）｜自動圧縮: %s｜閾値: %s%%｜最近 %sラウンドを保持｜要約モデル: %s
+compact.status_unknown コンテキスト推定 %s トークン（未知のコンテキスト長）｜自動圧縮: %s｜閾値: %s%%｜最近 %s ラウンドを保持
+compact.summary_failed 摘要生成に失敗し、初期の対話は直接破棄されました
+compact.summary_prefix 以下は以前の会話の圧縮要約です（原文は省略されています）：
+compact.summary_system あなたは会話圧縮アシスタントです。与えられた会話履歴を重要なポイントに圧縮してください。ユーザーの目標や好み、達成された決定事項、重要な事実や数字、ファイルパス/コマンド/インターフェース名、未完了のタスクを保持します。偽造したり、礼儀正しい言葉を出力したりしないでください。
+compact.summary_user_first 対話記録：\n%s\n\n要約を表示してください。
+compact.summary_user_update 既存の要約：\n%s\n\n新規対話：\n%s\n\n合わせた完全な要約を出力してください。
+compact.undo_done は、圧縮前の対話状態に戻りました
+compact.undo_missing は復元可能な圧縮記録がありません
+compact.unknown_arg 未知の圧縮パラメータ: %s
+create_config.already_have_file ファイル %s が既に存在します
+create_config.bai_assisant_prompt モデルが提示文を返す
+create_config.bai_bye_prompt 退出プロンプト
+create_config.bai_calling_file 指定ツールファイル
+create_config.bai_conemu_status ConEmuの進捗表示機能を有効にする
+create_config.bai_disable_multiselect 指定された複数選択可能な依存コマンドを無効化する
+create_config.bai_env_file 環境変数ファイル
+create_config.bai_histfile 履歴ファイル
+create_config.bai_image_preview 画像プレビューの有効化
+create_config.bai_l10n_files ローカライズされた言語ファイル
+create_config.bai_limit_turns 対話回数の制限かどうか
+create_config.bai_limit_turns 小さなモデルがツールを使用することを制限するかどうか
+create_config.bai_logo_file カスタムロゴファイル
+create_config.bai_logo_mode logo 色彩モード
+create_config.bai_print_welcome ウェルカムメッセージを表示する
+create_config.bai_rc_file 起動時に実行されるファイル
+create_config.bai_reasoning_prompt 思考連鎖プロンプト
+create_config.bai_reasoning_replace 思考強度の置換
+create_config.bai_stream_syntax 流モードでMarkDown文法強化を有効にするかどうか
+create_config.bai_system_file システムヒントファイル
+create_config.bai_title セッションタイトル
+create_config.bai_userage ユーザー年齢
+create_config.bai_usergender ユーザー性別
+create_config.bai_username ユーザー名
+create_config.bai_user_prompt ユーザー入力プロンプト
+create_config.bai_wait_dual_colors 双色渐变の2つの端点色 (r,g,b:r,g,b)
+create_config.bai_wait_frame 待ち動画のフレームを表示するかどうかのプレフィス
+create_config.bai_wait_gradient 待機インジケーターのグラディエントモード
+create_config.bai_wait_gray_style 灰度渐变スタイル
+create_config.bai_wait_style 待機時の指示スタイル
+create_config.empty_input 入力が空です。再試行してください。
+create_config.home_title 設定するオプションを選択する
+create_config.illegal_filepath 不正なファイルパス %s
+create_config.input_filepath 保存するパスを入力してください
+create_config.input_filepath_confirm_exit 保存を中止して退出しますか？
+create_config.openai_api_key インターフェースキー
+create_config.openai_api_model モデル名
+create_config.openai_api_temp サンプリング温度
+create_config.openai_base_url 開始アドレス
+create_config.openai_enable_partial プレフィスを使用した続き作成を有効にする
+create_config.openai_enable_search インターネット検索の有効化
+create_config.openai_enable_stream ストリーム型応答の有効化
+create_config.openai_enable_thinking 思考チェーンの有効化
+create_config.openai_frequency 頻度ペナルティ閾値
+create_config.openai_include_usage を有効にして Token 統計を開始する
+create_config.openai_max_text_num は出力文字数を制限します
+create_config.openai_max_token 最大出力量の制限
+create_config.openai_presence の重複ペナルティ閾値
+create_config.openai_stop_texts エンディングスローガン
+create_config.openai_top_k 貪欲サンプリング閾値
+create_config.openai_top_p サンプリングの絞り値
+create_config.overwrite_file_confirm ファイルが既に存在します。そのファイルを上書きするか確定しますか？
+create_coproc.error_name_conflict コーポルコの名前の衝突
+create_pipe.error_name_conflict パイプライン名の衝突
+debug.accepting_stdin_input 標準入力からの内容を受け入れる...
+debug.all_ready すべての前処理が完了し、時間は %s、メインループに入る...
+debug.assistant_response_recorded 現在のセッション記録が完了しました。現在のプロセスが使用しているメモリ量：%s MiB
+debug.at_file で参照されるファイルID: %s
+debug.building_openai_basic_request_body オープンAIの基本リクエストボディの構築...
+debug.builtin_tools_registered は内蔵ツールが登録されています (send_image=%s, run_command=%s, *_prompt=%s)
+debug.checking_disabled_functions コマンドライン引数で指定されているが、ツールファイルには存在しない関数のスキャン
+debug.check_tools は、ツールが使用されているかどうかをチェックする
+debug.clear_conversation 会話ロールデータと提出されたファイルを削除する...
+debug.clear_screen 画面をクリアする
+debug.command_return_value コマンド返値: %s
+debug.command_return_value_shortcut コマンドの返値: %s
+debug.copy_code_block コードブロックのコピー
+debug.disabled_functions_not_found コマンドライン引数で指定された排除項目に存在しない関数があるため、%s は起動を拒否する
+debug.empty_instruction 空の指令、スキップ
+debug.env_vars_check_failed 環境変数のタイプチェックに失敗し、スクリプトが終了する
+debug.eval_mode 一時的なヒント文を送信し、EVALモードを有効にする
+debug.execute_command コマンド実行: %s
+debug.execute_command_shortcut 直接実行コマンドショートカット: %s
+debug.exit_session セッションを終了、終了コード: %s
+debug.expanding_personalized_content が個性化コンテンツを拡張中...
+debug.function_calling_enabled 機能呼び出しが有効です。ツールの前処理が進行中...
+debug.function_disabled_by_user で、コマンドラインパラメータによって無効にされるべき関数 %s が見つかりました。リクエストからその関数を削除する必要があります。
+debug.init_tool_call 初期化ツール呼び出し
+debug.instruct_registered 指令補完ルールの登録が完了しました。
+debug.key_bindings_set のキーバインドの設定が完了しました
+debug.limiting_tools_detected 制限ツールの呼び出し機能が検出されました。モデルの規模を確認中...
+debug.loading_main_functions 主機能の読み込みを開始する...
+debug.local_complete_available Bash ReadLine 高度な補完機能が利用可能です。コマンド補完ルールの登録が進行中...
+debug.memory_usage 現在のプロセスが使用しているメモリ:
+debug.missing_dependencies_found 不存在する依存コマンドのツール関数が見つかった
+debug.models_context_detected モデルリストからコンテキスト長を検出: %s
+debug.model_size_ok モデルに明示的な指向がないため、判断をスキップし、ツールの前処理のロードを続行する
+debug.openai_basic_request_body_complete 基本リクエスト体の構築が完了し、リクエスト体をさらに拡張する...
+debug.partial_prompt 使用局部提示词
+debug.permission_cache_hit 権限審査キャッシュヒット: %s=%s
+debug.permission_default ツール %s は権限レベルを宣言していないため、mediumに処理する
+debug_prefix デバッグ
+debug.print_logo_from_file はカスタムロゴファイルを使用します: %s
+debug.push_image 画像データを送信（合計 %s 枚）
+debug.readline_configured ReadLine の設定が完了し、その後キーにバインドされる
+debug.readline_configuring 読み上がりReadLineオプションの設定...
+debug.request_ready リクエスト体が準備完了した
+debug.script_init_complete スクリプトの初期化が完了しました。時間消費: %s
+debug.send_post_request_to_baseurl はこのBaseURLに対してPOSTリクエストを送信します: %s、使用するモデル: %s
+debug.session_init_ready セッション記録の初期化が完了し、指令オプションの読み込みを開始...
+debug.session_ready セッションオプションの準備が整いました。コマンド補完機能を確認します...
+debug.setting_openai_api_key がOpenAI APIキーを設定済み（非表示）: %s
+debug.setting_openai_api_model にOpenAI APIモデルが設定されました: %s
+debug.setting_openai_base_url が設定されました。OpenAI APIの元のアドレス: %s
+debug.setting_terminal_title 予設端末タイトル: %s
+debug.small_model_detected は明示的に指摘されるモデルサイズが小さすぎるため、TOOLS変数をfalseに設定し、警告が発せられます
+debug.starting_type_check 変数の型をチェックする作業を開始...
+debug.stream_disabled_detected ストリーム出力が無効になっていることが検出され、複数回のツール呼び出しを制限するシステムメッセージがプッシュされます
+debug.tools_found モデルがツールを使用していることがわかった
+debug.tools_loaded ツール前処理のロードが完了しました
+debug.tools_not_used モデルはまだツールを使用していない
+debug.type_check_complete.value 変数の型チェックが完了し、複数の目的を持つ型変数のスクリーニングを続行...
+debug.type_check_complete.values 変数の型チェックが完了し、複数の対象型変数を配列に変換する...
+debug.user_input_empty ユーザーの入力が空で、スキップする
+debug.username_used 使用されたユーザ名: %s
+debug.variable_type_check_failed 変数 \e[32m%s\e[0m の型チェックに失敗し、不正値リストに追加されました
+debug.wait_gradient 待機インジケーターのグラディエントモード: %s（グレースケールスタイル %s）
+env.invalid_explanation_detail.value 変数 \e[32m%%s\e[0m は \e[34m%%s\e[0m タイプを使用すべきですが、\e[31m%%s\e[0mタイプが誤って使用されています
+env.invalid_explanation_detail.values 変数 \e[32m%%s\e[0m のうち、一部の値 \e[33m%%s\e[0m は \e[34m%%s\e[0m タイプではなく、\e[31m%%s\e[0m タイプを誤って使用している。
+env.vars_composite_type_invalid 環境変数多目標型エラー
+env.vars_invalid_explanation 説明:
+env.vars_invalid_list 異常変数:
+env.vars_type_invalid 環境変数のタイプが不正
+error.empty_command 空の指令
+error_prefix エラー
+error.quote_unmatched 一致する%sを探す際、予期しない行終端文字に遭遇した
+error.request_not_accepted このリクエストが正しく受け入れられていない
+error.tool_execution_failed ツール実行失敗
+error.unexpected_request_error リクエスト時に予期しないエラーが発生した
+error.unknown_command 未知のコマンド \"%s\"
+eval_mode.confirm_cancel キャンセル
+eval_mode.confirm_message 上記コマンドを実行するか確定しますか？
+get_assisant_command.cancel_execution 実行の中止
+get_assisant_command.confirm.execute_command コマンド実行？
+get_assisant_command.debug.processing_model_output モデル出力の処理中...
+get_assisant_command.error.invalid_command_content 不正な命令内容
+get_command_output.status ツールの返信状態:
+get_command_output.timeout ツール実行のタイムアウト時間（%s秒）、中断됨
+get_import_file.debug_input_image_to_stdin 標準入力に画像を送信する（データ形式：Base64 Data URI）
+get_import_file.debug_input_to_stdin は標準入力にファイルを送信する
+get_import_file.file_not_exist ファイルが存在しない
+get_import_file.file_replaced 最新に提出されたファイル
+get_import_file.file_submitted ファイルの提出
+get_import_file.file_too_large 過大なファイル
+get_import_file.image_appended 画像を追加 %s、現在提出予定 %s枚
+get_import_file.image_submitted 画像の提出
+get_import_file.image_tips 画像認識にはモデルのサポートが必要で、この機能は正常に動作しない可能性があります
+get_import_file.input_prompt 画像に関する説明や関連する問題を続けて入力してください...
+get_import_file.invalid_file_type 不正なファイルタイプ
+get_import_file.no_filepath ファイルパスを入力していません
+get_import_file.unknown_image_type 未知の画像タイプ、デフォルトのタイプ image/pngを使用
+get_markdown_codeblocks.error.out_of_range 指定提取第 %s 個のコードブロックですが、会話中に %s 個のコードブロックがあり、範囲を超えています。
+get_markdown_codeblocks.info.copied_code_block が %s番目のコードブロックをコピーしました
+get_markdown_codeblocks.info.found_n_code_blocks 対話中で %s 個のコードブロックを找到しました
+get_markdown_codeblocks.warning.no_code_blocks 会話中にコードブロックがありません
+get_session_history.assistant_label 助手:
+get_session_history.file_label ファイルラベル
+get_session_history.image_label 画像
+get_session_history.reasoning_label 思考中
+get_session_history.run_function_label ツール呼び出し:
+get_session_history.system_label システムヒント:
+get_session_messages.cancelled 取消操作
+get_session_messages.default_username ユーザー
+get_session_messages.empty_session 対話記録が空です
+get_session_messages.export_ask の対話記録のエクスポートは現在のファイルを上書きします。確定ですか？
+get_session_messages.export_read_failed 会話記録の読み取りに失敗した
+get_session_messages.export_success エクスポート成功
+get_session_messages.import_ask 対話記録のインポートは現在の対話記録を上書きします。確定ですか？
+get_session_messages.import_data_structure_error データ構造エラー
+get_session_messages.import_read_failed 会話記録の読み込みに失敗した
+get_session_messages.import_success インポート成功
+get_session_messages.import_write_failed 対話記録の書き込みに失敗した
+get_session_messages.no_file_specified ファイル指定なし
+get_session_messages.no_operation 操作が指定されていません
+get_session_messages.unknown_behavior 未知行動
+get_session_messages.unknown_operation 未知操作
+help.env_must.api_key インターフェースキー (\e[32m-k\e[0m)
+help.env_optal.api_model モデル名 (\e[32m-m\e[0m)
+help.env_optal.api_model.desc.1 ┃ モデル名の形式は、直接指定するか、コンマで区切ったモデルリストを使用することができます。
+help.env_optal.api_model.desc.2 ┃ スクリプトは利用可能な最初のモデルを自動的に選択します。
+help.env_optal.api_model.desc.3 ┃ モデルが何らかの形で指定されていない場合は、サービスプロバイダから利用可能なモデルのリストを取得する。
+help.env_optal.api_model.desc.4 ┗ そして、利用可能なリスト形式に変換する。
+help.env_optal.api_temp サンプリング温度
+help.env_optal.base_url 開始アドレス（デフォルト: \e[34mopenai\e[0m、\e[32m-b\e[0m）
+help.env_optal.enable_partial プレフィスによる続き書きの有効化 (モデルがサポートしている場合、\e[32m-j\e[0m)
+help.env_optal.enable_search ネットワーク検索の有効化 (モデルがサポートしている場合、\e[32m-g\e[0m)
+help.env_optal.enable_stream ストリーム型応答の有効化 (\e[32m-n\e[0m)
+help.env_optal.enable_thinking 思考チェーンを有効にする (モデルがサポートしている場合、\e[32m-e\e[0m)
+help.env_optal.frequency 周波数ペナルティ閾値
+help.env_optal.include_usage トークン統計の有効化 (\e[32m--include-usage\e[0m)
+help.env_optal.max_tokens 最大出力量の制限
+help.env_optal.presence の重複ペナルティ閾値
+help.env_optal.reasoning_effort 思考強度
+help.env_optal.stop_texts 終了スローガン
+help.env_optal.text_num 出力するテキストの数
+help.env_optal.top_k 貪欲サンプリング閾値
+help.env_optal.top_p サンプリング圧縮閾値
+help.env_other.assistant_prompt モデル返信プロンプト
+help.env_other.bye_prompt 退出プロンプト
+help.env_other.calling_file 関数 呼び出し ファイル (\e[32m-c\e[0m)
+help.env_other.color GNUスタイルのオプション動作、色付き出力を有効にするか
+help.env_other.compress_keep_turns 圧縮時、最近のNラウンドの原文を保持する
+help.env_other.compress_model 摘要モデル、デフォルトでは現在のモデルを再利用
+help.env_other.compress_threshold 自動圧縮閾値（コンテキスト占有パーセンテージ）
+help.env_other.compress_tool_limit 旧工具結果の切り捨て長さ（文字数）
+help.env_other.conemu_status はConEmuの進捗表示機能 (\e[32m-p\e[0m) を有効にする
+help.env_other.context_compress コンテキスト自動圧縮の有効化 (\e[32m--auto-compact\e[0m)
+help.env_other.context_from_api は /modelsからコンテキスト長を検出するか（デフォルト：true）
+help.env_other.double_ctrlc_window Ctrl+Cのウィンドウをダブルクリックする時間[s] (デフォルト: 2)
+help.env_other.env_file 環境変数ファイル (\e[32m-f\e[0m)
+help.env_other.histfile 履歴ファイル (\e[32m-i\e[0m)
+help.env_other.image_preview 画像プレビューを有効にするか ( \e[34mfalse\e[0m の場合: \e[32m-y\e[0m)
+help.env_other.interrupt ファイルの中断を許可するか (デフォルト: true)
+help.env_other.interrupt_file 中断マークファイルのパス
+help.env_other.l10n_files ローカライズされた言語ファイル (file1,file2,file3,...)
+help.env_other.latex_dpi 公式画像のDPI（デフォルト：300）
+help.env_other.latex_img_rows 公式画像の高さの行数 (デフォルト: 6)
+help.env_other.latex_mode 公式レンダリング方式 (auto, image, unicode, off)
+help.env_other.latex_probe 起動時に公式コンパイルテストを実行する (default: true、結果はキャッシュされる)
+help.env_other.latex_render はLaTeX公式をレンダリングするか（\e[34mfalse\e[0mの場合: \e[32m--no-latex\e[0m）
+help.env_other.limit_tools 小さすぎるモデルのツール呼び出しを制限するか (\e[32m-z\e[0m)
+help.env_other.limit_turns 対話回数の制限の有無 (\e[32m-l\e[0m)
+help.env_other.llamacpp_port llama.cpp サービスポート（デフォルト：9931）
+help.env_other.llamacpp_timeout 起動後に準備が整うまで待つ秒数 (デフォルト: 0)
+help.env_other.logo_file カスタムロゴファイル (\e[32m--logo-file\e[0m)
+help.env_other.logo_mode logo 色彩モード (auto,color,gray,none)
+help.env_other.mcp はMCPを有効にするか（デフォルト：true）
+help.env_other.mcp_config MCP設定ファイルパス
+help.env_other.models_cache_ttl モデルリストキャッシュの有効期限（デフォルト 86400）
+help.env_other.no_extend 指定されたオプション依存コマンドの実行を無効化する (\e[32m-ne\e[0m)
+help.env_other.permission_mode ツール権限モード (normal, full, auto)
+help.env_other.print_welcome ウェルカムメッセージを表示 ( \e[34mfalse\e[0m の時: \e[32m--no-chat-welcome\e[0m)
+help.env_other.rc_file 起動時に実行されるファイル
+help.env_other.reasoning_effort_replace 思考強度の置換 (\e[32m--reasoning-effort-replace\e[0m)
+help.env_other.reasoning_prompt 思考連鎖プロンプト
+help.env_other.session_autosave セッションの自動保存の有無 (デフォルト: false)
+help.env_other.session_dir セッション保存ディレクトリ
+help.env_other.stream_safe 旧版の逐字段解析の流れ処理によるバックアップ ( \e[34mtrue\e[0m の場合: \e[32m--safe-stream\e[0m)
+help.env_other.stream_syntax 流モードでMarkDown文法強化を有効にするか ( \e[34mfalse\e[0m の場合: \e[32m-ns\e[0m)
+help.env_other.system_file システムヒントファイル (\e[32m-s\e[0m)
+help.env_other.term_width 強制端末幅広度（権限確認メニューの折り返し用；端末の報告幅が正確でない場合に設定）
+help.env_other.title セッションタイトル (\e[32m-t\e[0m)
+help.env_other.tool_output_limit 単一ツール出力の上限文字数（\e[32m--tool-output-limit\e[0m）
+help.env_other.tool_timeout ツール実行のタイムアウト秒数（\e[32m--tool-timeout\e[0m）
+help.env_other.userage ユーザーの年齢 (\e[32m-ua\e[0m)
+help.env_other.usergender ユーザー性別 (\e[32m-ug\e[0m)
+help.env_other.username ユーザ名 (\e[32m-un\e[0m)
+help.env_other.user_prompt ユーザー入力プロンプト
+help.env_other.wait_dual_colors 双色渐变端点色 (r,g,b:r,g,b、デフォルト 255,128,255:128,255,255)
+help.env_other.wait_dual_style 双色渐变スタイル (band=明るい帯の横切り、デフォルト / flow=渐变流動 / static=静止渐变)
+help.env_other.wait_frame 待ち動画のフレームを表示するかどうかのプレフィス (true/false)
+help.env_other.wait_gradient インジケーターのグラデーションモードの待機 (\e[32m--wait-gradient\e[0m)
+help.env_other.wait_gray_style 灰度スタイル (band, sine, white, breath, contrast, ramp)
+help.env_other.wait_style 待ち時間の表示スタイル (\e[32m-w\e[0m)
+help.example.env_must_required 必須値:
+help.example.env_optal_optional オプション値:
+help.example.env_other_extra 追加項目:
+help.example.env_requirement 使用前に環境変数を注入する必要があります
+help.example.get_file_command または指令を使用してファイルを提出する（複数回の対話）
+help.example.get_option_file は、コマンドライン引数で指定するか、質問内容が含まれるファイルを指定します。
+help.example.get_pipe_file さらに、パイプを使って入力ファイルを使用することも可能です（単一対話）。
+help.example.option_multiple は、パラメータを指定するオプションにおいて、複数の方法で使用できる。例として \e[33m-a/--argtest\e[0m を挙げる：
+help.exit_status.line1は通常0であり、一般的にはエラーが発生した時にのみ非0値が返されます。
+help.exit_status.title 終了状態:
+help.feedback.line1 は <\e[4m\e[34m%s\e[0m> または <\e[4m\e[34m%s\e[0m> にフィードバックをお願いします
+help.feedback.line2 問題や改善提案
+help.footer %s コマンドラインツール プロジェクトアドレス: <\e[4m\e[34m%s\e[0m>
+help.function_calling.arg_alias.line1 を設定すると、モデルが提供するJSONパラメータがキーマッピングされてコマンドラインオプションに変わり、functionの末尾に追加して実行されます。
+help.function_calling.arg_alias.line2 は3つの書き方が可能です:
+help.function_calling.arg_alias.line3 例: モデルが返す内容は {\"query\":\"AGI\",\"count\":5,\"need_content\":true} です。
+help.function_calling.arg_alias.line4 別名表 {\"query\":\"--search\",\"count\":\"--count\",\"need_content\":\"--need_content\"}
+help.function_calling.arg_alias.line5 を展開して実行: cmd --search 'AGI' --count '5' --need_content 'true'
+help.function_calling.arg_alias.line6 未設定のarg_aliasツールは旧の動作に従います：JSON値のみを取り、位置パラメータとして連結します。
+help.function_calling.arg_alias.line7 値の中のスペース、引用符、\$などの特殊文字は安全にエスケープされ、shellによって二次解析されることはありません。
+help.function_calling.arg_alias.title パラメータ別名 arg_alias:
+help.function_calling.line1 は Function Calling 機能に対応しています：
+help.function_calling.line2 ツールファイルのフォーマットでは、複数のツールをインポートできるようにJSON Linesを使用することが求められています。以下が基本単位のデータ構造です：
+help.function_calling.line3 パラメータが必要な関数：
+help.function_calling.no_param_function 無参数関数は \"name\" \"description\" \"function\" フィールドのみを含むことができます
+help.function_calling.warning.line1 歴史的な問題により、%sはGNUスタイルのパラメータ \e[33m--color\e[0mをサポートできませんが、環境変数 \e[32mBAI_COLOR\e[0mを使用できます。
+help.function_calling.warning.title 注意：
+help.help_commandは、連続対話モードで内部コマンド \e[32m.help\e[0mを使用して使い方を確認できます。
+help.intro Bai: Bashスクリプトを使ったAIチャット | OpenAI (ChatCompletionsまたはResponses) APIの端末チャットスクリプトの呼び出し
+help.l10n.line1 このスクリプトはローカライズ言語をサポートしており、内蔵言語は簡体中国語 (zh_CN) です。直接上書きすることはできません。以下がローカライズファイルの例です：
+help.l10n.line2 最初の行は言語識別子、その後はキーと値のペアで、スペースで区切られています。キーは文字列の識別子、値は対応する翻訳テキストです
+help.l10n.line3 ローカライズファイルのインポートには2つの方法があります：
+help.l10n.line4 1. コマンドラインオプション \e[32m--add-l10n-file\e[0m を使用して、1つ以上のローカライズファイルを指定でき、このオプションは再使用可能です：
+help.l10n.line5 2. 環境変数 \e[32mBAI_L10N_FILES\e[0m を通じて、一つまたは複数のローカライズファイルを指定します。ファイルパスはコンマで区切られます：
+help.no_prompt コマンドパラメータに質問がない場合、連続対話モードになります。入力記録を上から下まで確認できます。
+help.option.add_l10n_file を使用して、BAIに1つまたは複数のローカライズファイルを追加する
+help.option.apikey 指定インターフェースキー
+help.option.api_style は OpenAI APIのインターフェーススタイルを指定する（chat、responses）
+help.option.argtest パラメータの組み合わせテスト
+help.option.auto_compact コンテキストの自動圧縮を有効にする
+help.option.baseurl は OpenAI APIのBaseURLを指定するためのものです。
+help.option.callfile は、ツールファイルを指定するためのものです。
+help.option.compact_keep 圧縮時、最近のNラウンドの原文を保持する
+help.option.compact_model 指定摘要モデル
+help.option.compact_threshold 自動圧縮閾値（コンテキスト占有率）
+help.option.complete バイからコピーされたbashコマンド完成スクリプトを印刷する
+help.option.conemu_status ConEmuの進捗表示機能を有効にする
+help.option.config は環境変数ファイルを指定するためのものです。
+help.option.continue 最近のセッションを続行する。現在のディレクトリのセッションが優先される
+help.option.create_config は、BAI設定ファイルを作成/書き換えます。
+help.option.debug デバッグ出力を有効にする
+help.option.disable_image_preview 会話の提出資料時に画像のプレビューを表示しない
+help.option.edit_rcfile ファイルを編集します。 \e[32m%s\e[0m が含まれている場合
+help.option.export_func 内蔵関数の出力
+help.option.export_l10n_file 内蔵のローカライズテキストをファイルにエクスポートする
+help.option.help このヘルプを表示する
+help.option.help_simple 短いヘルプを表示する
+help.option.histfile 歴史記録ファイルを指定する
+help.option.include_usage トークン統計の有効化（サプライヤーがサポートしている場合）
+help.option.inspect は、このスクリプトのリクエスト方法のみをチェックします
+help.option.latex_mode 公式レンダリング方式
+help.option.llamacpp_launch は llama.cpp を起動し接続します。その後のすべてのパラメータは転送されます。
+help.option.logo_file ファイルからカスタムロゴを読み込む
+help.option.logo_mode ロゴの色彩モードを指定する
+help.option.mcp_config 指定 MCP server 設定ファイル (\e[33mtype: \e[32mjson\e[0m)
+help.option.model 指定モデル
+help.option.models サービスプロバイダモデルとコンテキスト長を表示した後、終了する
+help.option.no_chat_welcome 連続対話モードに入った時、ウェルカムメッセージが表示されなくなる
+help.option.no_extend 指定されたオプションの依存コマンドの延長を無効化する
+help.option.no_latex ラテックス公式のレンダリングを無効にする
+help.option.no_limit_tools 過小規模の %s モデルに対するツールの制限を解除する
+help.option.no_limit_turns 対話回数の制限を解除 (limit: 32)
+help.option.no_mcp はMCPを無効にする
+help.option.no_rc はrcファイルの実行を禁止する
+help.option.no_stream_syntax ストリームモードではMarkDown構文の強化を無効にする
+help.option.no_tools 指定された機能ツールを無効化する
+help.option.partial プレフィスを使用した続きの書き込みを有効にする（モデルがサポートしている場合）
+help.option.permission_mode ツールの権限モード
+help.option.reasoning_effort 思考強度の指定
+help.option.reasoning_option_replace 思考オプションの置換を指定する。defaultを除く
+help.option.resume 指定されたセッションの復元 (id, last)
+help.option.safe_stream ストリーム処理による旧版の逐項目解析のリトライ
+help.option.save_session 今回のセッションを記録する
+help.option.search ネットワーク検索を明示的に有効にする（モデルがサポートしている場合）
+help.option.session_help セッションヘルプを表示する
+help.options.title オプション:
+help.option.stream ストリーム応答を有効にする（サプライヤーがサポートしている場合）
+help.option.sysfile コマンドプロンプトファイルを指定する
+help.option.thinking 思考チェーンを明示的に有効にする（モデルがサポートしている場合）
+help.option.title セッションタイトルの指定（多回対話）
+help.option.tool_output_limit 単回のツール出力可能文字数の上限
+help.option.tool_timeout ツール実行のタイムアウト秒数
+help.option.userage 指定ユーザーの年齢
+help.option.usergender ユーザーの性別を指定
+help.option.username ユーザ名を指定する
+help.option.value をスクリプト環境に値を代入する。オプションは重複可能
+help.option.version バージョン情報を表示する
+help.option.wait_gradient インジケーターのグラデーションモードの待機
+help.option.wait_style 待機時の指示スタイルを指定する
+help.prefix_suffix.line1 プレフィス連続記述機能を有効にした後、連続対話モードでは、質問の末尾に \e[32m@prefix\e[0m のマークを追加する
+help.prefix_suffix.line2 でプレフィックスを使って続けて書く機能を利用できます:
+help.prefix_suffix.line3 また、複数のファイルや画像を同時に提出するために、複数のファイルパスを直接引用することが可能です。例えば：
+help.prefix_suffix.title ヒント:
+help.read_enhancement.line1 自 \e[33m%s バージョンから、\e[32mread\e[0mが強化され、一部の局内指令に対する補完機能が追加されました。
+help.read_enhancement.line2 を利用して、体験を向上させる。
+help.read_enhancement.line3 オプションの依存関係コマンドを追加することで、これらのコマンドをインストールした後、使用体験がある程度向上します。上記のコマンドライン引数を通じて利用可能です。
+help.read_enhancement.line4 数選択的禁止コマンド拡張：
+help.save_history 現在の環境下での記録は \e[35m%s\e[0m に保存されます
+help_simple.option_apikey 指定インターフェースキー
+help_simple.option_baseurl は OpenAI APIのBaseURLを指定するためのものです。
+help_simple.option_help 完全なヘルプと使い方を表示する
+help_simple.option_help_simple このヘルプを表示する
+help_simple.option_model 指定モデル
+help_simple.options オプション
+help_simple.option_version バージョン情報を表示する
+help_simple.usage 使い方: %s [-abcefgHhijklmnopstuVvwxyz|オプション] [Ask|File]
+help.style_option スタイルオプション (\e[32m-w\e[0m/\e[32m--wait-style\e[0m):
+help.style_option.arc 回転 - 弧状
+help.style_option.arrow 回転 - 矢印
+help.style_option.bar 回転 - クラシックハンドル型
+help.style_option.bell 回転 - 時間の経過
+help.style_option.block 戻る - ブロックを点灯させる
+help.style_option.dot 戻る - 収縮する点状チェーン
+help.style_option.dotmatrix 回転 - Npmスタイルの点阵
+help.style_option.invisible という文字 - 一つずつ隠す
+help.style_option.line 戻る - 下線を動かす
+help.style_option.pushpull ブロック - 前後収縮
+help.style_option.rollという文字 - スクロール表示
+help.style_option.square 四角形 - 角の変形
+help.style_option.wave ブロック - 上下に波打つ
+help.system_prompt_variable.line1 システムプロンプトに関して、このスクリプトはユーザー情報で指定されたパラメータと、それに対応するプロンプト内の変数を予約しています：
+help.system_prompt_variable.line2 のすべてのデータ項目は選択可能値です。該当するシステムプロンプトファイルがこれらの値を頻繁に参照する必要がない限り。
+help.system_prompt_variable.line3 *ユーザ名使用は他の項目よりも頻繁に発生します
+help.usage 使い方: \e[32m%s\e[0m [ \e[33m質問\e[0m | \e[33m質問ファイル\e[0m | \e[33mオプション\e[0m ]...
+interrupt.before_request ブロックマークが検出され、このリクエストはスキップされました
+interrupt.double_quit 再びCtrl+Cを受信し、直接終了する
+interrupt.input_hint を再びCtrl+Cで終了
+interrupt.message がファイルマークによって現在のリクエストが中断されました
+interrupt.signal_received Ctrl+Cを受信し、現在のリクエストを中断中...（再押すと直接終了）
+interrupt.suffix ｜[中断された]
+interrupt.tools_skipped はファイルマークに従って中断され、残り %s 個のツール呼び出しがスキップされました
+limit_filesize.warning ファイルは [大于 %sバイト] / [小于 %sバイト] でなければなりません。現在のファイルサイズは %s バイトです
+llamacpp.died llama.cpp サービスが終了しました（PID %s）、終了します
+llamacpp.exited llama.cpp プロセスが終了しました。ログの末尾:
+llamacpp.loading モデルを読み込み中... %ss（Ctrl+C で中止）
+llamacpp.not_found は llama-server や llamaコマンドが見つかりません。llama.cppサービスを起動できません。
+llamacpp.ready llama.cpp 準備完了: %s（PID %s）
+llamacpp.starting が起動中 llama.cpp: %s %s（ログ: %s）
+llamacpp.timeout は llama.cpp が準備完了するのに %s 秒かかった、ログの最後部分:
+logo.builtin 内蔵
+logo.file_not_found ファイルが存在しない、読み取れない、または空： %s
+logo.file_unreadable カスタムロゴファイルが読み取れないか空の場合: %s、内蔵ロゴに戻す
+logo.loaded がカスタムロゴを読み込みました: %s
+logo.mode_set logo 色彩モードが設定されました: %s（有効: %s）
+logo.restored が内蔵されたロゴを復元しました
+logo.status 現在のロゴファイル: %s | 色彩モード: %s（有効: %s）
+logo.usage 使用法: .logo [preview|off|color|gray|dual|none|auto|<ファイルパス>]
+mcp.call_failed MCP呼出失敗: %s (サーバー: %s)
+mcp.duplicate_name MCP設定に同名のサーバーが存在します：%s（名前はツールのプレフィックスとして使用されるため、一意でなければなりません）
+mcp.init_failed MCPサーバー初期化失敗: %s（ログ: %s）
+mcp.invalid_config MCP 配置無効: %s
+mcp.loaded が %s 個のMCPサーバーを読み込みました。ツールが統合されました。
+mcp.name_too_long 以下のMCPツール名は64文字を超えており、インターフェースで拒否される可能性があります。serverやツール名を短くしてください: %s
+mcp.need_arg パラメータ名を自動的に推測できません。JSON形式で以下のように伝えてください：「{\"パラメータ\":\"値\"}」
+mcp.none にはロードされたMCPサーバーがない（設定: %s）
+message.login.msg_1 BAI 対話スクリプト | プロジェクトアドレス: <\e[4m\e[34m%s\e[0m>\n
+message.login.msg_2 現在のモデル: \e[35m%s\e[0m, \e[32m.set \e[33mchat-model \e[2m37><モデル名>\e[0m でモデルを切り替えます\n
+message.login.wolcome_user ようこそ、%s\n
+model_list.illegal_length_marking モデル \e[33m%s\e[0m: 非合法なコンテキスト長のマーク \e[35m%s\e[0m
+models.effort_fallback がデフォルト設定に戻りました %s
+models.effort_unsupported モデル %s は思考強度 %s をサポートしていません（サポート可能: %s）
+models.fetch_failed でモデルリストの取得に失敗した
+models.image_unsupported モデル %s は画像入力機能（input_modalities: %s）を宣言していないため、画像は無視される可能性があります。
+models.legend （* 現在のモデルを示す、~ は内蔵表から推測されるものを示す、? はサーバー側で提供されていないものを示す）
+models.table_headline | モデル | 名称 | コンテキスト | 出力 | 入力 | 思考レベル |
+msg.all_functions_disabled すべての関数ツールが無効化されましたか？ツールファイルを指定した場合、少なくとも1つの利用可能な関数ツールが必要です。
+msg.conversation_cleared 対話がクリアされました
+msg.disabled_functions_not_found 存在しない機能ツール：
+msg.gum_placeholder ユーザー入力...
+msg.histfile_not_found %s 歴史ファイルが作成されていません。少なくとも一度入力してから再試行してください。
+msg.missing_dependencies_found 依存関係の宣言に必要なコマンドが不足しているため、以下の関数ツールは使用できません:
+msg.missing_dependencies_found_for_function 関数ツール \e[32m%s\e[0m に \e[33m%s\e[0m が必要です
+msg.quote.double 二重引用符
+msg.quote.single 単一引用符
+msg.set_description.api_style インターフェーススタイル：chat=chat/completions（デフォルト）、responses=Responses API（予約済み）
+msg.set_description.call_tools が関数を実行することを許可するかどうか、デフォルト値は %s
+msg.set_description.chat_model 複数のプリセットからモデルを切り替えます。初期のプリセットモデルは %s です。
+msg.set_description.compress_auto コンテキストの上限に近づくと自動的に履歴を圧縮する
+msg.set_description.compress_keep 圧縮時に最近のNラウンドの原文を保持する
+msg.set_description.compress_model サマリモデルを指定（空＝現在のモデル）
+msg.set_description.compress_threshold 自動圧縮閾値（コンテキスト占有率、デフォルト 50）
+msg.set_description.context_from_api は /modelsからコンテキスト長を検出するかどうか
+msg.set_description.debug_output デバッグ出力を有効にする（明確な効果はない）
+msg.set_description.double_ctrlc_window Ctrl+C を2回連打する際の時間帯（デフォルト：2秒）
+msg.set_description.enable_search サプライヤー付随のネットワーク検索機能を有効にする
+msg.set_description.enable_thinking モデルの思考チェーンを明示的に有効にする
+msg.set_description.erron_effect 警告をプッシュする際に遅延阻止
+msg.set_description.eval_skipaskは、コマンドを生成した後、確認をスキップして直接実行する
+msg.set_description.interact_complete リスト選択式インタラクティブコマンド補完の有効化
+msg.set_description.latex_mode 公式レンダリング方式（auto/image/unicode/off）
+msg.set_description.latex_render ラテックス公式のレンダリングを有効にするか（無効にした場合はそのまま出力）
+msg.set_description.local_execute は、指令によってコマンドを実行する際、%s内部環境で実行されます
+msg.set_description.logo_file カスタムロゴファイルパス（空＝内蔵、R,G,Bカラーのトークンと{{...}}グラデーションマーク対応）
+msg.set_description.logo_mode logo 色彩モード：auto=追従待ちグラデーション / color / gray / none
+msg.set_description.models_ttl モデルリストキャッシュ秒数（デフォルト 86400）
+msg.set_description.permission_mode ツールの権限モード：normal レベル別 / full 全て許可 / auto 自動検査、高リスクのみ確認
+msg.set_description.print_effect 非リアルタイムモードでは滑らかなタイプマシン効果を使用する
+msg.set_description.reasoning_effort モデルの推論強度を制御するもので、デフォルト値はdefaultです
+msg.set_description.safe_stream 旧版の逐項目解析への流れ処理リトライ（互換性優先、速度が遅い）
+msg.set_description.session_autosave セッションの記録有無（デフォルトはオフ、--save-sessionと同等）
+msg.set_description.session_keep 最大保持可能なセッションファイル数（デフォルト 50）
+msg.set_description.tool_output_limit 単回のツール出力上限文字数（0=制限なし）
+msg.set_description.tool_timeout ツール実行のタイムアウト秒数（0=制限なし）
+msg.set_description.wait_dual_colors 双色グラデーションの端点色、形式は r,g,b:r,g,b（デフォルトは 255,128,255:128,255,255）
+msg.set_description.wait_frame 待ち動画のフレームプレフィスを表示するかどうか（デフォルトはtrue；falseの場合は文字とタイマーのみ表示）
+msg.set_description.wait_gradient 待機インジケーターのグラデーションモード：dual=2色グラデーション（デフォルト）/ color=カラーグラデーション / gray=グレースケール / none=色付けなし
+msg.set_description.wait_gray_style グレースケール効果：band=暗背景白光横切り（デフォルト）/ sine / white / breath / contrast / ramp
+msg.small_model_warning 明示的に指定されたモデルのサイズが小さすぎます (\e[33m%s\e[0m)、\e[32mFunction Calling\e[0m機能が無効化されています。より大きなパラメータ数 (\e[36m=<\e[0m\e[35m5b\e[0m)のモデルや手動呼び出し指令を使用してください。
+msg.stdin_chat_unsupported このセッションを処理できません
+msg.stream_disabled_detected ストリーム出力が無効になっているため、複数回のツール呼び出しが制限されます。ユーザーが複数のツールを使用しようとしていることがわかった場合は、リクエストを拒否してください。
+msg.turns_limit_reached 対話回数が上限に達したため、対話をリセットします
+option.add_l10n_file.file_not_exist ファイルが存在しない
+option.add_l10n_file.invalid_markファイルに必要なローカライズマークが欠落しています
+option.add_l10n_file.no_arg_value ローカライズファイルは指定されていません
+option.apikey.no_arg_value 未指定インターフェースキー
+option.argtest.no_arg_value 未指定パラメータ
+option.baseurl.no_arg_value 未指定 OpenAI API BaseURL
+option.callfile.file_not_exist ファイルが見つかりません: %s
+option.callfile.is_directoryはディレクトリです
+option.callfile.no_arg_value ファイルは指定されていません
+option.compact_keep.no_arg_value 圧縮保持回数は指定されていません
+option.compact_model.no_arg_value 審査モデルは指定されていません
+option.compact_threshold.no_arg_value 圧縮閾値のパーセンテージは指定されていません
+option.config.file_not_found ファイルが存在しない
+option.config.no_arg_value 環境変数ファイルは指定されていません
+option.config.sensitive_content 敏感なファイル内容
+option.export_l10n_file.cannot_create ファイルを作成できない
+option.export_l10n_file.export_successfully ローカライズされたテキストがファイルに正常にエクスポートされました:
+option.export_l10n_file.file_exists ファイルが既に存在します
+option.export_l10n_file.no_arg_value エクスポートファイルは指定されていません
+option.histfile.no_arg_value 履歴ファイルは指定されていません
+option.invalid_value 不正な値
+option.invalid_value 不正な値 (auto/image/unicode/off)
+option.logo_file.file_not_found ロゴファイルが存在しない、読めない、または空： %s
+option.logo_file.no_arg_value 未指定 logo ファイル
+option.logo_mode.no_arg_value 未指定 LOGO 色彩モード
+option.mcp_config.no_arg_value 未指定 MCP サーバー設定
+option.missing_env_vars 環境変数が不足しています\n少なくとも \e[32mインターフェースキー\e[0m を提供する必要があります\n使い方は \e[32m%s\e[0m \e[33m--help\e[0m をご参照ください。
+option.model.auto_detected_models サービスプロバイダから取得した利用可能なモデルリスト: %s
+option.model.auto_detecting_models が指定されていない場合、OPENAI_API_MODELを使用して利用可能なモデルのリストをサービスプロバイダから取得します。タイムアウト: 10秒 |
+option.model.get_model_list_failed でモデルリストの取得に失敗しました。OPENAI_API_MODEL環境変数を手動で指定するか、\e[32m--model\e[0mオプションを使用してモデルを指定してください。
+option.model.no_arg_value 未指定モデル
+option.no-extend.command_not_found コマンドが存在しない
+option.no-extend.invalid_list 非合法な命令排除リスト
+option.no-extend.no_arg_value 未指定排除項
+option.no-extend.not_extend_command 非選択的な依存コマンド
+option.no-tools.invalid_list 非合法な関数無効化リスト
+option.no-tools.no_arg_value 未指定排除項
+option.permission_mode.no_arg_value の審査モデルは指定されていません
+option.reasoning_effort.default_value は、サプライヤーのデフォルトの推論強度を使用します
+option.reasoning_effort.invalid_value 推理強度オプションが有効ではない: \e[33m%s\e[0m, 有効値: \e[32m%s\e[0m
+option.reasoning_effort.no_arg_value 思考強度は指定されていない
+option.reasoning_effort_replace.no_arg_value 置換する必要のある思考強度オプションは指定されていません
+option.reasoning_effort.set_value 推理強度が設定されました: \e[32m%s\e[0m
+option.resume.no_arg_value 未指定インターフェーススタイル
+option.resume.no_arg_value 歴史セッションIDは指定されていません
+option.search.del_value 検索オプションはサプライヤーのデフォルト値を使用します
+option.search.disable_value 検索オプションが無効になりました
+option.search.enable_value 検索オプションが有効になっています
+option.search.invalid_value 検索オプションが無効: \e[33m%s\e[0m, 選択可能値: \e[32m%s\e[0m
+option.sysfile.file_not_exist ファイルが見つかりません: %s
+option.sysfile.is_directoryはディレクトリです
+option.sysfile.no_arg_value 基本ヒントファイルは指定されていません
+option.thinking.del_value 思考オプションはサプライヤーのデフォルト値を使用します
+option.thinking.disable_value 思考オプションが無効になりました
+option.thinking.enable_value 思考オプションが有効になりました
+option.thinking.invalid_value 思考オプションが有効ではない: \e[33m%s\e[0m, 選択可能値: \e[32m%s\e[0m
+option.title.no_arg_value タイトルは指定されていません
+option.tool_output_limit.no_arg_value 未指定ツール出力上限
+option.tool_timeout.no_arg_value 圧縮保留回数は指定されていません
+option.too_many_prompts 過多の質問
+option.unknown_option 未知のオプション: \e[33m%s\e[0m
+option.unknown_option_with_similar 未知のオプション: \e[33m%s\e[0m, \"\e[32m%s\e[0m\"を含むオプションが見つかりました:
+option.unknown_option_with_similar_and_similar 未知のオプション: \e[33m%s\e[0m, 最も近いオプション \e[32m--%s\e[0m が見つかりました
+option.userage.no_arg_value ユーザーの年齢は指定されていません
+option.usergender.no_arg_value ユーザー性別は指定されていません
+option.username.no_arg_value ユーザ名は指定されていません
+option.value.inject_failed 変数注入失敗
+option.value.invalid_format 変数の値の設定が規格に適合していない
+option.value.invalid_name 変数名が規則に合わない
+option.value.no_arg_value 未指定変数
+option.value.value_occupied 変数 %s は既に注入されています
+option.wait_gradient.no_arg_value 未指定渐变モード
+option.wait_gradient.unknown_mode 未知のグラディエントモード: %s（color/gray/dual/noneを選択可能）
+option.wait-style.no_arg_value 待ちスタイルは指定されていません
+option.wait-style.unknown_style 未知の待機スタイル: \e[32m%s\e[0m、\"\e[32m%s\e[0m\"を含むスタイルが見つかりました:
+option.wait-style.unknown_style 未知の待機スタイル: \e[33m%s\e[0m
+option.wait-style.unknown_style_with_similar 未知の待機スタイル: \e[33m%s\e[0m、最も近いスタイル \e[32m%s\e[0mが見つかりました
+permission.auto_risky 自審査で高リスク操作と判断された
+permission.changed %sの権限を %sから一時的に %sに変更されました
+permission.denied ツール %sの申請が拒否されました
+permission.invalid_level 不正な権限レベル: %s（never|low|medium|always）
+permission.invalid_mode 不正な権限モード: %s（normal|full|auto）
+permission.level_always レベル：常に | このツールは毎回確認が必要です
+permission.level_low レベル：低 | 潜在的なリスクのある操作が検出されました
+permission.level_medium レベル：Medium | 初回使用時は確認が必要
+permission.mode_changed 権限モードが %sに切り替わりました
+permission.none ロードされたツールがない
+permission.non_interactive ツール %s にはユーザーの確認が必要ですが、現在はインタラクティブ端末ではないため、拒否されました
+permission.opt_deny 拒否
+permission.opt_once 今回の許可
+permission.opt_session このセッションは許可されています
+permission.reset_done で %sの権限を宣言値 %sに復元しました
+permission.reset_usage の使い方: .perms reset <ツール名>
+permission.review_mode.current_mode 現在のモード: %s（normal/full/auto）
+permission.review_mode.disabled レビューキャッシュ: 無効化されました
+permission.review_mode.list 審査キャッシュ： %s 件（%s）
+permission.review.table_headline | ツール | 権限 | 今回は承認済み |
+permission.set_usage 使用法: .perms set <ツール名> <never|low|medium|always>
+permission.timeout タイムアウトが確認されました（%s秒）、拒否されました
+permission.tool_not_found ツールが見つかりません: %s
+permission.unknown_arg 未知の権限パラメータ: %s（list|set|reset|mode）
+permission.user_reject [権限] ツール %s がユーザーの承認を得られなかったため、実行をスキップしました。
+permission.warning \e[31m警告: %s 現在はneverです。再確認は行われません\e[0m
+permission.warning.no_request \e[31m警告: ツール %s は権限をneverとしており、いかなる時もユーザーの確認を求めません\e[0m
+responses.failed 応答失敗: %s
+session_help.api インターフェーススタイル適応層の自検情報を確認する
+session_help.call 関数ツールの実行
+session_help.clear すべての会話を削除する
+session_help.cls 画面をクリアする、または .run clear
+session_help.code 最新の対話からコードブロックをコピーする
+session_help.compact 現在のコンテキストを圧縮する（古い対話の要約、最近のNラウンド分の原文を保持）
+session_help.eval は、大規模モデルにコマンドを生成させようと試みます
+session_help.exit 現在のセッションを終了する
+session_help.file は現在の会話にファイルを送信します
+session_help.files はサービスプロバイダにファイルをアップロードするためのものです
+session_help.help このヘルプ情報が表示されます
+session_help.keys.cancel 検索のキャンセル (置換されない、Bashのデフォルト動作)
+session_help.keys.clear 画面をクリアする（コマンド：clear）
+session_help.keys.copy 最近のロールプレイング対話の第1のコードブロックをコピーする
+session_help.keys.exit 現在のセッションを終了する
+session_help.keys.help このヘルプを表示します
+session_help.keys.search 検索履歴の入力記録（fzfがインストールされており、無効化されていない場合はfzfで検索）
+session_help.list は、すべての対話記録を表示します
+session_help.logo カスタムロゴ（プレビュー/内蔵の復元/カラーモード/ファイル）
+session_help.mcp ロードされた MCPサーバーとツールの数を確認する
+session_help.models は、サービスプロバイダが提供するモデルとコンテキストの長さを表示します。
+session_help.msg.api 使い方: .api\n 現在のインターフェーススタイル（chat/responses）、リクエストアドレス、実装状況を表示します
+session_help.msg.call の使い方: .call <関数名> <パラメータ>?\n  インポートされた関数ツールを手動で実行する\n  このコマンドを使用すると、既存の関数を補完して表示することができます
+session_help.msg.clear 現在のすべての対話記録を削除し、対話ステージをリセットする
+session_help.msg.cls 画面をクリアする。動作は .run clearと同じ。
+session_help.msg.code 使い方: .code preview? <索引>?\n  最新の対話からコードブロックをコピーする\n  <索引>を指定しない場合、コピー可能なコードブロックの数が表示される\n  <索引>を指定した場合、指定された索引のコードブロックをコピーする\n  preview機能を指定した場合、指定された索引のコードブロックの内容は表示されるがコピーされない
+session_help.msg.compact 使い方: .compact [show|undo|tools]?\n  現在の対話コンテキストを圧縮します：旧ツールの結果を切り捨て、旧画像をテキスト説明に変換し、より古い対話をシステムメッセージとして要約します\n  show は使用状況を表示します、undo は圧縮前の状態に戻します、tools はツールの結果を切り捨てるだけです
+session_help.msg.eval の使い方: ..eval <提示言語>\n  大規模モデルに命令を生成させて実行させる試み\n  eval-skipask = true の設定がある場合（デフォルトでは無効）、生成された命令を直接実行し、確認のポップアップは表示されない
+session_help.msg.exit 使い方: .exit [状態コード]?\n  現在のセッションを終了します。状態コードが指定されない場合は、デフォルトで状態コード0が使用されます。
+session_help.msg.file の使い方: .file <ファイル>\n  現在の会話に、前回提出したファイルを提出するか、上書きする
+session_help.msg.files の使い方: .files [操作] <ファイル>|<ファイルID> [用途]\n   サービスプロバイダの一時保存用ファイル管理\n   操作:\n   list - 知識库にリストされているファイルを更新する\n   push - ファイルを知識库にアップロードする, <ファイル>\n   del - 知識库内のファイルを削除する, <ファイルID>\n   用途:\n   利用可能なプレセット: assistants, batch, file-extract, fine-tune, user_data
+session_help.msg.help 用法: .help [コマンド]?\n  コマンドのヘルプ情報を表示します。コマンドが指定されていない場合は、すべてのコマンドの簡単なヘルプ情報とキー説明を表示します。
+session_help.msg.list は、すべての対話記録を表示します
+session_help.msg.logo 使い方: .logo [preview|off|color|gray|none|auto|<ファイルパス>]\n  ロゴを表示または切り替え\n  パラメータなしの場合、現在の設定と使い方を表示します。previewは現在のロゴをプレビューします。offは内蔵ロゴを復元します\n color/gray/none/autoはロゴの色モードを設定します。<ファイルパス>はそのファイルをロゴとして使用します
+session_help.msg.mcp の使い方: .mcp\n ロードされた MCPサーバー、PID、ツールの数を表示する
+session_help.msg.models の使い方: .models\nサービスプロバイダが提供するモデルとコンテキスト長を表示する
+session_help.msg.not_found 指令 %sのヘルプが見つかりません
+session_help.msg.pass 空操作、実行しても何も起こりません
+session_help.msg.perms 使い方: .perms [list|set|reset|mode]\n .perms                      ツールの権限と認可状態を表示\n .perms set <ツール> <レベル>     実行中にレベルを変更（never/low/medium/always）\n .perms reset <ツール>          宣言値に戻す\n .perms mode <モード>           モードを切り替え（normal/full/auto）
+session_help.msg.record の使い方: .record <ファイル> <操作> [行動]?\n  現在の対話記録をインポートまたはエクスポート（指示の実行は含まれません）\n  操作:\n    import - 対話記録をインポート, import <ファイル>\n    export - 対話記録をエクスポート, <ファイル> export [行動]\n  行動:\n    @no:tool  - ツール呼び出し記録を含まない\n    @no:system - システムメッセージ記録を含まない\n    @use:all  - すべての記録をエクスポート、機密情報も含む: APIパス、APIキー、モデル\n    @default  - デフォルトのエクスポート行動、ツール呼び出し情報を含むすべての対話をエクスポート\n  注意: @use:all エクスポート行動は完全なインポート互換性はありません。インポート時は対話記録のみを使用します
+session_help.msg.run の使い方: .run <コマンド>\n  Bashでシェルコマンドを実行する\n  local-execute = trueの設定の場合（デフォルトでは無効）はBAIの内部シェル環境を共有し、そうでない場合は隔離された子プロセス内で実行される
+session_help.msg.sessions 使い方: .sessions\n 最近保存されたセッションを表示します（*は現在のセッションを意味します）
+session_help.msg.set の使い方: .set <設定項目>? <値>?\n  現在のセッションの属性を設定します。すべてのパラメータが指定されていない場合、すべての設定項目とその値、説明が表示されます\n  <設定項目>が指定された場合、その設定項目の値が表示されます。<設定項目>と<値>が指定された場合、その設定項目の値が設定されます
+session_help.msg.term 使い方: .term\n 端末のサイズ、各検出源、そして最終的なGet-TWidthの結果を表示する
+session_help.pass 空操作、これは直接Enterキーを押すことと同じです
+session_help.perms ツールの権限レベルと今回の認可状態を確認する
+session_help.prefix.runはShellでコマンドを実行する（.runと同じ）
+session_help.prefix.tool 関数ツールの使用 (.callと同様)
+session_help.record 記録管理
+session_help.run はShellコマンドを実行します
+session_help.sessions は、最近保存されたセッションを表示します
+session_help.set は現在のセッションの属性を設定するための機能です
+session_help.term ターミナルサイズの検出源を確認（/dev/tty、stdin、tput、COLUMNS）
+session_help.tips.at_mention 質問の中で@パスを直接使用してファイルや画像を引用する場合、例えば @src/main.c、@\"my photo.png\"\n  複数を同時に提出できます。画像とテキストファイルは質問と共に提出され、パスが存在しない場合はそのまま保持されます。
+session_help.title セッション指示ヘルプ
+session_help.title_instructions 指示:
+session_help.title_keys キー（その他のキーのバインドについてはBash公式ドキュメントを参照してください）：
+session_help.title_prefixes 指令プレフィックス:
+session_help.title_tips ヒント:
+session.legend （* 現在のセッションを表示；--resume <id> で再開）
+session.list_failed 表示可能なセッションがありません
+session.resumed セッションが復帰しました %s（%s件のメッセージ、モデル %s）
+session.resume_failed 復元可能なセッションが見つかりません: %s
+session.table_headline | セッション | 更新時間 | モデル | ラウンド数 | 最初の文 |
+set_session_functions.debug.print_setting %sの現在の設定を表示する
+set_session_functions.debug.setting_bool 設定項目をブール値に設定: %s の値が %s に設定されます
+set_session_functions.debug.setting_number 設定項目の値を数値: %s に設定され、値は %s になります
+set_session_functions.debug.setting_string 設定項目を文字列値の %s に設定します。その値は %s に設定されます。
+set_session_functions.error.file_not_readable ファイルが存在しない、読み取り不可能、または空： %s
+set_session_functions.error.invalid_bool はブール値のみを使用可能
+set_session_functions.error.invalid_number は数値のみを使用可能
+set_session_functions.error.invalid_option では、以下のオプションのみが使用可能です: %s
+set_session_functions.error.unknown_option 未知のオプション %s
+set_session_functions.error.unknown_type 未知の型 %s
+set_session_functions.title.alias 別名
+set_session_functions.title.description 説明
+set_session_functions.title.value 値
+set_temp_file_messages.assistant_return_time モデルの返信にかかる時間: %s、約 %s Tokensが出力されました
+set_temp_file_messages.assoc_array_odd_count 関連配列のパラメータは偶数個でなければなりません
+set_temp_file_messages.building_tool_call 構築ツール呼び出し...
+set_temp_file_messages.checking_if_tools_used ツールが使用されているかどうかをチェックする
+set_temp_file_messages.code_coloring {{BAIがコードに色を付けている}}
+set_temp_file_messages.curl_error_details CURLエラー詳細:\n
+set_temp_file_messages.deleting_file {{ファイルの削除要求}}
+set_temp_file_messages.dialogue_data_report このラウンドの対話が完了し、%s Tokensが消費されました（入力: %s、出力: %s）。キャッシュヒットは%s Tokens、キャッシュミスは%s Tokensで、時間は%ssかかりました。キャッシュヒット率は%s%%です。
+set_temp_file_messages.dialogue_data_report_total 歴史統計: %s Tokensの消費 (入力: %s, 出力: %s), キャッシュヒット %s Tokens, キャッシュミス %s Tokens, キャッシュヒット率 %s%%
+set_temp_file_messages.direct_output_with_syntax_highlighting 直接出力結果。可能であればbatの構文ハイライトを使用する
+set_temp_file_messages.duplicate_option 重複するオプション
+set_temp_file_messages.exception_during_session_processing セッション処理中に異常が発生した
+set_temp_file_messages.file_deleted ファイルID %s が削除されました
+set_temp_file_messages.file_delete_error ファイルを削除する際にエラーが発生しました
+set_temp_file_messages.file_list_error ファイルリストを取得する際にエラーが発生しました
+set_temp_file_messages.file_not_found ファイルが存在しない: %s
+set_temp_file_messages.file_suffix_invalid ファイルサフィックスが適切ではない
+set_temp_file_messages.file_uploaded ファイルのアップロードが完了しました %s、用途: %s
+set_temp_file_messages.file_upload_error ファイルのアップロード時にエラーが発生しました
+set_temp_file_messages.file_upload_failed ファイルアップロード失敗
+set_temp_file_messages.getting_file_list {{ファイルリストを取得中}}
+set_temp_file_messages.http_error_details HTTP応答エラー詳細:\n
+set_temp_file_messages.http_response_headers_details HTTP応答ヘッダー:\n
+set_temp_file_messages.invalid_file_id は利用可能なファイルIDではありません。再度指定してください。
+set_temp_file_messages.invalid_file_type 不正なファイルタイプ
+set_temp_file_messages.jq_check_status jq チェック時の状態: %s
+set_temp_file_messages.link_text_empty テキストは空でなければなりません
+set_temp_file_messages.link_url_empty リンクは空でなければなりません
+set_temp_file_messages.message_append_failed セッションメッセージの書き込みに失敗した
+set_temp_file_messages.missing_commands 欠落したコマンド %s
+set_temp_file_messages.model_return_empty モデルが空の結果を返した。エラーが発生している可能性があります。役立つ情報が表示されます。
+set_temp_file_messages.no_args 未指定パラメータ
+set_temp_file_messages.no_file_id_specified 必要なファイルIDが指定されていない
+set_temp_file_messages.no_file_path ファイルパスが指定されていません
+set_temp_file_messages.no_files_available 利用可能なファイルリストを取得できず、リストを更新しようとしています
+set_temp_file_messages.no_files_available_again 利用可能なファイルリストが再び得られなかった
+set_temp_file_messages.no_files_found サービスプロバイダに保存されたファイルがない
+set_temp_file_messages.no_files_to_delete 削除可能なファイルがない、更新を試みる
+set_temp_file_messages.no_files_to_delete_again 再削除可能なファイルがない
+set_temp_file_messages.no_prompt_specified 質問が行われていないため、ファイルについて言及する際に同時に質問を実施してください
+set_temp_file_messages.option_empty オプションは空でなければなりません。
+set_temp_file_messages.request_not_accepted このリクエストが正しく受け入れられなかった
+set_temp_file_messages.standard_openai_response フローモード: 標準のOpenAI応答、応答にかかる時間: %s
+set_temp_file_messages.starting_stream_request このBaseURLに対してPOSTリクエストを送信: %s、使用モデル: %s、ストリーム応答を使用
+set_temp_file_messages.stream_data_header HTTP の返信:\n
+set_temp_file_messages.stream_safe_mode 流式処理は旧版互換モードを使用
+set_temp_file_messages.table_rendering {{BAIが表を作成中}}
+set_temp_file_messages.thinking_chain_response 流モード: 思考チェーン, 応答にかかる時間: %s, 待機を続行...
+set_temp_file_messages.thinking_chain_tokens 思考時間: %s, 約 %s Tokensが出力されました
+set_temp_file_messages.tool_calling ツール呼び出中
+set_temp_file_messages.tool_calling_multiple ツール呼び出し中 (%s/%s)
+set_temp_file_messages.tools_call_response 流モード: ツール呼び出し、応答時間: %s
+set_temp_file_messages.tools_call_status ツール呼び出し状態: %s
+set_temp_file_messages.tools_execution_failed ツール実行失敗
+set_temp_file_messages.tools_not_found ツール関数 %s が見つかりません
+set_temp_file_messages.tools_not_used モデルはまだツールを使用していない
+set_temp_file_messages.tools_used 発見モデルがツールを使用している
+set_temp_file_messages.typing_effect_output 使用タイピング効果出力
+set_temp_file_messages.uploading_file {{ファイルのアップロード中}}
+set_temp_file_messages.variable_empty 変数は空でなければなりません
+set_temp_file_messages.waiting_for_api_response アプリケーションの応答を待つ...
+set_temp_file_messages.waiting_for_assistant_response {{少し待ってください、BAIがサーバーで処理中です}}
+show_sixel_image.condition.mode1 端末: 幅が高さ以上、画像: 高さが幅より大きい、モード%s
+show_sixel_image.condition.mode2 端末: 幅が高さ以上、画像: 幅が高さ以上、モード%s
+show_sixel_image.condition.mode3 端末: 高さが幅より大きい、画像: 高さが幅より大きい、モード%s
+show_sixel_image.condition.mode4 端末: 高さが幅より大きい、画像: 幅が高さ以上、モード%s
+show_sixel_image.debug.condition.message 画像サイズ決定条件:
+show_sixel_image.debug.decision.message 画像サイズ決定結果: [全体スケール]
+show_sixel_image.decision.mode1 画像の高さを端末高さ/2+3に設定
+show_sixel_image.decision.mode2 画像の幅を端末の幅の/2に設定
+show_sixel_image.decision.mode3 画像の高さを端末高さ/2に設定
+show_sixel_image.decision.mode4 画像の幅を端末の幅/2+3に設定する
+show_sixel_image.warning.not_support_sixel_preview この端末はSixel Imageプレビューをサポートしていません
+stdin_input_prefix これは標準入力からの内容です:
+switch_model.already_using の重複設定
+switch_model.model_unknown モデルを指定してください
+switch_model.switched_to_model が %sに切り替わりました
+switch_model.switching_to_model モデルを %s に切り替えます
+switch_model.unknown_model 未知のモデル %s
+test_string.test1 これはテスト文字列です\n
+test_string.test2 これはテスト文字列で、パラメータ %s が含まれています。\n
+tools.message_prompt …[%s文字は省略されました。完全な出力は %s をご覧ください（sed -n で始まり、終わりのpを使って分割して確認できます）]…
+tools.run_command.need_parameter [run_command] にcommandパラメータが不足しています
+wait_task.error.custom_wait_task_frame_not_set カスタム待機タスクアニメーションの変数が設定されていない BAI_CUSTOM_WAIT_TASK_FRAME
+wait_task.executing_command {{ツールがコマンドを実行中}}
+wait_task.waiting {{待っている}}
